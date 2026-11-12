@@ -14,7 +14,7 @@
 ## Rules
 
 - `design_system/` imports only itself and outside packages, never another app folder, `flutter_bloc`, `get_it`, or `go_router`.
-- Only `ui/` and `app.dart` import it, and `layer_lint` enforces both rules.
+- `ui/` and `app.dart` use it. `layer_lint` enforces both rules and keeps `domain/`, `data/`, and `utils/` from importing it.
 - Each level composes only from the levels below it. Atoms style themselves with tokens only.
 - Check `design_system/` before writing a widget. Extend an existing component with a parameter rather than copying it.
 - If a widget could appear on a second screen, build it in `design_system/` from the start. Feature folders keep only widgets bound to that feature's cubit or models.
