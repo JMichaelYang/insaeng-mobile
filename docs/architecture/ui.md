@@ -8,44 +8,45 @@
 
 - Use a `Cubit` by default. Reach for a `Bloc` only when you need event transformers such as debounce or droppable.
 - Each screen gets one cubit, `<Feature>Cubit`, and its file exports its state.
-- Cubits take repository interfaces through their constructor and `switch` on the returned `Result`. They never touch services, `getIt`, or widgets.
+- Cubits take repository interfaces or use cases through their constructor and `switch` on the returned `Result`. They never touch services, `getIt`, or widgets.
 - States are immutable dart_mappable classes, which gives them `copyWith` and value equality.
-  - A single `@MappableClass()` with defaults fits screens that only change values.
-  - A `sealed` base with one `@MappableClass()` subclass per phase fits screens with distinct phases, and gives widgets an exhaustive `switch`.
+  - By default each screen has one `@MappableClass()` state. It holds a `@MappableEnum()` status (`initial`, `loading`, `success`, `failure`), the loaded data, and an optional `Failure`. Content stays on screen during refreshes and inline errors, and there is a single `copyWith`.
+  - Use a `sealed` base with one `@MappableClass()` subclass per phase only when the phases share no data, such as an auth gate.
 
 ```dart
-@MappableClass()
-sealed class NotesState with NotesStateMappable {
-  const new();
-}
+@MappableEnum()
+enum NotesStatus { initial, loading, success, failure }
 
 @MappableClass()
-final class NotesLoading extends NotesState with NotesLoadingMappable {
-  const new();
-}
+class NotesState with NotesStateMappable {
+  const new({
+    this.status = NotesStatus.initial,
+    this.notes = const [],
+    this.failure,
+  });
 
-@MappableClass()
-final class NotesLoaded extends NotesState with NotesLoadedMappable {
-  const new(this.notes);
+  final NotesStatus status;
   final List<Note> notes;
-}
-
-@MappableClass()
-final class NotesFailed extends NotesState with NotesFailedMappable {
-  const new(this.failure);
-  final Failure failure;
+  final Failure? failure;
 }
 
 class NotesCubit extends Cubit<NotesState> {
-  new(this._repository) : super(const NotesLoading());
+  new(this._repository) : super(const NotesState());
 
-  final NotesRepository _repository;
+  final NoteRepository _repository;
 
   Future<void> load() async {
-    emit(const NotesLoading());
+    emit(state.copyWith(status: NotesStatus.loading));
     emit(switch (await _repository.fetchAll()) {
-      Ok(:final value) => NotesLoaded(value),
-      Err(:final failure) => NotesFailed(failure),
+      Ok(:final value) => state.copyWith(
+        status: NotesStatus.success,
+        notes: value,
+        failure: null,
+      ),
+      Err(:final failure) => state.copyWith(
+        status: NotesStatus.failure,
+        failure: failure,
+      ),
     });
   }
 }

@@ -4,16 +4,16 @@
 
 ## Repository implementations (`data/repositories/`)
 
-- `<Feature>RepositoryImpl implements <Feature>Repository`, and only the composition root refers to it by name.
-- Every method returns a `Result`. Catch service exceptions and convert each one to that feature's `Failure` subclass, so repositories never throw.
+- `<Model>RepositoryImpl implements <Model>Repository`, with one per type of data. Only the composition root refers to an implementation by name.
+- Every method returns a `Result`. Catch service exceptions and convert each one to a subclass of that repository's `<Model>Failure`, so repositories never throw.
 - Repositories are the single source of truth for their data. They own caching, mapping service data to domain models, and combining several services.
-- A repository may depend on several services, but never on another repository's implementation.
+- A repository may depend on several services, but never on another repository, whether through its interface or its implementation. Logic that combines repositories belongs in a use case.
 
 ```dart
-final class NotesRepositoryImpl implements NotesRepository {
+final class NoteRepositoryImpl implements NoteRepository {
   new(this._api);
 
-  final NotesApiService _api;
+  final NoteApiService _api;
 
   @override
   Future<Result<List<Note>>> fetchAll() async {
@@ -21,9 +21,9 @@ final class NotesRepositoryImpl implements NotesRepository {
       final rows = await _api.getNotes();
       return Result.ok(rows.map(NoteMapper.fromMap).toList());
     } on NotFoundException {
-      return const Result.err(NotesNotFound());
+      return const Result.err(NoteNotFound());
     } on IOException {
-      return const Result.err(NotesOffline());
+      return const Result.err(NoteOffline());
     }
   }
 }

@@ -10,7 +10,7 @@
 ## Dependency injection (`config/dependencies.dart`)
 
 - DI is manual get_it, with no code generation.
-- Register services, repositories, and use cases with `registerLazySingleton`. Key repositories by their **interface**: `..registerLazySingleton<NotesRepository>(() => NotesRepositoryImpl(getIt()))`.
+- Register services, repositories, and use cases with `registerLazySingleton`. Key repositories by their **interface**: `..registerLazySingleton<NoteRepository>(() => NoteRepositoryImpl(getIt()))`.
 - Order registrations by role, following the dependency direction: infrastructure such as clients and databases first, then services, repositories, and use cases. Within each role, sort alphabetically.
 - **Never register cubits.** The route's `BlocProvider` creates each cubit and closes it with the route, so the cubit's lifetime matches the screen and nothing can pull a stray instance out of get_it.
 
@@ -24,7 +24,7 @@
 GoRoute(
   path: Routes.notes,
   builder: (context, state) => BlocProvider(
-    create: (_) => NotesCubit(getIt<NotesRepository>())..load(),
+    create: (_) => NotesCubit(getIt<NoteRepository>())..load(),
     child: const NotesScreen(),
   ),
 ),

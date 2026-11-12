@@ -4,7 +4,7 @@ MVVM in three layers wired by a composition root.
 
 | Doc | Covers |
 | --- | --- |
-| [domain.md](domain.md) | `lib/domain/`: models, repository interfaces, `Result`, `Failure` |
+| [domain.md](domain.md) | `lib/domain/`: models, repository interfaces, use cases, `Result`, `Failure` |
 | [data.md](data.md) | `lib/data/`: repository implementations and services |
 | [ui.md](ui.md) | `lib/ui/`: cubits, states, screens, theme, and strings |
 | [design_system.md](design_system.md) | `lib/ui/core/`: tokens and atomic components |
@@ -13,9 +13,11 @@ MVVM in three layers wired by a composition root.
 
 ## Layers and the dependency rule
 
-- **UI → repositories → services.** Cubits call repositories, repositories call services, and nothing calls upward.
+- **UI → use cases (optional) → repositories → services.** Cubits call repositories directly, or call a use case when logic spans repositories. Repositories call services.
+- Nothing calls upward, and repositories never call each other.
+- Each repository is scoped to one type of data and named after its model, as in `NoteRepository`. Screens and cubits are named after features, as in `NotesCubit`.
 - `domain/` is pure Dart and imports only `domain/`. Every other layer may import it.
-- `ui/` depends on repository **interfaces** from `domain/` and never imports `data/`, `config/`, or go_router.
+- `ui/` depends on repository **interfaces** and use cases from `domain/`, and never imports `data/`, `config/`, or go_router.
 - `data/` implements those interfaces and never imports `ui/`, `routing/`, `config/`, or the entrypoints.
 - `utils/` is app-agnostic: it holds extensions on SDK, Flutter, and package types, and imports only `utils/` and `l10n/`.
 - Helpers for app types never go in `utils/`. Put derived logic on the model in `domain/`, presentation such as `Failure` → message in `ui/`, and mapping in `data/`.
@@ -33,7 +35,8 @@ lib/
   routing/                       routes.dart (paths), router.dart (GoRouter)
   domain/
     models/                      immutable @MappableClass entities
-    repositories/                abstract repository interfaces
+    repositories/                abstract repository interfaces, one per model
+    use_cases/                   cross-repository logic, one action per class
     result.dart, failure.dart
   data/
     repositories/                repository implementations
@@ -50,9 +53,9 @@ test/                            mirrors lib/, plus helpers/
 
 ## Add a feature checklist
 
-1. **Domain:** add models, a sealed `<Feature>Failure` family, and the `<Feature>Repository` interface.
-2. **Data:** add any new service, then `<Feature>RepositoryImpl`.
+1. **Domain:** for each new type of data, add its model, a sealed `<Model>Failure` family, and a `<Model>Repository` interface. Add a use case only if logic spans repositories.
+2. **Data:** add any new service, then `<Model>RepositoryImpl`.
 3. **UI:** reuse or add `ui/core/` components, add `<feature>_state.dart` and `<feature>_cubit.dart`, then `<feature>_screen.dart`, and put strings in both ARB files.
-4. **Composition root:** register the service and repository, add the path to `Routes`, and add a `GoRoute` whose `BlocProvider` builds the cubit.
+4. **Composition root:** register the new services, repositories, and use cases, add the path to `Routes`, and add a `GoRoute` whose `BlocProvider` builds the cubit.
 5. Run `fvm dart run build_runner build --delete-conflicting-outputs`.
 6. Add tests under the mirrored `test/` paths, then run `fvm dart format .`, `fvm flutter analyze`, and `fvm flutter test`.
