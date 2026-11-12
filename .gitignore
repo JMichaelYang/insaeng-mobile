@@ -52,3 +52,6 @@ app.*.map.json
 
 # Claude Code
 .claude/worktrees
+
+/lib/l10n/gen/
+*.mapper.dart

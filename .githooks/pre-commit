@@ -1,0 +1,14 @@
+#!/bin/sh
+set -eu
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR -- '*.dart' ':!tools/**')
+
+if [ -n "$staged" ]; then
+  for file in $staged; do
+    fvm dart fix --apply "$file" > /dev/null
+  done
+  fvm dart format $staged > /dev/null
+  git add $staged
+fi
+
+fvm flutter analyze
