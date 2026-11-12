@@ -1,4 +1,5 @@
 import 'package:insaeng/design_system/theme/colors.dart';
+import 'package:insaeng/design_system/theme/fonts.dart';
 import 'package:material_ui/material_ui.dart';
 
 abstract final class AppTheme {
@@ -10,6 +11,6 @@ abstract final class AppTheme {
       seedColor: AppColors.seed,
       brightness: brightness,
     );
-    return ThemeData(colorScheme: colorScheme);
+    return ThemeData(colorScheme: colorScheme, fontFamily: AppFonts.family);
   }
 }
