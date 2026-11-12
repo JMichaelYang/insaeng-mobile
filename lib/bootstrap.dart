@@ -24,8 +24,6 @@ Future<void> bootstrap(Flavor flavor) async {
 }
 
 Stream<LicenseEntry> _fontLicenses() async* {
-  final license = await rootBundle.loadString(
-    'assets/fonts/pretendard/LICENSE.txt',
-  );
+  final license = await rootBundle.loadString('assets/fonts/pretendard/LICENSE.txt');
   yield LicenseEntryWithLineBreaks(const ['Pretendard'], license);
 }

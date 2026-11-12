@@ -9,8 +9,7 @@ String? check(String library, String import) {
 void main() {
   const domain = 'package:app/domain/result.dart';
   const ui = 'package:app/ui/home/widgets/home_screen.dart';
-  const data =
-      'package:app/data/repositories/entry/entry_repository_remote.dart';
+  const data = 'package:app/data/repositories/entry/entry_repository_remote.dart';
   const utils = 'package:app/utils/context_extensions.dart';
   const config = 'package:app/config/dependencies.dart';
 
@@ -23,10 +22,7 @@ void main() {
     expect(check(domain, 'package:app/utils/x.dart'), 'utils');
     expect(check(domain, 'package:app/app.dart'), 'app.dart');
     expect(check(domain, 'package:flutter/foundation.dart'), 'package:flutter');
-    expect(
-      check(domain, 'package:material_ui/material_ui.dart'),
-      'package:material_ui',
-    );
+    expect(check(domain, 'package:material_ui/material_ui.dart'), 'package:material_ui');
     expect(check(domain, 'dart:ui'), 'dart:ui');
   });
 
@@ -50,10 +46,7 @@ void main() {
     expect(check(ds, 'package:app/l10n/l10n.dart'), 'l10n');
     expect(check(ds, 'package:app/utils/context_extensions.dart'), 'utils');
     expect(check(ds, 'package:app/routing/routes.dart'), 'routing');
-    expect(
-      check(ds, 'package:flutter_bloc/flutter_bloc.dart'),
-      'package:flutter_bloc',
-    );
+    expect(check(ds, 'package:flutter_bloc/flutter_bloc.dart'), 'package:flutter_bloc');
     expect(check(ds, 'package:get_it/get_it.dart'), 'package:get_it');
     expect(check(ds, 'package:go_router/go_router.dart'), 'package:go_router');
   });

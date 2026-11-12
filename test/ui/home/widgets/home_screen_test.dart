@@ -19,8 +19,7 @@ void main() {
       when(() => cubit.state).thenReturn(const HomeState(count: 3));
     });
 
-    Widget buildSubject() =>
-        BlocProvider.value(value: cubit, child: const HomeScreen());
+    Widget buildSubject() => BlocProvider.value(value: cubit, child: const HomeScreen());
 
     testWidgets('shows the localized title', (tester) async {
       await tester.pumpApp(buildSubject());

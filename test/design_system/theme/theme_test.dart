@@ -5,13 +5,8 @@ import 'package:material_ui/material_ui.dart';
 
 void main() {
   group(AppTheme, () {
-    for (final (name, theme) in [
-      ('light', AppTheme.light),
-      ('dark', AppTheme.dark),
-    ]) {
-      testWidgets('$name uses ${AppFonts.family} at bundled weights', (
-        tester,
-      ) async {
+    for (final (name, theme) in [('light', AppTheme.light), ('dark', AppTheme.dark)]) {
+      testWidgets('$name uses ${AppFonts.family} at bundled weights', (tester) async {
         late TextTheme textTheme;
         await tester.pumpWidget(
           MaterialApp(
@@ -46,10 +41,7 @@ void main() {
 
         for (final style in styles) {
           expect(style?.fontFamily, AppFonts.family);
-          expect(
-            style?.fontWeight?.value,
-            inInclusiveRange(FontWeight.w400.value, FontWeight.w700.value),
-          );
+          expect(style?.fontWeight?.value, inInclusiveRange(FontWeight.w400.value, FontWeight.w700.value));
         }
       });
     }

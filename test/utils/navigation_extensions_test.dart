@@ -24,8 +24,7 @@ void main() {
 
     tearDown(() => router.dispose());
 
-    Future<void> pumpRouter(WidgetTester tester) =>
-        tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    Future<void> pumpRouter(WidgetTester tester) => tester.pumpWidget(MaterialApp.router(routerConfig: router));
 
     testWidgets('goTo replaces the current location', (tester) async {
       await pumpRouter(tester);
@@ -37,9 +36,7 @@ void main() {
       expect(router.canPop(), isFalse);
     });
 
-    testWidgets('pushTo resolves with the result passed to back', (
-      tester,
-    ) async {
+    testWidgets('pushTo resolves with the result passed to back', (tester) async {
       await pumpRouter(tester);
 
       final result = context.pushTo<int>('/second');

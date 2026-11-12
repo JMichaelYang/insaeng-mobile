@@ -5,17 +5,9 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 
-typedef LayerPolicy = ({
-  Set<String>? onlyLayers,
-  Set<String> forbiddenLayers,
-  Set<String> forbiddenPackages,
-});
+typedef LayerPolicy = ({Set<String>? onlyLayers, Set<String> forbiddenLayers, Set<String> forbiddenPackages});
 
-const LayerPolicy _compositionRoot = (
-  onlyLayers: null,
-  forbiddenLayers: {'design_system'},
-  forbiddenPackages: {},
-);
+const LayerPolicy _compositionRoot = (onlyLayers: null, forbiddenLayers: {'design_system'}, forbiddenPackages: {});
 
 const Map<String, LayerPolicy> layerPolicies = {
   'domain': (
@@ -47,16 +39,8 @@ const Map<String, LayerPolicy> layerPolicies = {
     },
     forbiddenPackages: {},
   ),
-  'ui': (
-    onlyLayers: null,
-    forbiddenLayers: {'data', 'config'},
-    forbiddenPackages: {'go_router'},
-  ),
-  'utils': (
-    onlyLayers: {'utils', 'l10n'},
-    forbiddenLayers: {},
-    forbiddenPackages: {},
-  ),
+  'ui': (onlyLayers: null, forbiddenLayers: {'data', 'config'}, forbiddenPackages: {'go_router'}),
+  'utils': (onlyLayers: {'utils', 'l10n'}, forbiddenLayers: {}, forbiddenPackages: {}),
 };
 
 String? violation({required Uri library, required Uri target}) {
@@ -68,24 +52,18 @@ String? violation({required Uri library, required Uri target}) {
   if (policy == null) return null;
 
   if (target.scheme == 'dart') {
-    return policy.forbiddenPackages.contains('dart:${target.path}')
-        ? 'dart:${target.path}'
-        : null;
+    return policy.forbiddenPackages.contains('dart:${target.path}') ? 'dart:${target.path}' : null;
   }
   if (target.scheme != 'package' || target.pathSegments.isEmpty) return null;
 
   final targetPackage = target.pathSegments.first;
   if (targetPackage != package) {
-    return policy.forbiddenPackages.contains(targetPackage)
-        ? 'package:$targetPackage'
-        : null;
+    return policy.forbiddenPackages.contains(targetPackage) ? 'package:$targetPackage' : null;
   }
 
   if (target.pathSegments.length < 2) return null;
   final targetLayer = target.pathSegments[1];
-  final allowed =
-      (policy.onlyLayers?.contains(targetLayer) ?? true) &&
-      !policy.forbiddenLayers.contains(targetLayer);
+  final allowed = (policy.onlyLayers?.contains(targetLayer) ?? true) && !policy.forbiddenLayers.contains(targetLayer);
   return allowed ? null : targetLayer;
 }
 
@@ -112,10 +90,7 @@ class LayerBoundaryRule extends AnalysisRule {
   LintCode get diagnosticCode => code;
 
   @override
-  void registerNodeProcessors(
-    RuleVisitorRegistry registry,
-    RuleContext context,
-  ) {
+  void registerNodeProcessors(RuleVisitorRegistry registry, RuleContext context) {
     final visitor = _Visitor(this, context);
     registry
       ..addImportDirective(this, visitor)
@@ -143,10 +118,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     final target = library.resolve(uri);
     final forbidden = violation(library: library, target: target);
     if (forbidden != null) {
-      rule.reportAtNode(
-        node.uri,
-        arguments: [library.pathSegments[1], forbidden],
-      );
+      rule.reportAtNode(node.uri, arguments: [library.pathSegments[1], forbidden]);
     }
   }
 }
