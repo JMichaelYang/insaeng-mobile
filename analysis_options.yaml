@@ -6,8 +6,7 @@ analyzer:
     - android/**
     - ios/**
     - lib/l10n/gen/**
-    - "**/*.freezed.dart"
-    - "**/*.g.dart"
+    - "**/*.mapper.dart"
 
 linter:
   rules:

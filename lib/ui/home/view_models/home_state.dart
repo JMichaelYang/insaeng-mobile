@@ -1,6 +1,10 @@
-part of 'home_cubit.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 
-@freezed
-abstract class HomeState with _$HomeState {
-  const factory({@Default(0) int count}) = _HomeState;
+part 'home_state.mapper.dart';
+
+@MappableClass()
+class HomeState with HomeStateMappable {
+  const new({this.count = 0});
+
+  final int count;
 }

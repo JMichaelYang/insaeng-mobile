@@ -1,8 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:insaeng/ui/home/view_models/home_state.dart';
 
-part 'home_cubit.freezed.dart';
-part 'home_state.dart';
+export 'package:insaeng/ui/home/view_models/home_state.dart';
 
 class HomeCubit extends Cubit<HomeState> {
   new() : super(const HomeState());

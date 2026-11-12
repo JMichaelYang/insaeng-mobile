@@ -54,5 +54,4 @@ app.*.map.json
 .claude/worktrees
 
 /lib/l10n/gen/
-*.freezed.dart
-*.g.dart
+*.mapper.dart

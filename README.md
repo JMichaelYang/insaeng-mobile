@@ -9,11 +9,11 @@ The Flutter SDK version is pinned with [FVM](https://fvm.app) in `.fvmrc`.
 ```sh
 fvm install                    # install the pinned Flutter SDK
 fvm flutter pub get            # fetch packages (also runs gen-l10n)
-fvm dart run build_runner build --delete-conflicting-outputs  # freezed / json_serializable
+fvm dart run build_runner build --delete-conflicting-outputs  # dart_mappable
 fvm flutter run                # run the app on a connected device or simulator
 ```
 
-Generated code (`lib/l10n/gen/`, `*.freezed.dart`, `*.g.dart`) is gitignored and
+Generated code (`lib/l10n/gen/`, `*.mapper.dart`) is gitignored and
 must come from the tools above — never edit or hand-write it. Strings live in
 `lib/l10n/arb/*.arb`; use `fvm dart run build_runner watch` while developing.
 
