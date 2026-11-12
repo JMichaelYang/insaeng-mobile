@@ -36,8 +36,8 @@ const Map<String, LayerPolicy> layerPolicies = {
     forbiddenPackages: {'go_router'},
   ),
   'utils': (
-    onlyLayers: null,
-    forbiddenLayers: {'data', 'ui', 'routing', 'config'},
+    onlyLayers: {'utils', 'l10n'},
+    forbiddenLayers: {},
     forbiddenPackages: {},
   ),
 };

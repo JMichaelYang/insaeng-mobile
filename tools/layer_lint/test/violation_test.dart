@@ -47,12 +47,14 @@ void main() {
     expect(check(data, 'package:app/config/dependencies.dart'), 'config');
   });
 
-  test('utils never imports app layers', () {
+  test('utils imports only utils, l10n, and packages', () {
+    expect(check(utils, 'package:app/utils/x.dart'), isNull);
     expect(check(utils, 'package:app/l10n/l10n.dart'), isNull);
-    expect(check(utils, 'package:app/domain/result.dart'), isNull);
     expect(check(utils, 'package:go_router/go_router.dart'), isNull);
+    expect(check(utils, 'package:app/domain/result.dart'), 'domain');
     expect(check(utils, 'package:app/ui/x.dart'), 'ui');
     expect(check(utils, 'package:app/data/x.dart'), 'data');
+    expect(check(utils, 'package:app/app.dart'), 'app.dart');
   });
 
   test('unrestricted locations are ignored', () {
