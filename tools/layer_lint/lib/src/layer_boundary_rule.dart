@@ -11,16 +11,33 @@ typedef LayerPolicy = ({
   Set<String> forbiddenPackages,
 });
 
+const LayerPolicy _compositionRoot = (
+  onlyLayers: null,
+  forbiddenLayers: {'design_system'},
+  forbiddenPackages: {},
+);
+
 const Map<String, LayerPolicy> layerPolicies = {
   'domain': (
     onlyLayers: {'domain'},
     forbiddenLayers: {},
     forbiddenPackages: {'dart:ui', 'flutter', 'material_ui', 'cupertino_ui'},
   ),
+  'design_system': (
+    onlyLayers: {'design_system'},
+    forbiddenLayers: {},
+    forbiddenPackages: {'flutter_bloc', 'get_it', 'go_router'},
+  ),
+  'config': _compositionRoot,
+  'routing': _compositionRoot,
+  'bootstrap.dart': _compositionRoot,
+  'main_dev.dart': _compositionRoot,
+  'main_prod.dart': _compositionRoot,
   'data': (
     onlyLayers: null,
     forbiddenLayers: {
       'ui',
+      'design_system',
       'routing',
       'config',
       'app.dart',
@@ -33,11 +50,11 @@ const Map<String, LayerPolicy> layerPolicies = {
   'ui': (
     onlyLayers: null,
     forbiddenLayers: {'data', 'config'},
-    forbiddenPackages: {},
+    forbiddenPackages: {'go_router'},
   ),
   'utils': (
-    onlyLayers: null,
-    forbiddenLayers: {'data', 'ui', 'routing', 'config'},
+    onlyLayers: {'utils', 'l10n'},
+    forbiddenLayers: {},
     forbiddenPackages: {},
   ),
 };
@@ -78,14 +95,16 @@ class LayerBoundaryRule extends AnalysisRule {
         name: 'layer_boundary',
         description:
             'Enforces layer boundaries: ui and data depend on domain, never '
-            'on each other, and domain stays pure Dart.',
+            'on each other, domain stays pure Dart, and design_system imports '
+            'nothing else from the app.',
       );
 
   static const LintCode code = LintCode(
     'layer_boundary',
     "The '{0}' layer can't import '{1}'.",
     correctionMessage:
-        'Depend on domain/ instead; only config/ wires implementations.',
+        'Move the code to a layer allowed to use it, or pass it in through a '
+        'constructor. See docs/architecture/overview.md.',
     severity: DiagnosticSeverity.WARNING,
   );
 

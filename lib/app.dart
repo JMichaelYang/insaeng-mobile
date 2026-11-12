@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
+import 'package:insaeng/design_system/theme/theme.dart';
 import 'package:insaeng/l10n/l10n.dart';
-import 'package:insaeng/ui/core/theme/theme.dart';
 import 'package:insaeng/utils/context_extensions.dart';
 import 'package:material_ui/material_ui.dart';
 
