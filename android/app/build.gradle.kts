@@ -35,11 +35,9 @@ android {
         create("dev") {
             dimension = "flavor"
             applicationIdSuffix = ".dev"
-            manifestPlaceholders["appName"] = "insaeng dev"
         }
         create("prod") {
             dimension = "flavor"
-            manifestPlaceholders["appName"] = "insaeng"
         }
     }
 
