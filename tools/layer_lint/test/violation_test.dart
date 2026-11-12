@@ -9,7 +9,8 @@ String? check(String library, String import) {
 void main() {
   const domain = 'package:app/domain/result.dart';
   const ui = 'package:app/ui/home/widgets/home_screen.dart';
-  const data = 'package:app/data/repositories/entry/entry_repository_remote.dart';
+  const data =
+      'package:app/data/repositories/entry/entry_repository_remote.dart';
   const utils = 'package:app/utils/context_extensions.dart';
   const config = 'package:app/config/dependencies.dart';
 
