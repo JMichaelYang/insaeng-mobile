@@ -1,0 +1,13 @@
+flutter_launcher_icons:
+  image_path: assets/branding/icon_prod.png
+  android: true
+  adaptive_icon_background: assets/branding/icon_android_background.png
+  adaptive_icon_foreground: assets/branding/icon_prod_android_foreground.png
+  adaptive_icon_monochrome: assets/branding/icon_prod_android_monochrome.png
+  adaptive_icon_foreground_inset: 0
+  min_sdk_android: 21
+  ios: true
+  remove_alpha_ios: true
+  image_path_ios_dark_transparent: assets/branding/icon_prod_ios_dark.png
+  image_path_ios_tinted_grayscale: assets/branding/icon_prod_ios_tinted.png
+  desaturate_tinted_to_grayscale_ios: true
