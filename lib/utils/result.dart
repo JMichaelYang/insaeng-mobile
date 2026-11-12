@@ -1,4 +1,7 @@
 import 'package:flutter/foundation.dart' show immutable;
+import 'package:insaeng/utils/app_exception.dart';
+
+export 'package:insaeng/utils/app_exception.dart';
 
 @immutable
 sealed class Result<T> {
@@ -6,7 +9,7 @@ sealed class Result<T> {
 
   const factory ok(T value) = Ok<T>;
 
-  const factory error(Exception error) = Err<T>;
+  const factory error(AppException error) = Err<T>;
 }
 
 final class Ok<T> extends Result<T> {
@@ -27,7 +30,7 @@ final class Ok<T> extends Result<T> {
 final class Err<T> extends Result<T> {
   const new(this.error);
 
-  final Exception error;
+  final AppException error;
 
   @override
   bool operator ==(Object other) => other is Err<T> && other.error == error;

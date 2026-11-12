@@ -24,7 +24,7 @@ Follows the [Flutter app architecture guide](https://docs.flutter.dev/app-archit
 - `lib/ui/core/theme/` — Material 3 theme tokens
 - `lib/ui/<feature>/view_models/` — cubits that hold a screen's state
 - `lib/ui/<feature>/widgets/` — screens and widgets that render that state
-- `lib/utils/` — `Result<T>` for fallible operations and `BuildContext` helpers
+- `lib/utils/` — `Result<T>` and its `AppException` base for fallible operations, and `BuildContext` helpers
 
 ```sh
 fvm flutter analyze && fvm flutter test
