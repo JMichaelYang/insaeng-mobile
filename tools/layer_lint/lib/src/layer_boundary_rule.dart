@@ -33,7 +33,7 @@ const Map<String, LayerPolicy> layerPolicies = {
   'ui': (
     onlyLayers: null,
     forbiddenLayers: {'data', 'config'},
-    forbiddenPackages: {},
+    forbiddenPackages: {'go_router'},
   ),
   'utils': (
     onlyLayers: null,

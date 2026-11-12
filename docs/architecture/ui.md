@@ -1,7 +1,8 @@
 # UI layer (`lib/ui/`)
 
-- The UI layer depends on `domain/`, `utils/`, `l10n/`, and `Routes`, but never on `data/` or `config/`.
-- Each feature lives in `ui/<feature>/`, with `view_models/` and `widgets/` subfolders. Shared pieces go in `ui/core/`.
+- The UI layer depends on `domain/`, `utils/`, `l10n/`, and `Routes`, but never on `data/`, `config/`, or go_router.
+- Each feature lives in `ui/<feature>/`, with `view_models/` and `widgets/` subfolders.
+- Everything visual that isn't bound to one feature belongs in the `ui/core/` design system, described in [design_system.md](design_system.md). Default to building reusable components there and keep feature widgets thin.
 
 ## Cubits and states (`view_models/`)
 
@@ -55,7 +56,7 @@ class NotesCubit extends Cubit<NotesState> {
 - Screens are named `<Feature>Screen` and get their cubit from the route's `BlocProvider`. They read it with `BlocBuilder`, `BlocListener`, or `context.read`.
 - Widgets render state and forward user intents to cubit methods. Split large builds into small private widget classes rather than helper methods.
 - Import `package:material_ui/material_ui.dart`, not `package:flutter/material.dart`.
-- Navigate with `context.go(Routes.x)` or `context.push(Routes.x)`. Never hard-code path strings.
+- Navigate with `context.goTo(Routes.x)`, `context.pushTo(Routes.x)`, and `context.back()` from `utils/navigation_extensions.dart`. Never import go_router here, and never hard-code path strings.
 
 ## Theme and strings
 

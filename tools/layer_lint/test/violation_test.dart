@@ -30,12 +30,14 @@ void main() {
     expect(check(domain, 'dart:ui'), 'dart:ui');
   });
 
-  test('ui never imports data or config', () {
+  test('ui never imports data, config, or go_router', () {
     expect(check(ui, 'package:app/domain/result.dart'), isNull);
     expect(check(ui, 'package:flutter_bloc/flutter_bloc.dart'), isNull);
+    expect(check(ui, 'package:app/utils/navigation_extensions.dart'), isNull);
     expect(check(ui, 'package:app/data/x.dart'), 'data');
     expect(check(ui, '../../../data/x.dart'), 'data');
     expect(check(ui, 'package:app/config/dependencies.dart'), 'config');
+    expect(check(ui, 'package:go_router/go_router.dart'), 'package:go_router');
   });
 
   test('data never imports ui, routing, or config', () {
@@ -47,6 +49,8 @@ void main() {
 
   test('utils never imports app layers', () {
     expect(check(utils, 'package:app/l10n/l10n.dart'), isNull);
+    expect(check(utils, 'package:app/domain/result.dart'), isNull);
+    expect(check(utils, 'package:go_router/go_router.dart'), isNull);
     expect(check(utils, 'package:app/ui/x.dart'), 'ui');
     expect(check(utils, 'package:app/data/x.dart'), 'data');
   });

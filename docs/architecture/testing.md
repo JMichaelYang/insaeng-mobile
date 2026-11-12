@@ -9,7 +9,7 @@
 - **Domain:** use plain unit tests for model logic and `Result` and `Failure` behavior.
 - **Data:** mock the services and cover both the `Ok` path and each exception-to-`Failure` conversion.
 - **UI cubits:** use `blocTest` with mocked repository interfaces and assert on the emitted states.
-- **UI widgets:** put a `MockCubit<State>` behind `BlocProvider.value` and pump with `tester.pumpApp` from `test/helpers/pump_app.dart`. It wires the l10n delegates, and you pass `locale: Locale('ko')` to check the Korean strings.
+- **UI widgets:** put a `MockCubit<State>` behind `BlocProvider.value` and pump with `tester.pumpApp` from `test/helpers/pump_app.dart`. It wires the l10n delegates.
 - **Composition root:** tests that call `configureDependencies` call `tearDown(getIt.reset)`.
 
 ```dart

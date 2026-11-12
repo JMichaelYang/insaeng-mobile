@@ -1,6 +1,6 @@
 # Domain layer (`lib/domain/`)
 
-- The domain layer is pure Dart and imports only `domain/`. `layer_lint` rejects `flutter`, `dart:ui`, `material_ui`, and `cupertino_ui` imports here.
+- The domain layer is pure Dart and imports only `domain/`.
 - Everything here is shared by the data, UI, and composition-root code, so keep it free of I/O and framework types.
 
 ## Models (`domain/models/`)
