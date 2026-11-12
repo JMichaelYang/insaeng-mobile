@@ -9,7 +9,7 @@
 - Each screen gets one cubit, `<Feature>Cubit`, and its file exports its state.
 - Cubits take repository interfaces through their constructor and `switch` on the returned `Result`. They never touch services, `getIt`, or widgets.
 - States are immutable dart_mappable classes, which gives them `copyWith` and value equality.
-  - A single `@MappableClass()` with defaults, like `HomeState`, fits screens that only change values.
+  - A single `@MappableClass()` with defaults fits screens that only change values.
   - A `sealed` base with one `@MappableClass()` subclass per phase fits screens with distinct phases, and gives widgets an exhaustive `switch`.
 
 ```dart

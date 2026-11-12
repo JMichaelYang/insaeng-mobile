@@ -1,6 +1,6 @@
 # Architecture overview
 
-MVVM in three layers wired by a composition root. `ui/home/` is the reference feature.
+MVVM in three layers wired by a composition root.
 
 | Doc | Covers |
 | --- | --- |
