@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/result.dart';
 
-sealed class _FeatureFailure extends AppFailure {
+sealed class _FeatureFailure extends Failure {
   const new();
 }
 
@@ -13,7 +13,7 @@ final class _Conflict extends _FeatureFailure {
   const new();
 }
 
-final class _OtherFailure extends AppFailure {
+final class _OtherFailure extends Failure {
   const new();
 }
 
@@ -25,9 +25,9 @@ void main() {
       expect(result, isA<Ok<int>>().having((r) => r.value, 'value', 42));
     });
 
-    test('failure holds its failure', () {
+    test('err holds its failure', () {
       const failure = _NotFound();
-      const result = Result<int>.failure(failure);
+      const result = Result<int>.err(failure);
 
       expect(
         result,
@@ -38,15 +38,15 @@ void main() {
     test('switch is exhaustive over Ok and Err', () {
       String describe(Result<int> result) => switch (result) {
         Ok(:final value) => 'ok $value',
-        Err() => 'failure',
+        Err() => 'err',
       };
 
       expect(describe(const Result.ok(1)), 'ok 1');
-      expect(describe(const Result.failure(_NotFound())), 'failure');
+      expect(describe(const Result.err(_NotFound())), 'err');
     });
 
     test('failures switch on feature families with a default branch', () {
-      String describe(AppFailure failure) => switch (failure) {
+      String describe(Failure failure) => switch (failure) {
         _NotFound() => 'not found',
         _Conflict() => 'conflict',
         _ => 'unknown',
@@ -61,8 +61,8 @@ void main() {
       expect(const Result.ok(1), const Result.ok(1));
       expect(const Result.ok(1), isNot(const Result.ok(2)));
       expect(
-        const Result<int>.failure(_NotFound()),
-        const Result<int>.failure(_NotFound()),
+        const Result<int>.err(_NotFound()),
+        const Result<int>.err(_NotFound()),
       );
       expect(const Result.ok(1).hashCode, const Result.ok(1).hashCode);
     });

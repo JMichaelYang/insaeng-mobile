@@ -1,6 +1,6 @@
 import 'package:meta/meta.dart';
 
 @immutable
-abstract class AppFailure {
+abstract class Failure {
   const new();
 }
