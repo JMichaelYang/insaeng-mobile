@@ -1,7 +1,7 @@
-import 'package:insaeng/domain/app_exception.dart';
+import 'package:insaeng/domain/app_failure.dart';
 import 'package:meta/meta.dart';
 
-export 'package:insaeng/domain/app_exception.dart';
+export 'package:insaeng/domain/app_failure.dart';
 
 @immutable
 sealed class Result<T> {
@@ -9,7 +9,7 @@ sealed class Result<T> {
 
   const factory ok(T value) = Ok<T>;
 
-  const factory error(AppException error) = Err<T>;
+  const factory failure(AppFailure failure) = Err<T>;
 }
 
 final class Ok<T> extends Result<T> {
@@ -28,16 +28,16 @@ final class Ok<T> extends Result<T> {
 }
 
 final class Err<T> extends Result<T> {
-  const new(this.error);
+  const new(this.failure);
 
-  final AppException error;
-
-  @override
-  bool operator ==(Object other) => other is Err<T> && other.error == error;
+  final AppFailure failure;
 
   @override
-  int get hashCode => Object.hash(Err<T>, error);
+  bool operator ==(Object other) => other is Err<T> && other.failure == failure;
 
   @override
-  String toString() => 'Result<$T>.error($error)';
+  int get hashCode => Object.hash(Err<T>, failure);
+
+  @override
+  String toString() => 'Result<$T>.failure($failure)';
 }

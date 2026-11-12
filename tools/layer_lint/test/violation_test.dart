@@ -14,8 +14,8 @@ void main() {
   const config = 'package:app/config/dependencies.dart';
 
   test('domain imports only domain and pure Dart', () {
-    expect(check(domain, 'package:app/domain/app_exception.dart'), isNull);
-    expect(check(domain, 'app_exception.dart'), isNull);
+    expect(check(domain, 'package:app/domain/app_failure.dart'), isNull);
+    expect(check(domain, 'app_failure.dart'), isNull);
     expect(check(domain, 'package:meta/meta.dart'), isNull);
     expect(check(domain, 'dart:async'), isNull);
     expect(check(domain, 'package:app/data/x.dart'), 'data');
