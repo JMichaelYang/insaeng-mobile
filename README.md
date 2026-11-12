@@ -13,10 +13,6 @@ fvm dart run build_runner build --delete-conflicting-outputs  # dart_mappable
 fvm flutter run                # run the app on a connected device or simulator
 ```
 
-Generated code (`lib/l10n/gen/`, `*.mapper.dart`) is gitignored and
-must come from the tools above — never edit or hand-write it. Strings live in
-`lib/l10n/arb/*.arb`; use `fvm dart run build_runner watch` while developing.
-
 ## Architecture
 
 Follows the [Flutter app architecture guide](https://docs.flutter.dev/app-architecture/guide)
@@ -26,8 +22,9 @@ Follows the [Flutter app architecture guide](https://docs.flutter.dev/app-archit
 - `lib/config/dependencies.dart` — manual `get_it` registration
 - `lib/routing/` — `go_router` config; routes provide their screen's cubit
 - `lib/ui/core/theme/` — Material 3 theme tokens
-- `lib/ui/<feature>/view_models/` + `widgets/` — `lib/ui/home/` is the reference feature
-- `lib/utils/result.dart` — sealed `Result<T>` returned by repositories and services
+- `lib/ui/<feature>/view_models/` — cubits that hold a screen's state
+- `lib/ui/<feature>/widgets/` — screens and widgets that render that state
+- `lib/utils/` — `Result<T>` for fallible operations and `BuildContext` helpers
 
 ```sh
 fvm flutter analyze && fvm flutter test

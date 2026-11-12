@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:insaeng/l10n/l10n.dart';
 import 'package:insaeng/ui/core/theme/theme.dart';
+import 'package:insaeng/utils/context_extensions.dart';
 import 'package:material_ui/material_ui.dart';
 
 class App extends StatelessWidget {
@@ -11,7 +12,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      onGenerateTitle: (context) => context.l10n.homeTitle,
+      onGenerateTitle: (context) => context.strings.homeTitle,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       localizationsDelegates: localizationsDelegates,
