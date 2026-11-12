@@ -15,10 +15,8 @@ class HomeScreen extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(Dimens.spaceMd),
           child: BlocBuilder<HomeCubit, HomeState>(
-            builder: (context, state) => Text(
-              '${state.count}',
-              style: context.textTheme.displayMedium,
-            ),
+            builder: (context, state) =>
+                Text('${state.count}', style: context.textTheme.displayMedium),
           ),
         ),
       ),
