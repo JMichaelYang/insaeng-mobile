@@ -11,6 +11,12 @@ typedef LayerPolicy = ({
   Set<String> forbiddenPackages,
 });
 
+const LayerPolicy _compositionRoot = (
+  onlyLayers: null,
+  forbiddenLayers: {'design_system'},
+  forbiddenPackages: {},
+);
+
 const Map<String, LayerPolicy> layerPolicies = {
   'domain': (
     onlyLayers: {'domain'},
@@ -22,6 +28,11 @@ const Map<String, LayerPolicy> layerPolicies = {
     forbiddenLayers: {},
     forbiddenPackages: {'flutter_bloc', 'get_it', 'go_router'},
   ),
+  'config': _compositionRoot,
+  'routing': _compositionRoot,
+  'bootstrap.dart': _compositionRoot,
+  'main_dev.dart': _compositionRoot,
+  'main_prod.dart': _compositionRoot,
   'data': (
     onlyLayers: null,
     forbiddenLayers: {
@@ -92,7 +103,8 @@ class LayerBoundaryRule extends AnalysisRule {
     'layer_boundary',
     "The '{0}' layer can't import '{1}'.",
     correctionMessage:
-        'Depend on domain/ instead; only config/ wires implementations.',
+        'Move the code to a layer allowed to use it, or pass it in through a '
+        'constructor. See docs/architecture/overview.md.',
     severity: DiagnosticSeverity.WARNING,
   );
 

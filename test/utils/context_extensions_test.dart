@@ -7,7 +7,7 @@ import '../helpers/pump_app.dart';
 
 void main() {
   group('ContextExtensions', () {
-    testWidgets('exposes theme and strings from context', (tester) async {
+    testWidgets('exposes strings from context', (tester) async {
       late BuildContext context;
       await tester.pumpApp(
         Builder(
@@ -18,8 +18,6 @@ void main() {
         ),
       );
 
-      expect(context.textTheme, Theme.of(context).textTheme);
-      expect(context.colorScheme, Theme.of(context).colorScheme);
       expect(context.strings, AppLocalizations.of(context));
     });
   });

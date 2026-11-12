@@ -1,6 +1,6 @@
 # Composition root (`bootstrap.dart`, `config/`, `routing/`)
 
-- This is the only code that knows about concrete implementations, screens, and `getIt`, and it may import any layer.
+- This is the only code that knows about concrete implementations, screens, and `getIt`. It may import any layer except `design_system/`, which only `ui/` and `app.dart` use.
 - Everything else receives its dependencies through constructors.
 
 ## Flavors

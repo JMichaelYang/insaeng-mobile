@@ -58,11 +58,27 @@ void main() {
     expect(check(ds, 'package:go_router/go_router.dart'), 'package:go_router');
   });
 
-  test('only ui uses design_system', () {
-    expect(check(ui, 'package:app/design_system/theme/dimens.dart'), isNull);
-    expect(check(data, 'package:app/design_system/x.dart'), 'design_system');
-    expect(check(domain, 'package:app/design_system/x.dart'), 'design_system');
-    expect(check(utils, 'package:app/design_system/x.dart'), 'design_system');
+  test('only ui and app.dart use design_system', () {
+    const routing = 'package:app/routing/router.dart';
+    const theme = 'package:app/design_system/theme/theme.dart';
+    expect(check(ui, theme), isNull);
+    expect(check('package:app/app.dart', theme), isNull);
+    expect(check(data, theme), 'design_system');
+    expect(check(domain, theme), 'design_system');
+    expect(check(utils, theme), 'design_system');
+    expect(check(config, theme), 'design_system');
+    expect(check(routing, theme), 'design_system');
+    expect(check('package:app/bootstrap.dart', theme), 'design_system');
+    expect(check('package:app/main_dev.dart', theme), 'design_system');
+    expect(check('package:app/main_prod.dart', theme), 'design_system');
+  });
+
+  test('config and routing may import every other layer', () {
+    const routing = 'package:app/routing/router.dart';
+    expect(check(config, 'package:app/data/x.dart'), isNull);
+    expect(check(config, 'package:app/routing/router.dart'), isNull);
+    expect(check(routing, 'package:app/ui/home/x.dart'), isNull);
+    expect(check(routing, 'package:go_router/go_router.dart'), isNull);
   });
 
   test('data never imports ui, routing, or config', () {
@@ -83,7 +99,6 @@ void main() {
   });
 
   test('unrestricted locations are ignored', () {
-    expect(check(config, 'package:app/data/x.dart'), isNull);
     expect(check('package:app/app.dart', 'package:app/ui/x.dart'), isNull);
     expect(check('file:///app/test/x_test.dart', '../lib/data/x.dart'), isNull);
   });

@@ -61,7 +61,7 @@ class NotesCubit extends Cubit<NotesState> {
 
 ## Theme and strings
 
-- Use Material 3 tokens only: `context.colorScheme`, `context.textTheme`, and `Dimens` for spacing and radii.
+- Use Material 3 tokens only: `context.colorScheme` and `context.textTheme` from `design_system/theme/theme_extensions.dart`, and `Dimens` for spacing and radii.
 - Never hard-code `Color`, `TextStyle`, font sizes, or spacing numbers. `AppColors.seed` is read only by `AppTheme`.
 - Every user-facing string goes through `AppLocalizations`, read with `context.strings.<key>`.
 - Add each key to both `l10n/arb/app_en.arb` (the template) and `app_ko.arb`, then run `fvm flutter pub get` to regenerate. Never edit `l10n/gen/` by hand.

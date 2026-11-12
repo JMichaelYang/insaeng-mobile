@@ -19,7 +19,7 @@ MVVM in three layers wired by a composition root.
 - `domain/` is pure Dart and imports only `domain/`. Every other layer may import it.
 - `ui/` depends on repository **interfaces** and use cases from `domain/`, and never imports `data/`, `config/`, or go_router.
 - `data/` implements those interfaces and never imports `ui/`, `design_system/`, `routing/`, `config/`, or the entrypoints.
-- `design_system/` is self-contained: it imports only itself and outside packages. `ui/` and `app.dart` use it, and `domain/`, `data/`, and `utils/` never import it.
+- `design_system/` is self-contained: it imports only itself and outside packages. Only `ui/` and `app.dart` import it.
 - `utils/` is app-agnostic: it holds extensions on SDK, Flutter, and package types, and imports only `utils/` and `l10n/`.
 - Helpers for app types never go in `utils/`. Put derived logic on the model in `domain/`, presentation such as `Failure` → message in `ui/`, and mapping in `data/`.
 - The composition root (`bootstrap.dart`, `config/`, `routing/`) is the only code that brings implementations and screens together.
@@ -43,13 +43,13 @@ lib/
     repositories/                repository implementations
     services/                    stateless wrappers over APIs, storage, platform
   design_system/
-    theme/                       tokens: AppTheme, AppColors.seed, Dimens
+    theme/                       tokens: AppTheme, AppColors.seed, Dimens, ThemeExtensions
     atoms/, molecules/, organisms/, templates/
   ui/
     <feature>/view_models/       <feature>_cubit.dart, <feature>_state.dart
     <feature>/widgets/           <feature>_screen.dart and private parts
   l10n/arb/                      app_en.arb (template), app_ko.arb
-  utils/                         BuildContext, theme, and navigation extensions
+  utils/                         strings and navigation extensions on BuildContext
 test/                            mirrors lib/, plus helpers/
 ```
 
