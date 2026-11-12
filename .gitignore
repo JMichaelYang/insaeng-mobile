@@ -52,3 +52,8 @@ app.*.map.json
 
 # Claude Code
 .claude/worktrees
+
+# Generated code (rebuilt by gen-l10n on `flutter pub get` and by build_runner)
+/lib/l10n/gen/
+*.freezed.dart
+*.g.dart
