@@ -22,13 +22,12 @@ void main() {
     setUp(() => repository = _MockNoteRepository());
 
     blocTest<NotesCubit, NotesState>(
-      'load emits loading, then the loaded notes',
+      'load emits the loaded notes',
       setUp: () => when(() => repository.fetchAll())
           .thenAnswer((_) async => const Result.ok([Note(title: 'a')])),
       build: () => NotesCubit(repository),
       act: (cubit) => cubit.load(),
       expect: () => const [
-        NotesState(status: NotesStatus.loading),
         NotesState(status: NotesStatus.success, notes: [Note(title: 'a')]),
       ],
     );

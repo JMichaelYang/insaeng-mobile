@@ -10,17 +10,19 @@
 - Each screen gets one cubit, `<Feature>Cubit`, and its file exports its state.
 - Cubits take repository interfaces or use cases through their constructor and `switch` on the returned `Result`. They never touch services, `getIt`, or widgets.
 - States are immutable dart_mappable classes, which gives them `copyWith` and value equality.
-  - By default each screen has one `@MappableClass()` state. It holds a `@MappableEnum()` status (`initial`, `loading`, `success`, `failure`), the loaded data, and an optional `Failure`. Content stays on screen during refreshes and inline errors, and there is a single `copyWith`.
+  - By default each screen has one `@MappableClass()` state. It holds a `@MappableEnum()` status, the loaded data, and an optional `Failure`. Content stays on screen during refreshes and inline errors, and there is a single `copyWith`.
+  - Include only the statuses a screen can actually be in. A screen that loads when it opens starts in `loading` and has no `initial` status. A screen driven by user actions, such as a form or a search, starts in `idle`.
+  - The first `load()` emits only its result, because the state already starts in `loading`. Reloads emit `loading` themselves and keep the current data.
   - Use a `sealed` base with one `@MappableClass()` subclass per phase only when the phases share no data, such as an auth gate.
 
 ```dart
 @MappableEnum()
-enum NotesStatus { initial, loading, success, failure }
+enum NotesStatus { loading, success, failure }
 
 @MappableClass()
 class NotesState with NotesStateMappable {
   const new({
-    this.status = NotesStatus.initial,
+    this.status = NotesStatus.loading,
     this.notes = const [],
     this.failure,
   });
@@ -35,8 +37,12 @@ class NotesCubit extends Cubit<NotesState> {
 
   final NoteRepository _repository;
 
-  Future<void> load() async {
+  Future<void> refresh() async {
     emit(state.copyWith(status: NotesStatus.loading));
+    await load();
+  }
+
+  Future<void> load() async {
     emit(switch (await _repository.fetchAll()) {
       Ok(:final value) => state.copyWith(
         status: NotesStatus.success,
