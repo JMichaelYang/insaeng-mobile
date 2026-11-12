@@ -4,7 +4,7 @@
 
 | Level | Folder | Examples |
 | --- | --- | --- |
-| Tokens | `design_system/theme/` | `AppTheme`, `AppColors.seed`, `Dimens` |
+| Tokens | `design_system/theme/` | `AppTheme`, `AppColors.seed`, `AppFonts.family`, `Dimens` |
 | Atoms | `design_system/atoms/` | `AppButton`, `AppTextField`, `AppAvatar` |
 | Molecules | `design_system/molecules/` | `AppSearchField`, `AppListTile` |
 | Organisms | `design_system/organisms/` | `AppEmptyState`, `AppErrorView`, `AppForm` |
@@ -21,6 +21,12 @@
 - Make components configurable through their constructors: content as strings, children, or slots, plus callbacks and sizes. Express variants with an enum rather than piling up booleans.
 - Callers pass in localized strings and plain values. Components never take domain models.
 - Prefix every component with `App`, and give each one a widget test that covers its variants.
+
+## Typography
+
+- The app font is Pretendard, bundled from `assets/fonts/pretendard/` and set once as `AppFonts.family` in `AppTheme`. Its OFL license is registered in `bootstrap.dart`.
+- Style text only with `context.textTheme` styles. Adjust them with `copyWith` for weight or color, never `fontFamily`.
+- Only weights 400 to 700 are bundled, so use `FontWeight.w400` through `FontWeight.w700`. Bundle a new weight in `pubspec.yaml` before using it.
 
 ```dart
 enum AppButtonVariant { primary, secondary, text }
