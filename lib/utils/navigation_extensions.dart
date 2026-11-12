@@ -4,8 +4,7 @@ import 'package:material_ui/material_ui.dart';
 extension NavigationExtensions on BuildContext {
   void goTo(String location) => GoRouter.of(this).go(location);
 
-  Future<T?> pushTo<T extends Object?>(String location) =>
-      GoRouter.of(this).push<T>(location);
+  Future<T?> pushTo<T extends Object?>(String location) => GoRouter.of(this).push<T>(location);
 
   void back<T extends Object?>([T? result]) => GoRouter.of(this).pop<T>(result);
 }

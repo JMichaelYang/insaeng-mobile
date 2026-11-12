@@ -29,10 +29,7 @@ void main() {
       const failure = _NotFound();
       const result = Result<int>.err(failure);
 
-      expect(
-        result,
-        isA<Err<int>>().having((r) => r.failure, 'failure', same(failure)),
-      );
+      expect(result, isA<Err<int>>().having((r) => r.failure, 'failure', same(failure)));
     });
 
     test('switch is exhaustive over Ok and Err', () {
@@ -60,10 +57,7 @@ void main() {
     test('supports value equality', () {
       expect(const Result.ok(1), const Result.ok(1));
       expect(const Result.ok(1), isNot(const Result.ok(2)));
-      expect(
-        const Result<int>.err(_NotFound()),
-        const Result<int>.err(_NotFound()),
-      );
+      expect(const Result<int>.err(_NotFound()), const Result<int>.err(_NotFound()));
       expect(const Result.ok(1).hashCode, const Result.ok(1).hashCode);
     });
   });

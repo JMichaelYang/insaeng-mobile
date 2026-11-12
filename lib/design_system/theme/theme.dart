@@ -7,10 +7,7 @@ abstract final class AppTheme {
   static final ThemeData dark = _build(Brightness.dark);
 
   static ThemeData _build(Brightness brightness) {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.seed,
-      brightness: brightness,
-    );
+    final colorScheme = ColorScheme.fromSeed(seedColor: AppColors.seed, brightness: brightness);
     return ThemeData(colorScheme: colorScheme, fontFamily: AppFonts.family);
   }
 }
