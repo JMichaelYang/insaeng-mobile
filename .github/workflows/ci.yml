@@ -44,3 +44,14 @@ jobs:
 
       - name: Build dev APK
         run: flutter build apk --debug --flavor dev -t lib/main_dev.dart
+
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Build dev iOS app
+        run: flutter build ios --debug --no-codesign --flavor dev -t lib/main_dev.dart
