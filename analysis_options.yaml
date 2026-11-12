@@ -5,9 +5,14 @@ analyzer:
     - build/**
     - android/**
     - ios/**
+    - tools/**
     - lib/l10n/gen/**
     - "**/*.mapper.dart"
 
 linter:
   rules:
     public_member_api_docs: false
+
+plugins:
+  layer_lint:
+    path: tools/layer_lint
