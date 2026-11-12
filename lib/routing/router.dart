@@ -10,10 +10,8 @@ GoRouter router(GetIt getIt) => GoRouter(
   routes: [
     GoRoute(
       path: Routes.home,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<HomeCubit>(),
-        child: const HomeScreen(),
-      ),
+      builder: (context, state) =>
+          BlocProvider(create: (_) => HomeCubit(), child: const HomeScreen()),
     ),
   ],
 );
