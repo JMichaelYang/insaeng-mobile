@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Architecture
+
+Read [docs/architecture/overview.md](docs/architecture/overview.md) before changing code under `lib/` or `test/`. It links the per-layer docs (domain, data, ui, composition root, testing), and `ui/home/` is the reference feature.
+
 ## Rules
 
 - No code comments. Do not add `//`, `///`, or `#` comments to hand-written code or config. Generated code is exempt.

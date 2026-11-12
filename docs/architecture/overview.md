@@ -1,14 +1,23 @@
 # Architecture overview
 
-MVVM in three layers. Read this first, then [ui.md](ui.md), [data.md](data.md), and [di_and_testing.md](di_and_testing.md). `ui/home/` is the reference feature.
+MVVM in three layers wired by a composition root. `ui/home/` is the reference feature.
+
+| Doc | Covers |
+| --- | --- |
+| [domain.md](domain.md) | `lib/domain/`: models, repository interfaces, `Result`, `Failure` |
+| [data.md](data.md) | `lib/data/`: repository implementations and services |
+| [ui.md](ui.md) | `lib/ui/`: cubits, states, screens, theme, and strings |
+| [composition_root.md](composition_root.md) | `bootstrap.dart`, `config/`, `routing/`: DI, flavors, and routes |
+| [testing.md](testing.md) | `test/`: layout, mocks, cubit tests, and widget tests |
 
 ## Layers and the dependency rule
 
 - **UI → repositories → services.** Cubits call repositories, repositories call services, and nothing calls upward.
-- `domain/` is shared by every layer: models, repository interfaces, `Result<T>`, and `Failure`. It is pure Dart with no Flutter imports.
-- `ui/` depends on repository **interfaces** in `domain/`, never on `data/`.
-- `data/` implements those interfaces and never imports `ui/`, `routing/`, or `config/`.
-- `config/` and `routing/` are the composition root. They are the only places that bring implementations and screens together.
+- `domain/` is pure Dart and imports only `domain/`. Every other layer may import it.
+- `ui/` depends on repository **interfaces** from `domain/` and never imports `data/` or `config/`.
+- `data/` implements those interfaces and never imports `ui/`, `routing/`, `config/`, or the entrypoints.
+- `utils/` holds small helpers and never imports `data/`, `ui/`, `routing/`, or `config/`.
+- The composition root (`bootstrap.dart`, `config/`, `routing/`) is the only code that brings implementations and screens together.
 - The `layer_lint` analyzer plugin in `tools/layer_lint/` enforces these rules, so `fvm flutter analyze` reports a `layer_boundary` warning for any violation.
 
 ## Folder map
@@ -39,19 +48,9 @@ test/                            mirrors lib/, plus helpers/
 
 ## Add a feature checklist
 
-1. Add models to `domain/models/` and a sealed `Failure` family for the feature.
-2. Declare `<Feature>Repository` in `domain/repositories/`, with every method returning `Future<Result<T>>`.
-3. Add any new service to `data/services/` and `<Feature>RepositoryImpl` to `data/repositories/`.
-4. Register the service and repository as lazy singletons in `config/dependencies.dart`.
-5. Add `<feature>_state.dart` and `<feature>_cubit.dart` under `ui/<feature>/view_models/`.
-6. Add `<feature>_screen.dart` under `ui/<feature>/widgets/`.
-7. Add the path to `Routes`, then add a `GoRoute` whose `BlocProvider` builds the cubit with `getIt<...Repository>()`.
-8. Add every new string to both `app_en.arb` and `app_ko.arb`.
-9. Run `fvm dart run build_runner build --delete-conflicting-outputs`.
-10. Add tests under the mirrored `test/` paths, then run `fvm dart format .`, `fvm flutter analyze`, and `fvm flutter test`.
-
-## Flavors
-
-- `Flavor { dev, prod }` lives in `config/flavor.dart`. Each `main_<flavor>.dart` calls `bootstrap(Flavor.<flavor>)`.
-- `configureDependencies(flavor)` registers the `Flavor` and is the only place that branches on it, for example to pick base URLs or fake services. UI code never checks the flavor.
-- To run a flavor, use `fvm flutter run --flavor dev -t lib/main_dev.dart`. Building works the same way with `--flavor prod -t lib/main_prod.dart`.
+1. **Domain:** add models, a sealed `<Feature>Failure` family, and the `<Feature>Repository` interface.
+2. **Data:** add any new service, then `<Feature>RepositoryImpl`.
+3. **UI:** add `<feature>_state.dart` and `<feature>_cubit.dart`, then `<feature>_screen.dart`, and put strings in both ARB files.
+4. **Composition root:** register the service and repository, add the path to `Routes`, and add a `GoRoute` whose `BlocProvider` builds the cubit.
+5. Run `fvm dart run build_runner build --delete-conflicting-outputs`.
+6. Add tests under the mirrored `test/` paths, then run `fvm dart format .`, `fvm flutter analyze`, and `fvm flutter test`.

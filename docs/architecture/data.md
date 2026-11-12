@@ -1,17 +1,11 @@
-# Data layer
+# Data layer (`lib/data/`)
 
-## Models (`domain/models/`)
+- The data layer implements the repository interfaces from `domain/`. It may import `domain/` and `utils/`, but never `ui/`, `routing/`, `config/`, or the entrypoints.
 
-- Models are immutable `@MappableClass()` classes in pure Dart, shared by every layer.
-- They hold data and simple derived getters only, with no I/O.
-- Run `fvm dart run build_runner build --delete-conflicting-outputs` after any change. The `*.mapper.dart` files are generated and gitignored.
+## Repository implementations (`data/repositories/`)
 
-## Repositories
-
-- Declare the interface `abstract interface class <Feature>Repository` in `domain/repositories/`. The implementation, `<Feature>RepositoryImpl`, goes in `data/repositories/`.
-- Every public method returns `Result<T>` or `Future<Result<T>>`, built with `Result.ok(value)` or `Result.err(failure)`.
-- Repositories never throw. They catch service exceptions and convert them to a `Failure`.
-- Each feature defines a `sealed class <Feature>Failure extends Failure` with `final` subclasses such as `NotesNotFound` and `NotesOffline`, so callers can `switch` exhaustively.
+- `<Feature>RepositoryImpl implements <Feature>Repository`, and only the composition root refers to it by name.
+- Every method returns a `Result`. Catch service exceptions and convert each one to that feature's `Failure` subclass, so repositories never throw.
 - Repositories are the single source of truth for their data. They own caching, mapping service data to domain models, and combining several services.
 - A repository may depend on several services, but never on another repository's implementation.
 
