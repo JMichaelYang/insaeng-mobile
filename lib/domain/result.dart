@@ -1,7 +1,7 @@
-import 'package:flutter/foundation.dart' show immutable;
-import 'package:insaeng/utils/app_exception.dart';
+import 'package:insaeng/domain/app_exception.dart';
+import 'package:meta/meta.dart';
 
-export 'package:insaeng/utils/app_exception.dart';
+export 'package:insaeng/domain/app_exception.dart';
 
 @immutable
 sealed class Result<T> {

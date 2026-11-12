@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insaeng/utils/result.dart';
+import 'package:insaeng/domain/result.dart';
 
 sealed class _FeatureException extends AppException {
   const new();
