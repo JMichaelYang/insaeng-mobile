@@ -40,6 +40,31 @@ void main() {
     expect(check(ui, 'package:go_router/go_router.dart'), 'package:go_router');
   });
 
+  test('design_system imports only itself and outside packages', () {
+    const ds = 'package:app/design_system/atoms/app_button.dart';
+    expect(check(ds, 'package:app/design_system/theme/dimens.dart'), isNull);
+    expect(check(ds, '../theme/dimens.dart'), isNull);
+    expect(check(ds, 'package:material_ui/material_ui.dart'), isNull);
+    expect(check(ds, 'package:app/ui/home/x.dart'), 'ui');
+    expect(check(ds, 'package:app/domain/result.dart'), 'domain');
+    expect(check(ds, 'package:app/l10n/l10n.dart'), 'l10n');
+    expect(check(ds, 'package:app/utils/context_extensions.dart'), 'utils');
+    expect(check(ds, 'package:app/routing/routes.dart'), 'routing');
+    expect(
+      check(ds, 'package:flutter_bloc/flutter_bloc.dart'),
+      'package:flutter_bloc',
+    );
+    expect(check(ds, 'package:get_it/get_it.dart'), 'package:get_it');
+    expect(check(ds, 'package:go_router/go_router.dart'), 'package:go_router');
+  });
+
+  test('only ui uses design_system', () {
+    expect(check(ui, 'package:app/design_system/theme/dimens.dart'), isNull);
+    expect(check(data, 'package:app/design_system/x.dart'), 'design_system');
+    expect(check(domain, 'package:app/design_system/x.dart'), 'design_system');
+    expect(check(utils, 'package:app/design_system/x.dart'), 'design_system');
+  });
+
   test('data never imports ui, routing, or config', () {
     expect(check(data, 'package:app/domain/result.dart'), isNull);
     expect(check(data, 'package:app/ui/x.dart'), 'ui');

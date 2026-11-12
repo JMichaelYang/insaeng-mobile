@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:insaeng/ui/core/theme/dimens.dart';
+import 'package:insaeng/design_system/theme/dimens.dart';
 import 'package:insaeng/ui/home/view_models/home_cubit.dart';
 import 'package:insaeng/utils/context_extensions.dart';
 import 'package:material_ui/material_ui.dart';

@@ -17,10 +17,16 @@ const Map<String, LayerPolicy> layerPolicies = {
     forbiddenLayers: {},
     forbiddenPackages: {'dart:ui', 'flutter', 'material_ui', 'cupertino_ui'},
   ),
+  'design_system': (
+    onlyLayers: {'design_system'},
+    forbiddenLayers: {},
+    forbiddenPackages: {'flutter_bloc', 'get_it', 'go_router'},
+  ),
   'data': (
     onlyLayers: null,
     forbiddenLayers: {
       'ui',
+      'design_system',
       'routing',
       'config',
       'app.dart',
@@ -78,7 +84,8 @@ class LayerBoundaryRule extends AnalysisRule {
         name: 'layer_boundary',
         description:
             'Enforces layer boundaries: ui and data depend on domain, never '
-            'on each other, and domain stays pure Dart.',
+            'on each other, domain stays pure Dart, and design_system imports '
+            'nothing else from the app.',
       );
 
   static const LintCode code = LintCode(

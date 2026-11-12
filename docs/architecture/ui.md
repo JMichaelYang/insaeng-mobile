@@ -1,8 +1,8 @@
 # UI layer (`lib/ui/`)
 
-- The UI layer depends on `domain/`, `utils/`, `l10n/`, and `Routes`, but never on `data/`, `config/`, or go_router.
+- The UI layer depends on `domain/`, `design_system/`, `utils/`, `l10n/`, and `Routes`, but never on `data/`, `config/`, or go_router.
 - Each feature lives in `ui/<feature>/`, with `view_models/` and `widgets/` subfolders.
-- Everything visual that isn't bound to one feature belongs in the `ui/core/` design system, described in [design_system.md](design_system.md). Default to building reusable components there and keep feature widgets thin.
+- Everything visual that isn't bound to one feature belongs in `lib/design_system/`, described in [design_system.md](design_system.md). Default to building reusable components there and keep feature widgets thin.
 
 ## Cubits and states (`view_models/`)
 

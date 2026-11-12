@@ -1,4 +1,4 @@
-import 'package:insaeng/ui/core/theme/colors.dart';
+import 'package:insaeng/design_system/theme/colors.dart';
 import 'package:material_ui/material_ui.dart';
 
 abstract final class AppTheme {
