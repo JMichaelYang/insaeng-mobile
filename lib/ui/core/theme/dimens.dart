@@ -1,4 +1,3 @@
-/// Spacing and sizing tokens, on a 4dp grid.
 abstract final class Dimens {
   static const double spaceXs = 4;
   static const double spaceSm = 8;

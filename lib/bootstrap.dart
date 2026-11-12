@@ -21,7 +21,6 @@ class AppBlocObserver extends BlocObserver {
   }
 }
 
-/// Initializes the app's environment, then runs the widget from [builder].
 Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   WidgetsFlutterBinding.ensureInitialized();
 

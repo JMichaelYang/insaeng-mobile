@@ -5,8 +5,6 @@ import 'package:insaeng/routing/routes.dart';
 import 'package:insaeng/ui/home/view_models/home_cubit.dart';
 import 'package:insaeng/ui/home/widgets/home_screen.dart';
 
-/// Builds the app router. Each route provides its screen's view model,
-/// resolved from [getIt].
 GoRouter router(GetIt getIt) => GoRouter(
   initialLocation: Routes.home,
   routes: [

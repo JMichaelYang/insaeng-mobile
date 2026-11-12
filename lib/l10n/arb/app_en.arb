@@ -1,7 +1,4 @@
 {
   "@@locale": "en",
-  "homeTitle": "Insaeng",
-  "@homeTitle": {
-    "description": "Title shown in the app bar of the Home screen."
-  }
+  "homeTitle": "Insaeng"
 }

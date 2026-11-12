@@ -11,5 +11,4 @@ analyzer:
 
 linter:
   rules:
-    # This is an app, not a published package.
     public_member_api_docs: false

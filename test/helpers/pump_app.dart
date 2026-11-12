@@ -3,7 +3,6 @@ import 'package:insaeng/l10n/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 
 extension PumpApp on WidgetTester {
-  /// Pumps [widget] inside a [MaterialApp] with the app's localizations.
   Future<void> pumpApp(Widget widget, {Locale locale = const Locale('en')}) {
     return pumpWidget(
       MaterialApp(
