@@ -17,20 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: kuhnroyal/flutter-fvm-config-action/config@v3
-        id: fvm-config
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ steps.fvm-config.outputs.FLUTTER_VERSION }}
-          channel: ${{ steps.fvm-config.outputs.FLUTTER_CHANNEL }}
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate code
-        run: dart run build_runner build -d
+      - uses: ./.github/actions/setup-flutter
 
       - name: Check formatting
         run: dart format --set-exit-if-changed .
@@ -47,26 +34,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: kuhnroyal/flutter-fvm-config-action/config@v3
-        id: fvm-config
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ steps.fvm-config.outputs.FLUTTER_VERSION }}
-          channel: ${{ steps.fvm-config.outputs.FLUTTER_CHANNEL }}
-          cache: true
+      - uses: ./.github/actions/setup-flutter
 
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '17'
           cache: gradle
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Generate code
-        run: dart run build_runner build -d
 
       - name: Build dev APK
         run: flutter build apk --debug --flavor dev -t lib/main_dev.dart
