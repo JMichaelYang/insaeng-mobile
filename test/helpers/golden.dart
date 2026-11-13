@@ -18,6 +18,8 @@ void goldenVariantsTest(
   BoxConstraints constraints = const BoxConstraints(maxWidth: 360),
 }) {
   final config = AlchemistConfig.current();
+  final platformConfig = config.platformGoldensConfig;
+  final runsPlatform = platformConfig.enabled && platformConfig.platforms.contains(HostPlatform.current());
   final platformOnly = config.copyWith(ciGoldensConfig: config.ciGoldensConfig.copyWith(enabled: false));
   final frame = config.goldenTestTheme ?? GoldenTestTheme.standard();
   final ciOnly = config.copyWith(
@@ -31,7 +33,11 @@ void goldenVariantsTest(
   );
 
   for (final (themeName, theme) in [('light', AppTheme.light), ('dark', AppTheme.dark)]) {
-    for (final (variantConfig, variantTheme) in [(platformOnly, theme), (ciOnly, _obscureFonts(theme))]) {
+    final runs = [
+      if (runsPlatform) (platformOnly, theme),
+      if (config.ciGoldensConfig.enabled) (ciOnly, _obscureFonts(theme)),
+    ];
+    for (final (variantConfig, variantTheme) in runs) {
       AlchemistConfig.runWithConfig(
         config: variantConfig,
         run: () => unawaited(
