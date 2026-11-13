@@ -1,8 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:insaeng/design_system/atoms/app_button.dart';
-import 'package:insaeng/design_system/theme/dimens.dart';
+import 'package:insaeng/design_system/organisms/app_error_view.dart';
 import 'package:insaeng/routing/routes.dart';
 import 'package:insaeng/ui/generic/items/node_view.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
@@ -36,16 +35,10 @@ class _GenericError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(Dimens.spaceLg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          spacing: Dimens.spaceMd,
-          children: [
-            Text(context.strings.genericPageError, textAlign: TextAlign.center),
-            AppButton(label: context.strings.retry, onPressed: context.read<GenericCubit>().retry),
-          ],
-        ),
+      child: AppErrorView(
+        message: context.strings.genericPageError,
+        retryLabel: context.strings.retry,
+        onRetry: context.read<GenericCubit>().retry,
       ),
     );
   }
