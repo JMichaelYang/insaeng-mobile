@@ -38,22 +38,19 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
 
 ## Nodes
 
-- Every node has a required `type` and an optional `id`, which is for tests and analytics.
+- Every node has a required `type`. Its other properties depend on the type.
+- `id` is optional. When present, it must be unique within the screen. The app uses it as the widget key, so the node keeps its scroll position and focus across a `reload`. It is also a stable handle for tests and analytics.
 - A node may carry a `fallback` node, which renders in its place if the app doesn't know its `type`. With no `fallback`, an unknown node renders nothing.
 - The app ignores properties it doesn't know.
+- Property conventions:
+  - Visual properties take tokens.
+  - Text and state-driven flags are bindable.
+  - Child slots are `child` for one node and `children` for a list.
+  - Events are `on<Event>` action lists.
+  - Inputs write to state through a `bind` path.
+- A typical screen's `root` is a `column` whose first child is an `appBar` and whose second is a `scroll`, so the bar stays pinned.
 
-| Type | Properties (optional unless required) |
-| --- | --- |
-| `column` | `children`; `spacing` (`none`); `alignment` on the cross axis (`stretch`) |
-| `row` | `children`; `spacing` (`none`); `alignment` on the cross axis (`center`) |
-| `container` | `child`; `padding` spacing token (`none`); `alignment` (`start`) |
-| `scroll` | `child`, scrolls vertically and fills the remaining space when inside a `column` |
-| `appBar` | `title` **B**; `leading` `auto`/`back`/`close`/`none` (`auto`, which shows back when there is a screen to return to). `back` and `close` both close the screen and differ only in their icon. Make it the first child of the root `column`, above the `scroll`, so it stays pinned. |
-| `spacer` | `size` spacing token (`md`) |
-| `divider` | a horizontal rule, with no properties |
-| `text` | `text` **B** required; `style` (`bodyMedium`) |
-| `button` | `label` **B** required; `variant` `primary`/`secondary`/`text` (`primary`); `enabled` **B** (`true`); `loading` **B** (`false`), which shows a spinner and ignores taps; `onTap` |
-| `textField` | `bind` path required, written on every keystroke; `label` **B**; `hint` **B**; `obscure` (`false`); `keyboard` `text`/`email`/`number`/`phone` (`text`); `onChanged`; `onSubmit` |
+This doc does not list the node catalogue, which grows with every release. The models in `lib/domain/models/sdui/nodes/` are the source of truth: each model's `type` and fields are its JSON, and `assets/sdui/` has a working example of each node.
 
 ## Actions
 
@@ -100,10 +97,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - The backend gates features on `version >=`. When an older app needs a newer node, the backend sends that node with a `fallback`.
 - Older apps skip unknown actions and properties and render an unknown node's `fallback`, so a missed check degrades instead of crashing.
 - For a breaking change, such as a removed or renamed field or a field whose meaning changes, the backend keeps serving the old shape below the new version.
-
-| Version | Adds |
-| --- | --- |
-| 1 | Everything in this doc |
+- The current version is `SduiVersion.current` in `lib/domain/models/sdui/`. The PR that bumps it says what the new version adds, so its git history is the changelog.
 
 ## Examples
 
@@ -170,7 +164,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - The models live in `lib/domain/models/sdui/`. `LayoutNode` and `LayoutAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
 - `GenericCubit` holds the screen and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
 - `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `LayoutNode` that builds `design_system/` atoms.
-- **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
-- **To add an action:** add the model and handle it in `GenericCubit`.
-- Every contract change updates this doc, bumps the app's SDUI version, and adds a row to the version table.
+- **To add a node:** add the model, any atom it needs, the item widget with its `NodeView` case, and a fixture in `assets/sdui/` that uses it.
+- **To add an action:** add the model, handle it in `GenericCubit`, and add a fixture that uses it.
+- Every contract change bumps `SduiVersion.current`. Change this doc only when a rule changes, never for a new node.
 - Every fixture in `assets/sdui/` must decode with no unknown types, and a test enforces this.
