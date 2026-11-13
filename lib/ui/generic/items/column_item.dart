@@ -12,11 +12,16 @@ class ColumnItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final spacing = context.watchBindable(node.spacing) ?? SpacingToken.none;
     final alignment = context.watchBindable(node.alignment) ?? AlignmentToken.start;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      spacing: spacing.size,
-      crossAxisAlignment: alignment.crossAxis,
-      children: [for (final child in node.children) NodeView(node: child)],
+    return LayoutBuilder(
+      builder: (context, constraints) => Column(
+        mainAxisSize: MainAxisSize.min,
+        spacing: spacing.size,
+        crossAxisAlignment: alignment.crossAxis,
+        children: [
+          for (final child in node.children)
+            NodeView(node: child, expanded: constraints.hasBoundedHeight && child.expandsAlong(Axis.vertical)),
+        ],
+      ),
     );
   }
 }
