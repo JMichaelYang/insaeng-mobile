@@ -55,3 +55,4 @@ app.*.map.json
 
 /lib/l10n/gen/
 *.mapper.dart
+/test/**/failures/

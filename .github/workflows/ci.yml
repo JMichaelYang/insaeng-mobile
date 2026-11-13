@@ -26,7 +26,26 @@ jobs:
         run: flutter analyze
 
       - name: Test
-        run: flutter test
+        run: flutter test --exclude-tags golden
+
+  goldens:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup-flutter
+
+      - name: Test goldens
+        run: flutter test --tags golden
+
+      - name: Upload golden failures
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: golden-failures
+          path: test/**/failures/
+          if-no-files-found: ignore
 
   android:
     runs-on: ubuntu-latest
