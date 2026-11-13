@@ -8,8 +8,7 @@ Every screen is server-driven. The backend sends a **screen**: a tree of typed *
 - Any non-`2xx` response shows the error state with a retry button.
 - Every request, including `request` actions, sends these headers:
   - `Accept-Language`, such as `ko-KR`. All text in a response must already be localized.
-  - `X-SDUI-Version`, such as `1`.
-  - `X-SDUI-Nodes`, the node types this build supports, such as `column,text,button`.
+  - `X-SDUI-Version`, such as `1`. See [Versioning](#versioning).
 
 ## Screen
 
@@ -43,7 +42,6 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
 - Every node has a required `type` and an optional `id`, which is for tests and analytics.
 - A node may carry a `fallback` node, which renders in its place if the app doesn't know its `type`. With no `fallback`, an unknown node renders nothing.
 - The app ignores properties it doesn't know.
-- Send only the types listed in `X-SDUI-Nodes`, or give a newer node a `fallback`.
 
 | Type | Properties (optional unless required) |
 | --- | --- |
@@ -98,8 +96,14 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 
 ## Versioning
 
-- **Additive changes keep the version:** a new node, action, optional property, or token. Older apps skip unknown actions and properties and render an unknown node's `fallback`.
-- **Breaking changes bump `X-SDUI-Version`:** a removed or renamed field, or a field whose meaning changes. The backend keeps serving the old shape to apps that send the old version.
+- `X-SDUI-Version` is a capability level. It goes up by one with every contract change, including a new node, action, property, or token. A build supports everything up to its version.
+- The backend gates features on `version >=`. When an older app needs a newer node, the backend sends that node with a `fallback`.
+- Older apps skip unknown actions and properties and render an unknown node's `fallback`, so a missed check degrades instead of crashing.
+- For a breaking change, such as a removed or renamed field or a field whose meaning changes, the backend keeps serving the old shape below the new version.
+
+| Version | Adds |
+| --- | --- |
+| 1 | Everything in this doc |
 
 ## Examples
 
@@ -150,6 +154,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - The models live in `lib/domain/models/sdui/`. `LayoutNode` and `LayoutAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
 - `GenericCubit` holds the screen and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
 - `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `LayoutNode` that builds `design_system/` atoms.
-- **To add a node:** add the model, any atom it needs, the item widget and its `NodeView` case, and its `X-SDUI-Nodes` entry, then update this doc.
-- **To add an action:** add the model and handle it in `GenericCubit`, then update this doc.
+- **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
+- **To add an action:** add the model and handle it in `GenericCubit`.
+- Every contract change updates this doc, bumps the app's SDUI version, and adds a row to the version table.
 - Every fixture in `assets/sdui/` must decode with no unknown types, and a test enforces this.
