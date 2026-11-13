@@ -7,19 +7,16 @@ import 'package:insaeng/ui/generic/items/unknown_item.dart';
 import 'package:material_ui/material_ui.dart';
 
 class NodeView extends StatelessWidget {
-  const new({required this.node, super.key});
+  new({required this.node}) : super(key: ValueKey(node.id));
 
   final GenericNode node;
 
   @override
-  Widget build(BuildContext context) {
-    final key = ValueKey(node.id);
-    return switch (node) {
-      final ColumnNode node => ColumnItem(key: key, node: node),
-      final AppBarNode node => AppBarItem(key: key, node: node),
-      final TextNode node => TextItem(key: key, node: node),
-      final ButtonNode node => ButtonItem(key: key, node: node),
-      final UnknownNode node => UnknownItem(key: key, node: node),
-    };
-  }
+  Widget build(BuildContext context) => switch (node) {
+    final ColumnNode node => ColumnItem(node: node),
+    final AppBarNode node => AppBarItem(node: node),
+    final TextNode node => TextItem(node: node),
+    final ButtonNode node => ButtonItem(node: node),
+    final UnknownNode node => UnknownItem(node: node),
+  };
 }
