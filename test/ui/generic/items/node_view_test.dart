@@ -6,7 +6,12 @@ import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/app_bar_item.dart';
 import 'package:insaeng/ui/generic/items/button_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
+import 'package:insaeng/ui/generic/items/container_item.dart';
+import 'package:insaeng/ui/generic/items/divider_item.dart';
 import 'package:insaeng/ui/generic/items/node_view.dart';
+import 'package:insaeng/ui/generic/items/row_item.dart';
+import 'package:insaeng/ui/generic/items/scroll_item.dart';
+import 'package:insaeng/ui/generic/items/spacer_item.dart';
 import 'package:insaeng/ui/generic/items/text_item.dart';
 import 'package:insaeng/ui/generic/items/unknown_item.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
@@ -35,9 +40,14 @@ void main() {
 
     final cases = <GenericNode, Type>{
       const ColumnNode(id: 'column'): ColumnItem,
+      const RowNode(id: 'row'): RowItem,
+      const ContainerNode(id: 'container'): ContainerItem,
+      const ScrollNode(id: 'scroll'): ScrollItem,
       const AppBarNode(id: 'appBar'): AppBarItem,
       const TextNode(id: 'text', text: Literal('Hi')): TextItem,
       const ButtonNode(id: 'button', label: Literal('Add')): ButtonItem,
+      const SpacerNode(id: 'spacer'): SpacerItem,
+      const DividerNode(id: 'divider'): DividerItem,
       const UnknownNode(id: 'unknown'): UnknownItem,
     };
 
