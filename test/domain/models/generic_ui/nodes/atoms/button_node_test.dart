@@ -17,7 +17,7 @@ void main() {
     });
 
     test('decodes every variant and loading', () {
-      for (final variant in ButtonVariantToken.values) {
+      for (final variant in ButtonVariant.values) {
         expect(
           _decode({'type': 'button', 'id': 'add', 'label': 'Add', 'variant': variant.name, 'loading': true}),
           ButtonNode(id: 'add', label: const Literal('Add'), variant: Literal(variant), loading: const Literal(true)),
@@ -38,7 +38,7 @@ void main() {
         const ButtonNode(
           id: 'submit',
           label: Binding('cta'),
-          variant: Binding('ctaVariant', fallback: ButtonVariantToken.secondary),
+          variant: Binding('ctaVariant', fallback: ButtonVariant.secondary),
           loading: Binding('submitting', fallback: false),
         ),
       );

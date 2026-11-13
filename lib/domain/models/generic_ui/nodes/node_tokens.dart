@@ -26,9 +26,3 @@ enum SpacingToken { none, xs, sm, md, lg, xl }
 
 @MappableEnum(defaultValue: AlignmentToken.start)
 enum AlignmentToken { start, center, end, stretch }
-
-@MappableEnum(defaultValue: ButtonVariantToken.primary)
-enum ButtonVariantToken { primary, secondary, text }
-
-@MappableEnum(defaultValue: AppBarLeadingToken.none)
-enum AppBarLeadingToken { none, back, close }

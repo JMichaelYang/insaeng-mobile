@@ -11,7 +11,7 @@ void main() {
     });
 
     test('decodes title and every leading token', () {
-      for (final leading in AppBarLeadingToken.values) {
+      for (final leading in AppBarLeading.values) {
         expect(
           _decode({'type': 'appBar', 'id': 'appBar', 'title': 'Log in', 'leading': leading.name}),
           AppBarNode(id: 'appBar', title: const Literal('Log in'), leading: Literal(leading)),
@@ -31,7 +31,7 @@ void main() {
         const AppBarNode(
           id: 'appBar',
           title: Binding('user.name', fallback: 'Guest'),
-          leading: Binding('leading', fallback: AppBarLeadingToken.back),
+          leading: Binding('leading', fallback: AppBarLeading.back),
         ),
       );
     });
