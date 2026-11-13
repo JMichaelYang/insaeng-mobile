@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:insaeng/domain/models/sdui/screen_values.dart';
 import 'package:meta/meta.dart';
@@ -5,6 +6,8 @@ import 'package:meta/meta.dart';
 @immutable
 sealed class Bindable<T extends Object> {
   const new();
+
+  static const _equality = DeepCollectionEquality();
 
   T? resolve(ScreenValues values);
 }
@@ -18,10 +21,10 @@ final class Literal<T extends Object> extends Bindable<T> {
   T resolve(ScreenValues values) => value;
 
   @override
-  bool operator ==(Object other) => other is Literal<T> && other.value == value;
+  bool operator ==(Object other) => other is Literal<T> && Bindable._equality.equals(other.value, value);
 
   @override
-  int get hashCode => Object.hash(Literal, value);
+  int get hashCode => Object.hash(Literal, Bindable._equality.hash(value));
 
   @override
   String toString() => 'Literal<$T>($value)';
@@ -41,10 +44,11 @@ final class Binding<T extends Object> extends Bindable<T> {
   };
 
   @override
-  bool operator ==(Object other) => other is Binding<T> && other.path == path && other.fallback == fallback;
+  bool operator ==(Object other) =>
+      other is Binding<T> && other.path == path && Bindable._equality.equals(other.fallback, fallback);
 
   @override
-  int get hashCode => Object.hash(Binding, path, fallback);
+  int get hashCode => Object.hash(Binding, path, Bindable._equality.hash(fallback));
 
   @override
   String toString() => 'Binding<$T>($path, fallback: $fallback)';
