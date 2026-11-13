@@ -7,6 +7,8 @@ import 'package:insaeng/l10n/l10n.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:meta/meta.dart';
 
+const _obscuredFontFamily = 'Ahem';
+
 @isTestGroup
 void goldenVariantsTest(
   String description, {
@@ -15,25 +17,71 @@ void goldenVariantsTest(
   int? columns,
   BoxConstraints constraints = const BoxConstraints(maxWidth: 360),
 }) {
+  final config = AlchemistConfig.current();
+  final platformOnly = config.copyWith(ciGoldensConfig: config.ciGoldensConfig.copyWith(enabled: false));
+  final frame = config.goldenTestTheme ?? GoldenTestTheme.standard();
+  final ciOnly = config.copyWith(
+    platformGoldensConfig: config.platformGoldensConfig.copyWith(enabled: false),
+    goldenTestTheme: GoldenTestTheme(
+      backgroundColor: frame.backgroundColor,
+      borderColor: frame.borderColor,
+      padding: frame.padding,
+      nameTextStyle: frame.nameTextStyle.copyWith(fontFamily: _obscuredFontFamily, letterSpacing: 0),
+    ),
+  );
+
   for (final (themeName, theme) in [('light', AppTheme.light), ('dark', AppTheme.dark)]) {
-    unawaited(
-      goldenTest(
-        '$description in $themeName',
-        fileName: '${fileName}_$themeName',
-        builder: () => GoldenTestGroup(
-          columns: columns,
-          scenarioConstraints: constraints,
-          children: [
-            for (final MapEntry(key: name, value: variant) in variants.entries)
-              GoldenTestScenario(
-                name: name,
-                child: _ThemedVariant(theme: theme, child: variant),
-              ),
-          ],
+    for (final (variantConfig, variantTheme) in [(platformOnly, theme), (ciOnly, _obscureFonts(theme))]) {
+      AlchemistConfig.runWithConfig(
+        config: variantConfig,
+        run: () => unawaited(
+          goldenTest(
+            '$description in $themeName',
+            fileName: '${fileName}_$themeName',
+            builder: () => GoldenTestGroup(
+              columns: columns,
+              scenarioConstraints: constraints,
+              children: [
+                for (final MapEntry(key: name, value: variant) in variants.entries)
+                  GoldenTestScenario(
+                    name: name,
+                    child: _ThemedVariant(theme: variantTheme, child: variant),
+                  ),
+              ],
+            ),
+          ),
         ),
-      ),
-    );
+      );
+    }
   }
+}
+
+ThemeData _obscureFonts(ThemeData theme) {
+  return theme.copyWith(
+    textTheme: _obscureTextTheme(theme.textTheme),
+    primaryTextTheme: _obscureTextTheme(theme.primaryTextTheme),
+  );
+}
+
+TextTheme _obscureTextTheme(TextTheme textTheme) {
+  TextStyle? obscure(TextStyle? style) => style?.copyWith(fontFamily: _obscuredFontFamily, letterSpacing: 0);
+  return textTheme.copyWith(
+    displayLarge: obscure(textTheme.displayLarge),
+    displayMedium: obscure(textTheme.displayMedium),
+    displaySmall: obscure(textTheme.displaySmall),
+    headlineLarge: obscure(textTheme.headlineLarge),
+    headlineMedium: obscure(textTheme.headlineMedium),
+    headlineSmall: obscure(textTheme.headlineSmall),
+    titleLarge: obscure(textTheme.titleLarge),
+    titleMedium: obscure(textTheme.titleMedium),
+    titleSmall: obscure(textTheme.titleSmall),
+    bodyLarge: obscure(textTheme.bodyLarge),
+    bodyMedium: obscure(textTheme.bodyMedium),
+    bodySmall: obscure(textTheme.bodySmall),
+    labelLarge: obscure(textTheme.labelLarge),
+    labelMedium: obscure(textTheme.labelMedium),
+    labelSmall: obscure(textTheme.labelSmall),
+  );
 }
 
 class _ThemedVariant extends StatelessWidget {

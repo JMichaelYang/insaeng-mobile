@@ -20,7 +20,7 @@ Golden tests use [alchemist](https://pub.dev/packages/alchemist), configured onc
 - Write them with `goldenVariantsTest` from `test/helpers/golden.dart`. It renders each named variant on its own `AppTheme` surface in both light and dark themes, with Pretendard loaded. It writes one image per theme.
 - Name the file `<component>_golden_test.dart`, next to the component's widget test, and cover every variant and state in the map.
 - Each test writes two kinds of goldens next to the test file:
-  - `goldens/ci/`: platform-agnostic. Text is drawn as solid blocks and shadows are off, so these images match on macOS and on the Ubuntu CI runner. CI compares only these.
+  - `goldens/ci/`: platform-agnostic. Text is laid out in the Ahem font with no letter spacing and drawn as solid blocks, and shadows are off, so these images match on macOS and on the Ubuntu CI runner. CI compares only these.
   - `goldens/macos/`: real Pretendard text, meant for people reading diffs. They are compared only on macOS machines outside CI, because font rasterization differs between platforms.
 - Commit both folders. Failed comparisons write diffs to `failures/`, which is gitignored and uploaded as the `golden-failures` artifact when CI fails.
 - After a deliberate visual change, regenerate the goldens with `fvm flutter test --update-goldens --tags golden`, then review the changed images before committing.
