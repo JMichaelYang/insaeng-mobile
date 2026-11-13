@@ -1,0 +1,26 @@
+{
+  "id": "home",
+  "state": { "count": 0 },
+  "root": {
+    "type": "column",
+    "id": "root",
+    "children": [
+      { "type": "appBar", "id": "appBar", "title": "Insaeng" },
+      {
+        "type": "column",
+        "id": "counter",
+        "spacing": "md",
+        "alignment": "center",
+        "children": [
+          { "type": "text", "id": "count", "text": { "$bind": "count" }, "style": "displayMedium" },
+          {
+            "type": "button",
+            "id": "add",
+            "label": "Add",
+            "onTap": [{ "type": "updateState", "path": "count", "op": "increment" }]
+          }
+        ]
+      }
+    ]
+  }
+}

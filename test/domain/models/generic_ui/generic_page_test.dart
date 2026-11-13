@@ -151,5 +151,43 @@ void main() {
         throwsA(isA<MapperException>()),
       );
     });
+
+    test('nodes walks the tree depth first, including fallbacks', () {
+      const page = GenericPage(
+        id: 'home',
+        root: ColumnNode(
+          id: 'root',
+          children: [
+            ColumnNode(
+              id: 'counter',
+              children: [TextNode(id: 'count', text: Literal('Zero'))],
+            ),
+            UnknownNode(
+              id: 'hero',
+              fallback: TextNode(id: 'heroFallback', text: Literal('Featured')),
+            ),
+            AppBarNode(id: 'appBar'),
+          ],
+        ),
+      );
+
+      expect(page.nodes.map((node) => node.id), ['root', 'counter', 'count', 'hero', 'heroFallback', 'appBar']);
+    });
+
+    test('actions lists onLoad and then every node action', () {
+      const page = GenericPage(
+        id: 'home',
+        onLoad: [ShowMessageAction(text: Literal('Welcome'))],
+        root: ColumnNode(
+          id: 'root',
+          children: [
+            ButtonNode(id: 'back', label: Literal('Back'), onTap: [BackAction()]),
+            ButtonNode(id: 'reload', label: Literal('Reload'), onTap: [ReloadAction()]),
+          ],
+        ),
+      );
+
+      expect(page.actions, const [ShowMessageAction(text: Literal('Welcome')), BackAction(), ReloadAction()]);
+    });
   });
 }

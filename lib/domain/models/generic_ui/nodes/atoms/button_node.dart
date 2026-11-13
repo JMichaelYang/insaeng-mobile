@@ -23,4 +23,7 @@ final class ButtonNode extends GenericNode with ButtonNodeMappable {
   final Bindable<bool> loading;
 
   final List<GenericAction> onTap;
+
+  @override
+  List<GenericAction> get actions => onTap;
 }

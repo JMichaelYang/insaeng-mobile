@@ -17,4 +17,8 @@ sealed class GenericNode with GenericNodeMappable {
   const new({required this.id});
 
   final String id;
+
+  List<GenericNode> get childNodes => const [];
+
+  List<GenericAction> get actions => const [];
 }

@@ -16,4 +16,7 @@ final class ColumnNode extends GenericNode with ColumnNodeMappable {
 
   @MappableField(hook: BindableHook<AlignmentToken>())
   final Bindable<AlignmentToken> alignment;
+
+  @override
+  List<GenericNode> get childNodes => children;
 }
