@@ -27,10 +27,10 @@ final class UpdateStateAction extends GenericAction with UpdateStateActionMappab
 
 @MappableClass(discriminatorValue: 'navigate')
 final class NavigateAction extends GenericAction with NavigateActionMappable {
-  const new({required this.screenId, this.params = const Literal({}), this.replace = const Literal(false)});
+  const new({required this.pageId, this.params = const Literal({}), this.replace = const Literal(false)});
 
   @MappableField(hook: BindableHook<String>())
-  final Bindable<String> screenId;
+  final Bindable<String> pageId;
 
   @MappableField(hook: BindableHook<Map<String, String>>())
   final Bindable<Map<String, String>> params;
