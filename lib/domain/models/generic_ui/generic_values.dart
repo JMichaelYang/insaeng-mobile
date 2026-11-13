@@ -3,34 +3,34 @@ import 'package:dart_mappable/dart_mappable.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:meta/meta.dart';
 
-part 'screen_values.mapper.dart';
+part 'generic_values.mapper.dart';
 
 @MappableEnum()
 enum UpdateOp { set, toggle, increment, append, removeAt, merge }
 
-sealed class ScreenValuesFailure extends Failure {
+sealed class GenericValuesFailure extends Failure {
   const new();
 }
 
-final class ScreenValuesTypeMismatch extends ScreenValuesFailure {
+final class GenericValuesTypeMismatch extends GenericValuesFailure {
   const new();
 }
 
-final class ScreenValuesIndexOutOfRange extends ScreenValuesFailure {
+final class GenericValuesIndexOutOfRange extends GenericValuesFailure {
   const new();
 }
 
-final class ScreenValuesMissingPath extends ScreenValuesFailure {
+final class GenericValuesMissingPath extends GenericValuesFailure {
   const new();
 }
 
 @immutable
-final class ScreenValues {
+final class GenericValues {
   new([Map<String, Object?> values = const {}]) : _root = _freezeMap(values);
 
   const new _(this._root);
 
-  static const empty = ScreenValues._(<String, Object?>{});
+  static const empty = GenericValues._(<String, Object?>{});
 
   static const _equality = DeepCollectionEquality();
   static final _indexPattern = RegExp(r'^\d+$');
@@ -54,12 +54,12 @@ final class ScreenValues {
     return node;
   }
 
-  Result<ScreenValues> set(String path, Object? value) => update(path, UpdateOp.set, value);
+  Result<GenericValues> set(String path, Object? value) => update(path, UpdateOp.set, value);
 
-  Result<ScreenValues> update(String path, UpdateOp op, [Object? value]) {
+  Result<GenericValues> update(String path, UpdateOp op, [Object? value]) {
     final result = _write(_root, path.split('.'), (current) => _apply(op, current, value));
     return switch (result) {
-      Ok(:final value) => Result.ok(ScreenValues._(value! as Map<String, Object?>)),
+      Ok(:final value) => Result.ok(GenericValues._(value! as Map<String, Object?>)),
       Err(:final failure) => Result.err(failure),
     };
   }
@@ -77,14 +77,14 @@ final class ScreenValues {
         };
       case List<Object?>():
         final index = _index(key);
-        if (index == null) return const Result.err(ScreenValuesTypeMismatch());
-        if (index >= node.length) return const Result.err(ScreenValuesIndexOutOfRange());
+        if (index == null) return const Result.err(GenericValuesTypeMismatch());
+        if (index >= node.length) return const Result.err(GenericValuesIndexOutOfRange());
         return switch (_write(node[index], rest, apply)) {
           Ok(:final value) => Result.ok(List<Object?>.unmodifiable([...node]..[index] = value)),
           final Err<Object?> err => err,
         };
       default:
-        return const Result.err(ScreenValuesTypeMismatch());
+        return const Result.err(GenericValuesTypeMismatch());
     }
   }
 
@@ -93,31 +93,31 @@ final class ScreenValues {
     UpdateOp.toggle => switch (current) {
       null => const Result.ok(true),
       final bool flag => Result.ok(!flag),
-      _ => const Result.err(ScreenValuesTypeMismatch()),
+      _ => const Result.err(GenericValuesTypeMismatch()),
     },
     UpdateOp.increment => switch ((current ?? 0, value ?? 1)) {
       (final num base, final num step) => Result.ok(base + step),
-      _ => const Result.err(ScreenValuesTypeMismatch()),
+      _ => const Result.err(GenericValuesTypeMismatch()),
     },
     UpdateOp.append => switch (current) {
       null => Result.ok(List<Object?>.unmodifiable([_freeze(value)])),
       final List<Object?> list => Result.ok(List<Object?>.unmodifiable([...list, _freeze(value)])),
-      _ => const Result.err(ScreenValuesTypeMismatch()),
+      _ => const Result.err(GenericValuesTypeMismatch()),
     },
     UpdateOp.removeAt => switch ((current, value)) {
-      (null, _) => const Result.err(ScreenValuesMissingPath()),
+      (null, _) => const Result.err(GenericValuesMissingPath()),
       (final List<Object?> list, final int index) when index >= 0 && index < list.length => Result.ok(
         List<Object?>.unmodifiable([...list]..removeAt(index)),
       ),
-      (List<Object?>(), int()) => const Result.err(ScreenValuesIndexOutOfRange()),
-      _ => const Result.err(ScreenValuesTypeMismatch()),
+      (List<Object?>(), int()) => const Result.err(GenericValuesIndexOutOfRange()),
+      _ => const Result.err(GenericValuesTypeMismatch()),
     },
     UpdateOp.merge => switch ((current, value)) {
       (null, final Map<Object?, Object?> patch) => Result.ok(_freezeMap(patch)),
       (final Map<String, Object?> base, final Map<Object?, Object?> patch) => Result.ok(
         Map<String, Object?>.unmodifiable({...base, ..._freezeMap(patch)}),
       ),
-      _ => const Result.err(ScreenValuesTypeMismatch()),
+      _ => const Result.err(GenericValuesTypeMismatch()),
     },
   };
 
@@ -133,11 +133,11 @@ final class ScreenValues {
       Map<String, Object?>.unmodifiable({for (final MapEntry(:key, :value) in map.entries) '$key': _freeze(value)});
 
   @override
-  bool operator ==(Object other) => other is ScreenValues && _equality.equals(other._root, _root);
+  bool operator ==(Object other) => other is GenericValues && _equality.equals(other._root, _root);
 
   @override
   int get hashCode => _equality.hash(_root);
 
   @override
-  String toString() => 'ScreenValues($_root)';
+  String toString() => 'GenericValues($_root)';
 }

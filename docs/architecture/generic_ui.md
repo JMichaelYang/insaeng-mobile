@@ -1,15 +1,15 @@
-# Server-driven UI contract (v1)
+# Generic UI contract (v1)
 
-Every screen is server-driven. The backend sends a **screen**: a tree of typed **nodes**, starting local **state**, and **action** lists on node events. The app renders the nodes with design-system items and runs the actions.
+Every page is server-driven. The backend sends a **page**: a tree of typed **nodes**, starting local **state**, and **action** lists on node events. The app renders the nodes with design-system items and runs the actions.
 
 ## Request headers
 
 Every request the app makes, including `request` actions, sends:
 
 - `Accept-Language`, such as `ko-KR`. All text in a response must already be localized.
-- `X-SDUI-Version`, such as `1`. See [Versioning](#versioning).
+- `X-Generic-UI-Version`, such as `1`. See [Versioning](#versioning).
 
-## Screen
+## Page
 
 ```json
 { "id": "home", "state": { "count": 0 }, "onLoad": [], "root": { "type": "column", "id": "root" } }
@@ -21,7 +21,7 @@ Every request the app makes, including `request` actions, sends:
 
 ## State, paths, and bindings
 
-- Each screen holds its own JSON state from open to close. Nothing is shared between screens.
+- Each page holds its own JSON state from open to close. Nothing is shared between pages.
 - A path is a set of dot-separated keys, and a numeric segment indexes into a list, as in `todos.0.title`. Keys can't contain `.`. A missing path resolves to nothing.
 - Every value field on a node or an action takes a literal or a binding, such as `{ "$bind": "user.name", "fallback": "Guest" }`.
   - A bound node field updates whenever its path changes.
@@ -45,10 +45,10 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
 ## Nodes
 
 - Every node has a required `type` and a required `id`. Its other properties depend on the type.
-- Each `id` must be unique within the screen and stay the same across responses.
+- Each `id` must be unique within the page and stay the same across responses.
   - The app uses it as the widget key, so the node keeps its scroll position, focus, and input across a `reload`.
   - It is also a stable handle for tests and analytics.
-  - A screen with a duplicate or missing id fails to load.
+  - A page with a duplicate or missing id fails to load.
 - A node may carry a `fallback` node, which renders in its place if the app doesn't know its `type`. With no `fallback`, an unknown node renders nothing.
 - The app ignores properties it doesn't know.
 - Property conventions:
@@ -56,9 +56,9 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
   - Child slots are `child` for one node and `children` for a list.
   - Events are `on<Event>` action lists.
   - Inputs write to state through a `bind` path.
-- A typical screen's `root` is a `column` whose first child is an `appBar` and whose second is a `scroll`, so the bar stays pinned.
+- A typical page's `root` is a `column` whose first child is an `appBar` and whose second is a `scroll`, so the bar stays pinned.
 
-This doc does not list the node catalogue, which grows with every release. The models in `lib/domain/models/sdui/nodes/` are the source of truth: each model's `type` and fields are its JSON.
+This doc does not list the node catalogue, which grows with every release. The models in `lib/domain/models/generic_ui/nodes/` are the source of truth: each model's `type` and fields are its JSON.
 
 ## Actions
 
@@ -100,11 +100,11 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 
 ## Versioning
 
-- `X-SDUI-Version` is a capability level. It goes up by one with every contract change, including a new node, action, property, or token. A build supports everything up to its version.
+- `X-Generic-UI-Version` is a capability level. It goes up by one with every contract change, including a new node, action, property, or token. A build supports everything up to its version.
 - The backend gates features on `version >=`. When an older app needs a newer node, the backend sends that node with a `fallback`.
 - Older apps skip unknown actions and properties and render an unknown node's `fallback`, so a missed check degrades instead of crashing.
 - For a breaking change, such as a removed or renamed field or a field whose meaning changes, the backend keeps serving the old shape below the new version.
-- The current version is `SduiVersion.current` in `lib/domain/models/sdui/`. The PR that bumps it says what the new version adds, so its git history is the changelog.
+- The current version is `GenericUiVersion.current` in `lib/domain/models/generic_ui/`. The PR that bumps it says what the new version adds, so its git history is the changelog.
 
 ## Examples
 
@@ -171,9 +171,9 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 
 ## In the app
 
-- The models live in `lib/domain/models/sdui/`. `LayoutNode` and `LayoutAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
-- `GenericCubit` holds the screen and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
-- `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `LayoutNode` that builds `design_system/` atoms.
+- The models live in `lib/domain/models/generic_ui/`. `GenericNode` and `GenericAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
+- `GenericCubit` holds the page and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
+- `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `GenericNode` that builds `design_system/` atoms.
 - **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
 - **To add an action:** add the model and handle it in `GenericCubit`.
-- Every contract change bumps `SduiVersion.current`. Change this doc only when a rule changes, never for a new node or action.
+- Every contract change bumps `GenericUiVersion.current`. Change this doc only when a rule changes, never for a new node or action.

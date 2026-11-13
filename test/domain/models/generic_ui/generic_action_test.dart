@@ -1,13 +1,13 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insaeng/domain/models/sdui/bindable.dart';
-import 'package:insaeng/domain/models/sdui/layout_action.dart';
-import 'package:insaeng/domain/models/sdui/screen_values.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 
-LayoutAction _decode(Map<String, Object?> json) => LayoutActionMapper.fromMap(json);
+GenericAction _decode(Map<String, Object?> json) => GenericActionMapper.fromMap(json);
 
 void main() {
-  group(LayoutAction, () {
+  group(GenericAction, () {
     group(UpdateStateAction, () {
       test('decodes with defaults', () {
         expect(_decode({'type': 'updateState', 'path': 'count'}), const UpdateStateAction(path: 'count'));
@@ -214,7 +214,7 @@ void main() {
 
       test('keeps known actions around it in a list', () {
         expect(
-          MapperContainer.globals.fromValue<List<LayoutAction>>([
+          MapperContainer.globals.fromValue<List<GenericAction>>([
             {'type': 'back'},
             {'type': 'confetti'},
             {'type': 'reload'},

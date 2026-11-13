@@ -1,19 +1,19 @@
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:insaeng/domain/models/sdui/bindable.dart';
-import 'package:insaeng/domain/models/sdui/screen_values.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 
-part 'layout_action.mapper.dart';
+part 'generic_action.mapper.dart';
 
 @MappableEnum(caseStyle: CaseStyle.upperCase)
 enum RequestMethod { get, post, put, patch, delete }
 
 @MappableClass(discriminatorKey: 'type')
-sealed class LayoutAction with LayoutActionMappable {
+sealed class GenericAction with GenericActionMappable {
   const new();
 }
 
 @MappableClass(discriminatorValue: 'updateState')
-final class UpdateStateAction extends LayoutAction with UpdateStateActionMappable {
+final class UpdateStateAction extends GenericAction with UpdateStateActionMappable {
   const new({required this.path, this.op = const Literal(UpdateOp.set), this.value});
 
   final String path;
@@ -26,7 +26,7 @@ final class UpdateStateAction extends LayoutAction with UpdateStateActionMappabl
 }
 
 @MappableClass(discriminatorValue: 'navigate')
-final class NavigateAction extends LayoutAction with NavigateActionMappable {
+final class NavigateAction extends GenericAction with NavigateActionMappable {
   const new({required this.screenId, this.params = const Literal({}), this.replace = const Literal(false)});
 
   @MappableField(hook: BindableHook<String>())
@@ -40,17 +40,17 @@ final class NavigateAction extends LayoutAction with NavigateActionMappable {
 }
 
 @MappableClass(discriminatorValue: 'back')
-final class BackAction extends LayoutAction with BackActionMappable {
+final class BackAction extends GenericAction with BackActionMappable {
   const new();
 }
 
 @MappableClass(discriminatorValue: 'reload')
-final class ReloadAction extends LayoutAction with ReloadActionMappable {
+final class ReloadAction extends GenericAction with ReloadActionMappable {
   const new();
 }
 
 @MappableClass(discriminatorValue: 'showMessage')
-final class ShowMessageAction extends LayoutAction with ShowMessageActionMappable {
+final class ShowMessageAction extends GenericAction with ShowMessageActionMappable {
   const new({required this.text});
 
   @MappableField(hook: BindableHook<String>())
@@ -58,7 +58,7 @@ final class ShowMessageAction extends LayoutAction with ShowMessageActionMappabl
 }
 
 @MappableClass(discriminatorValue: 'request')
-final class RequestAction extends LayoutAction with RequestActionMappable {
+final class RequestAction extends GenericAction with RequestActionMappable {
   const new({required this.endpoint, this.method = const Literal(RequestMethod.post), this.body, this.loadingPath});
 
   @MappableField(hook: BindableHook<RequestMethod>())
@@ -74,6 +74,6 @@ final class RequestAction extends LayoutAction with RequestActionMappable {
 }
 
 @MappableClass(discriminatorValue: MappableClass.useAsDefault)
-final class UnknownAction extends LayoutAction with UnknownActionMappable {
+final class UnknownAction extends GenericAction with UnknownActionMappable {
   const new();
 }

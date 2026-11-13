@@ -1,6 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:dart_mappable/dart_mappable.dart';
-import 'package:insaeng/domain/models/sdui/screen_values.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:meta/meta.dart';
 
 @immutable
@@ -9,7 +9,7 @@ sealed class Bindable<T extends Object> {
 
   static const _equality = DeepCollectionEquality();
 
-  T? resolve(ScreenValues values);
+  T? resolve(GenericValues values);
 }
 
 final class Literal<T extends Object> extends Bindable<T> {
@@ -18,7 +18,7 @@ final class Literal<T extends Object> extends Bindable<T> {
   final T value;
 
   @override
-  T resolve(ScreenValues values) => value;
+  T resolve(GenericValues values) => value;
 
   @override
   bool operator ==(Object other) => other is Literal<T> && Bindable._equality.equals(other.value, value);
@@ -37,7 +37,7 @@ final class Binding<T extends Object> extends Bindable<T> {
   final T? fallback;
 
   @override
-  T? resolve(ScreenValues values) => switch (values.get(path)) {
+  T? resolve(GenericValues values) => switch (values.get(path)) {
     final T value => value,
     final Object value when (value is num || value is bool) && '' is T => '$value' as T,
     _ => fallback,

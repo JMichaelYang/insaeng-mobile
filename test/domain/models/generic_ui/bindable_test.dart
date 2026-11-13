@@ -1,7 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insaeng/domain/models/sdui/bindable.dart';
-import 'package:insaeng/domain/models/sdui/screen_values.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 
 part 'bindable_test.mapper.dart';
 
@@ -137,7 +137,7 @@ void main() {
   });
 
   group(Bindable, () {
-    final values = ScreenValues(const {
+    final values = GenericValues(const {
       'name': 'Kim',
       'count': 3,
       'ratio': 0.5,
@@ -151,7 +151,7 @@ void main() {
     group(Literal, () {
       test('resolves to its value', () {
         expect(const Literal('Hi').resolve(values), 'Hi');
-        expect(const Literal('Hi').resolve(ScreenValues.empty), 'Hi');
+        expect(const Literal('Hi').resolve(GenericValues.empty), 'Hi');
       });
 
       test('compares collection values deeply', () {
@@ -205,7 +205,7 @@ void main() {
       });
 
       test('does not convert a string to a number or bool', () {
-        final strings = ScreenValues(const {'count': '3', 'flag': 'true'});
+        final strings = GenericValues(const {'count': '3', 'flag': 'true'});
 
         expect(const Binding('count', fallback: 1).resolve(strings), 1);
         expect(const Binding<bool>('flag').resolve(strings), isNull);
@@ -214,8 +214,8 @@ void main() {
       test('follows the latest values', () {
         const binding = Binding('name', fallback: 'Guest');
 
-        expect(binding.resolve(ScreenValues.empty), 'Guest');
-        expect(binding.resolve(ScreenValues(const {'name': 'Lee'})), 'Lee');
+        expect(binding.resolve(GenericValues.empty), 'Guest');
+        expect(binding.resolve(GenericValues(const {'name': 'Lee'})), 'Lee');
       });
     });
   });
