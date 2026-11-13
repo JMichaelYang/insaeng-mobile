@@ -5,4 +5,7 @@ final class UnknownNode extends GenericNode with UnknownNodeMappable {
   const new({required super.id, this.fallback});
 
   final GenericNode? fallback;
+
+  @override
+  List<GenericNode> get childNodes => [?fallback];
 }

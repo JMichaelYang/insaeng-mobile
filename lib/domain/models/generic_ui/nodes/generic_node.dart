@@ -18,14 +18,7 @@ sealed class GenericNode with GenericNodeMappable {
 
   final String id;
 
-  List<GenericNode> get childNodes => switch (this) {
-    ColumnNode(:final children) => children,
-    UnknownNode(:final fallback) => [?fallback],
-    AppBarNode() || ButtonNode() || TextNode() => const [],
-  };
+  List<GenericNode> get childNodes => const [];
 
-  List<GenericAction> get actions => switch (this) {
-    ButtonNode(:final onTap) => onTap,
-    AppBarNode() || ColumnNode() || TextNode() || UnknownNode() => const [],
-  };
+  List<GenericAction> get actions => const [];
 }
