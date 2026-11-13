@@ -45,11 +45,26 @@ void main() {
       testWidgets('renders a ${node.runtimeType} as a $itemType keyed by its id', (tester) async {
         await pumpNode(tester, node);
 
-        final item = find.byKey(ValueKey(node.id));
-        expect(item, findsOneWidget);
-        expect(tester.widget(item).runtimeType, itemType);
+        final view = find.byKey(ValueKey(node.id));
+        expect(view, findsOneWidget);
+        expect(tester.widget(view), isA<NodeView>());
+        expect(find.descendant(of: view, matching: find.byType(itemType)), findsOneWidget);
       });
     }
+
+    testWidgets('keeps each child element when siblings are reordered', (tester) async {
+      const first = TextNode(id: 'first', text: Literal('One'));
+      const second = TextNode(id: 'second', text: Literal('Two'));
+      await pumpNode(tester, const ColumnNode(id: 'column', children: [first, second]));
+      final firstElement = tester.element(find.byKey(const ValueKey('first')));
+      final secondElement = tester.element(find.byKey(const ValueKey('second')));
+
+      await pumpNode(tester, const ColumnNode(id: 'column', children: [second, first]));
+
+      expect(tester.element(find.byKey(const ValueKey('first'))), same(firstElement));
+      expect(tester.element(find.byKey(const ValueKey('second'))), same(secondElement));
+      expect(tester.getTopLeft(find.text('Two')).dy, lessThan(tester.getTopLeft(find.text('One')).dy));
+    });
 
     testWidgets('renders nested children', (tester) async {
       await pumpNode(
