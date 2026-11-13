@@ -1,7 +1,11 @@
 import 'package:collection/collection.dart';
+import 'package:dart_mappable/dart_mappable.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:meta/meta.dart';
 
+part 'screen_values.mapper.dart';
+
+@MappableEnum()
 enum UpdateOp { set, toggle, increment, append, removeAt, merge }
 
 sealed class ScreenValuesFailure extends Failure {

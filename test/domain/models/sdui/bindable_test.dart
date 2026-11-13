@@ -153,6 +153,19 @@ void main() {
         expect(const Literal('Hi').resolve(values), 'Hi');
         expect(const Literal('Hi').resolve(ScreenValues.empty), 'Hi');
       });
+
+      test('compares collection values deeply', () {
+        Map<String, Object> tree(List<int> items) => {'k': List.of(items)};
+
+        final a = Literal<Object>(tree([1, 2]));
+        final b = Literal<Object>(tree([1, 2]));
+
+        expect(identical(a.value, b.value), isFalse);
+        expect(a, b);
+        expect(a.hashCode, b.hashCode);
+        expect(a, isNot(Literal<Object>(tree([1]))));
+        expect(Binding<Object>('p', fallback: tree([1])), Binding<Object>('p', fallback: tree([1])));
+      });
     });
 
     group(Binding, () {
