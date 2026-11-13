@@ -13,11 +13,10 @@ Every screen is server-driven. The backend sends a **screen**: a tree of typed *
 ## Screen
 
 ```json
-{ "id": "home", "title": "Counter", "state": { "count": 0 }, "onLoad": [], "root": { "type": "column" } }
+{ "id": "home", "state": { "count": 0 }, "onLoad": [], "root": { "type": "column" } }
 ```
 
-- `id` and `root` are required.
-- `title` is the app bar text.
+- `id` and `root` are required. `root` is the top node of the layout tree, and everything on screen is drawn from it, including the app bar.
 - `state` seeds the local state and defaults to `{}`.
 - `onLoad` actions run once, after the first load.
 
@@ -48,7 +47,8 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
 | `column` | `children`; `spacing` (`none`); `alignment` on the cross axis (`stretch`) |
 | `row` | `children`; `spacing` (`none`); `alignment` on the cross axis (`center`) |
 | `container` | `child`; `padding` spacing token (`none`); `alignment` (`start`) |
-| `scroll` | `child`, scrolls vertically |
+| `scroll` | `child`, scrolls vertically and fills the remaining space when inside a `column` |
+| `appBar` | `title` **B**; `leading` `auto`/`back`/`close`/`none` (`auto`, which shows back when there is a screen to return to). `back` and `close` both close the screen and differ only in their icon. Make it the first child of the root `column`, above the `scroll`, so it stays pinned. |
 | `spacer` | `size` spacing token (`md`) |
 | `divider` | a horizontal rule, with no properties |
 | `text` | `text` **B** required; `style` (`bodyMedium`) |
@@ -110,13 +110,21 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 ```json
 {
   "id": "home",
-  "title": "Counter",
   "state": { "count": 0 },
   "root": {
-    "type": "column", "spacing": "md", "alignment": "center",
+    "type": "column",
     "children": [
-      { "type": "text", "text": { "$bind": "count" }, "style": "displayMedium" },
-      { "type": "button", "label": "Add", "onTap": [{ "type": "updateState", "path": "count", "op": "increment" }] }
+      { "type": "appBar", "title": "Counter" },
+      {
+        "type": "container", "padding": "md", "alignment": "center",
+        "child": {
+          "type": "column", "spacing": "md", "alignment": "center",
+          "children": [
+            { "type": "text", "text": { "$bind": "count" }, "style": "displayMedium" },
+            { "type": "button", "label": "Add", "onTap": [{ "type": "updateState", "path": "count", "op": "increment" }] }
+          ]
+        }
+      }
     ]
   }
 }
@@ -125,24 +133,32 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 ```json
 {
   "id": "login",
-  "title": "Log in",
   "state": { "form": { "email": "", "password": "" }, "submitting": false },
   "root": {
-    "type": "container", "padding": "lg",
-    "child": {
-      "type": "column", "spacing": "md",
-      "children": [
-        { "type": "textField", "bind": "form.email", "label": "Email", "keyboard": "email" },
-        { "type": "textField", "bind": "form.password", "label": "Password", "obscure": true },
-        {
-          "type": "button", "label": "Log in", "loading": { "$bind": "submitting" },
-          "onTap": [{
-            "type": "request", "path": "/auth/login", "loadingPath": "submitting",
-            "body": { "email": { "$bind": "form.email" }, "password": { "$bind": "form.password" } }
-          }]
+    "type": "column",
+    "children": [
+      { "type": "appBar", "title": "Log in", "leading": "close" },
+      {
+        "type": "scroll",
+        "child": {
+          "type": "container", "padding": "lg",
+          "child": {
+            "type": "column", "spacing": "md",
+            "children": [
+              { "type": "textField", "bind": "form.email", "label": "Email", "keyboard": "email" },
+              { "type": "textField", "bind": "form.password", "label": "Password", "obscure": true },
+              {
+                "type": "button", "label": "Log in", "loading": { "$bind": "submitting" },
+                "onTap": [{
+                  "type": "request", "path": "/auth/login", "loadingPath": "submitting",
+                  "body": { "email": { "$bind": "form.email" }, "password": { "$bind": "form.password" } }
+                }]
+              }
+            ]
+          }
         }
-      ]
-    }
+      }
+    ]
   }
 }
 ```
