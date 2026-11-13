@@ -62,18 +62,18 @@ void main() {
 
     group(NavigateAction, () {
       test('decodes with defaults', () {
-        expect(_decode({'type': 'navigate', 'screenId': 'home'}), const NavigateAction(screenId: Literal('home')));
+        expect(_decode({'type': 'navigate', 'pageId': 'home'}), const NavigateAction(pageId: Literal('home')));
       });
 
       test('decodes params and replace', () {
         expect(
           _decode({
             'type': 'navigate',
-            'screenId': 'detail',
+            'pageId': 'detail',
             'params': {'id': '7'},
             'replace': true,
           }),
-          const NavigateAction(screenId: Literal('detail'), params: Literal({'id': '7'}), replace: Literal(true)),
+          const NavigateAction(pageId: Literal('detail'), params: Literal({'id': '7'}), replace: Literal(true)),
         );
       });
 
@@ -81,12 +81,12 @@ void main() {
         expect(
           _decode({
             'type': 'navigate',
-            'screenId': {r'$bind': 'next'},
+            'pageId': {r'$bind': 'next'},
             'params': {r'$bind': 'selected'},
             'replace': {r'$bind': 'replace', 'fallback': false},
           }),
           const NavigateAction(
-            screenId: Binding('next'),
+            pageId: Binding('next'),
             params: Binding('selected'),
             replace: Binding('replace', fallback: false),
           ),
@@ -97,17 +97,17 @@ void main() {
         expect(
           _decode({
             'type': 'navigate',
-            'screenId': 'detail',
+            'pageId': 'detail',
             'params': {'id': 7, 'open': true},
           }),
-          const NavigateAction(screenId: Literal('detail'), params: Literal({'id': '7', 'open': 'true'})),
+          const NavigateAction(pageId: Literal('detail'), params: Literal({'id': '7', 'open': 'true'})),
         );
       });
 
-      test('fails without a screenId or with params that are not an object', () {
+      test('fails without a pageId or with params that are not an object', () {
         expect(() => _decode({'type': 'navigate'}), throwsA(isA<MapperException>()));
         expect(
-          () => _decode({'type': 'navigate', 'screenId': 'home', 'params': 'id=7'}),
+          () => _decode({'type': 'navigate', 'pageId': 'home', 'params': 'id=7'}),
           throwsA(isA<MapperException>()),
         );
       });
@@ -229,7 +229,7 @@ void main() {
         {'type': 'updateState', 'path': 'count', 'op': 'increment', 'value': 2},
         {
           'type': 'navigate',
-          'screenId': 'home',
+          'pageId': 'home',
           'params': {'tab': 'feed'},
           'replace': true,
         },

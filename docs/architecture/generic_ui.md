@@ -71,7 +71,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 | Type | Fields | Fails when |
 | --- | --- | --- |
 | `updateState` | `path` required; `op` (`set`); `value` | the existing value has the wrong type, or an index is out of range |
-| `navigate` | `screenId` required; `params` object of string values; `replace` (`false`) | never |
+| `navigate` | `pageId` required; `params` object of string values; `replace` (`false`) | never |
 | `back` | none | never |
 | `reload` | none. It re-fetches with the same params and keeps local state unless the new payload has `state`. | the fetch fails |
 | `showMessage` | `text` required, shown in a snackbar | never |
@@ -167,7 +167,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 }
 ```
 
-`POST /auth/login` returns `{ "actions": [{ "type": "navigate", "screenId": "home", "replace": true }] }` on success. For a wrong password, it returns an `updateState` that clears `form.password`, followed by a `showMessage`.
+`POST /auth/login` returns `{ "actions": [{ "type": "navigate", "pageId": "home", "replace": true }] }` on success. For a wrong password, it returns an `updateState` that clears `form.password`, followed by a `showMessage`.
 
 ## In the app
 
