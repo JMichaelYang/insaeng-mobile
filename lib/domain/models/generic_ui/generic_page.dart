@@ -19,4 +19,15 @@ final class GenericPage with GenericPageMappable {
   final List<GenericAction> onLoad;
 
   GenericValues get initialState => state ?? GenericValues.empty;
+
+  Iterable<GenericNode> get nodes => _descendants(root);
+
+  Iterable<GenericAction> get actions => [...onLoad, for (final node in nodes) ...node.actions];
+
+  static Iterable<GenericNode> _descendants(GenericNode node) sync* {
+    yield node;
+    for (final child in node.childNodes) {
+      yield* _descendants(child);
+    }
+  }
 }
