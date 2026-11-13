@@ -6,6 +6,8 @@ import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
+import 'package:insaeng/ui/generic/items/scroll_item.dart';
+import 'package:insaeng/ui/generic/items/unknown_item.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
@@ -89,6 +91,84 @@ void main() {
         expect(column(tester).crossAxisAlignment, alignment);
       });
     }
+
+    testWidgets('expands a scroll child to fill the remaining height', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            TextNode(id: 'title', text: Literal('Title')),
+            ScrollNode(id: 'scroll'),
+          ],
+        ),
+      );
+
+      final screenHeight = tester.getSize(find.byType(Scaffold)).height;
+      expect(find.ancestor(of: find.byType(ScrollItem), matching: find.byType(Expanded)), findsOneWidget);
+      expect(tester.getBottomLeft(find.byType(ScrollItem)).dy, screenHeight);
+    });
+
+    testWidgets('expands a spacer to push later children to the bottom', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            TextNode(id: 'top', text: Literal('Top')),
+            SpacerNode(id: 'gap'),
+            TextNode(id: 'bottom', text: Literal('Bottom')),
+          ],
+        ),
+      );
+
+      final screenHeight = tester.getSize(find.byType(Scaffold)).height;
+      expect(tester.getBottomLeft(find.text('Bottom')).dy, screenHeight);
+    });
+
+    testWidgets('expands an unknown node whose fallback expands', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            UnknownNode(
+              id: 'feed',
+              fallback: ScrollNode(id: 'feedFallback'),
+            ),
+          ],
+        ),
+      );
+
+      expect(find.ancestor(of: find.byType(UnknownItem), matching: find.byType(Expanded)), findsOneWidget);
+    });
+
+    testWidgets('does not expand children when its height is unbounded', (tester) async {
+      when(() => cubit.state).thenReturn(const GenericState(status: GenericStatus.success));
+      await tester.pumpApp(
+        BlocProvider.value(
+          value: cubit,
+          child: const Scaffold(
+            body: SingleChildScrollView(
+              child: ColumnItem(
+                node: ColumnNode(
+                  id: 'column',
+                  children: [
+                    TextNode(id: 'top', text: Literal('Top')),
+                    SpacerNode(id: 'gap'),
+                    TextNode(id: 'bottom', text: Literal('Bottom')),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Expanded), findsNothing);
+      expect(tester.getTopLeft(find.text('Bottom')).dy, tester.getBottomLeft(find.text('Top')).dy);
+    });
 
     testWidgets('resolves bound spacing and alignment from the values', (tester) async {
       await pumpItem(

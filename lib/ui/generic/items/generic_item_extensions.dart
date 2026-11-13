@@ -52,3 +52,21 @@ extension AlignmentTokenCrossAxis on AlignmentToken {
     AlignmentToken.stretch => CrossAxisAlignment.stretch,
   };
 }
+
+extension AlignmentTokenHorizontal on AlignmentToken {
+  AlignmentGeometry? get horizontal => switch (this) {
+    AlignmentToken.start => AlignmentDirectional.topStart,
+    AlignmentToken.center => Alignment.topCenter,
+    AlignmentToken.end => AlignmentDirectional.topEnd,
+    AlignmentToken.stretch => null,
+  };
+}
+
+extension GenericNodeFlex on GenericNode {
+  bool expandsAlong(Axis axis) => switch (this) {
+    SpacerNode() => true,
+    ScrollNode() => axis == Axis.vertical,
+    UnknownNode(:final fallback?) => fallback.expandsAlong(axis),
+    _ => false,
+  };
+}
