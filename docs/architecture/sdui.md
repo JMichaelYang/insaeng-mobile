@@ -2,13 +2,12 @@
 
 Every screen is server-driven. The backend sends a **screen**: a tree of typed **nodes**, starting local **state**, and **action** lists on node events. The app renders the nodes with design-system items and runs the actions.
 
-## Transport
+## Request headers
 
-- The app fetches screens with `GET /sdui/screens/{screenId}?{params}`. The `params` come from the `navigate` action or deep link that opened the screen.
-- Any non-`2xx` response shows the error state with a retry button.
-- Every request, including `request` actions, sends these headers:
-  - `Accept-Language`, such as `ko-KR`. All text in a response must already be localized.
-  - `X-SDUI-Version`, such as `1`. See [Versioning](#versioning).
+Every request the app makes, including `request` actions, sends:
+
+- `Accept-Language`, such as `ko-KR`. All text in a response must already be localized.
+- `X-SDUI-Version`, such as `1`. See [Versioning](#versioning).
 
 ## Screen
 
