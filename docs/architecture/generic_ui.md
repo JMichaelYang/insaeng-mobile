@@ -175,5 +175,8 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - `GenericCubit` holds the page and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
 - `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `GenericNode` that builds `design_system/` atoms.
 - **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
+  - Each node model is its own `part` file of `nodes/generic_node.dart`, so the sealed family stays one library. Put it in `atoms/`, `molecules/`, or `organisms/` to match the design-system level of the component it renders, or in `layout/` if it arranges child nodes, as `column` and `row` do.
+  - The shared [design token](#design-tokens) enums live in `nodes/node_tokens.dart`. An enum that only one node uses, such as a button variant, lives in that node's file.
+  - Node tests mirror these folders under `test/`.
 - **To add an action:** add the model and handle it in `GenericCubit`.
 - Every contract change bumps `GenericUiVersion.current`. Change this doc only when a rule changes, never for a new node or action.
