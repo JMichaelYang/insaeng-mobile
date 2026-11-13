@@ -13,33 +13,6 @@
 - **Composition root:** tests that call `configureDependencies` call `tearDown(getIt.reset)`.
 - **Design system:** every `design_system/` component gets a widget test and a golden test. See [Golden tests](#golden-tests).
 
-## Golden tests
-
-Golden tests use [alchemist](https://pub.dev/packages/alchemist), configured once in `test/flutter_test_config.dart`.
-
-- Write them with `goldenVariantsTest` from `test/helpers/golden.dart`. It renders each named variant on its own `AppTheme` surface in both light and dark themes, with Pretendard loaded. It writes one image per theme.
-- Name the file `<component>_golden_test.dart`, next to the component's widget test, and cover every variant and state in the map.
-- Each test writes two kinds of goldens next to the test file:
-  - `goldens/ci/`: platform-agnostic. Text is laid out in the bundled Pretendard but drawn as solid blocks, and shadows are off, so these images match on macOS and on the Ubuntu CI runner. CI compares only these.
-  - `goldens/macos/`: real Pretendard text, meant for people reading diffs. They are compared only on macOS machines outside CI, because font rasterization differs between platforms.
-- `TolerantGoldenComparator` treats a pixel as unchanged when every channel is within `channelTolerance` of the golden. This absorbs anti-aliasing differences between machines, while any real visual change still fails.
-- Commit both folders. Failed comparisons write diffs to `failures/`, which is gitignored and uploaded as the `golden-failures` artifact when CI fails.
-- After a deliberate visual change, regenerate the goldens with `fvm flutter test --update-goldens --tags golden`, then review the changed images before committing.
-
-```dart
-void main() {
-  goldenVariantsTest(
-    'AppButton',
-    fileName: 'app_button',
-    variants: {
-      'primary': AppButton(label: 'Save', onPressed: () {}),
-      'secondary': AppButton(label: 'Save', onPressed: () {}, variant: AppButtonVariant.secondary),
-      'disabled': const AppButton(label: 'Save', onPressed: null),
-    },
-  );
-}
-```
-
 ```dart
 class _MockNoteRepository extends Mock implements NoteRepository {}
 
@@ -60,5 +33,30 @@ void main() {
       ],
     );
   });
+}
+```
+
+## Golden tests
+
+Golden tests use [alchemist](https://pub.dev/packages/alchemist), configured once in `test/flutter_test_config.dart`.
+
+- Write them with `goldenVariantsTest` from `test/helpers/golden.dart`. It renders each named variant on its own `AppTheme` surface in both light and dark themes, with Pretendard loaded. It writes one image per theme to `goldens/` next to the test file.
+- Name the file `<component>_golden_test.dart`, next to the component's widget test, and cover every variant and state in the map.
+- Goldens render real text and shadows, so they only run on macOS. Off macOS they are not registered at all. CI runs them in the `goldens` job on a pinned `macos-15` runner, and the Ubuntu `check` job excludes the `golden` tag.
+- `TolerantGoldenComparator` treats a pixel as unchanged when every channel is within `channelTolerance` of the golden. This absorbs anti-aliasing differences between Macs, while any real visual change still fails.
+- Commit the `goldens/` images. Failed comparisons write diffs to `failures/`, which is gitignored and uploaded as the `golden-failures` artifact when CI fails.
+- After a deliberate visual change, regenerate the goldens on a Mac with `fvm flutter test --update-goldens --tags golden`, then review the changed images before committing.
+
+```dart
+void main() {
+  goldenVariantsTest(
+    'AppButton',
+    fileName: 'app_button',
+    variants: {
+      'primary': AppButton(label: 'Save', onPressed: () {}),
+      'secondary': AppButton(label: 'Save', onPressed: () {}, variant: AppButtonVariant.secondary),
+      'disabled': const AppButton(label: 'Save', onPressed: null),
+    },
+  );
 }
 ```

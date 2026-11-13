@@ -15,11 +15,13 @@ void goldenVariantsTest(
   int? columns,
   BoxConstraints constraints = const BoxConstraints(maxWidth: 360),
 }) {
+  final runsHere = AlchemistConfig.current().platformGoldensConfig.platforms.contains(HostPlatform.current());
   for (final (themeName, theme) in [('light', AppTheme.light), ('dark', AppTheme.dark)]) {
     unawaited(
       goldenTest(
         '$description in $themeName',
         fileName: '${fileName}_$themeName',
+        skip: !runsHere,
         builder: () => GoldenTestGroup(
           columns: columns,
           scenarioConstraints: constraints,
