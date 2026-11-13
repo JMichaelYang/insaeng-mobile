@@ -108,6 +108,22 @@ void main() {
       );
     });
 
+    group('retry', () {
+      final page = GenericPage(id: 'counter', root: _root, state: GenericValues(const {'count': 0}));
+
+      blocTest<GenericCubit, GenericState>(
+        'emits loading without the failure, then the loaded page',
+        setUp: () => when(() => repository.fetch('counter', _params)).thenAnswer((_) async => Result.ok(page)),
+        build: build,
+        seed: () => const GenericState(status: GenericStatus.failure, failure: GenericPageOffline()),
+        act: (cubit) => cubit.retry(),
+        expect: () => [
+          const GenericState(),
+          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 0})),
+        ],
+      );
+    });
+
     group('dispatch reload', () {
       const reloaded = GenericPage(
         id: 'counter',

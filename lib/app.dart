@@ -12,7 +12,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      onGenerateTitle: (context) => context.strings.homeTitle,
+      onGenerateTitle: (context) => context.strings.appTitle,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       localizationsDelegates: localizationsDelegates,

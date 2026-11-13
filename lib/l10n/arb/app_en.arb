@@ -1,4 +1,6 @@
 {
   "@@locale": "en",
-  "homeTitle": "Insaeng"
+  "appTitle": "Insaeng",
+  "genericPageError": "Something went wrong loading this page.",
+  "retry": "Try again"
 }

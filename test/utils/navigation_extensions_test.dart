@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insaeng/utils/navigation_extensions.dart';
@@ -34,6 +36,26 @@ void main() {
 
       expect(find.text('second'), findsOneWidget);
       expect(router.canPop(), isFalse);
+    });
+
+    testWidgets('replaceWith swaps the top page', (tester) async {
+      await pumpRouter(tester);
+
+      unawaited(context.replaceWith<void>('/second'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('second'), findsOneWidget);
+      expect(context.canGoBack, isFalse);
+    });
+
+    testWidgets('canGoBack is true only above the first page', (tester) async {
+      await pumpRouter(tester);
+      expect(context.canGoBack, isFalse);
+
+      unawaited(context.pushTo<void>('/second'));
+      await tester.pumpAndSettle();
+
+      expect(context.canGoBack, isTrue);
     });
 
     testWidgets('pushTo resolves with the result passed to back', (tester) async {
