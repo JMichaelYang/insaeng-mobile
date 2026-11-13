@@ -22,6 +22,7 @@ dependencies:
   meta: ^1.19.0
 
 dev_dependencies:
+  alchemist: ^0.14.1
   bloc_test: ^10.0.0
   build_runner: ^2.16.2
   dart_mappable_builder: ^4.10.0

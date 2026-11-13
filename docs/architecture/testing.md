@@ -11,6 +11,33 @@
 - **UI cubits:** use `blocTest` with mocked repositories or use cases, and assert on the emitted states.
 - **UI widgets:** put a `MockCubit<State>` behind `BlocProvider.value` and pump with `tester.pumpApp` from `test/helpers/pump_app.dart`. It wires the l10n delegates.
 - **Composition root:** tests that call `configureDependencies` call `tearDown(getIt.reset)`.
+- **Design system:** every `design_system/` component gets a widget test and a golden test. See [Golden tests](#golden-tests).
+
+## Golden tests
+
+Golden tests use [alchemist](https://pub.dev/packages/alchemist), configured once in `test/flutter_test_config.dart`.
+
+- Write them with `goldenVariantsTest` from `test/helpers/golden.dart`. It renders each named variant on its own `AppTheme` surface in both light and dark themes, with Pretendard loaded. It writes one image per theme.
+- Name the file `<component>_golden_test.dart`, next to the component's widget test, and cover every variant and state in the map.
+- Each test writes two kinds of goldens next to the test file:
+  - `goldens/ci/`: platform-agnostic. Text is drawn as solid blocks and shadows are off, so these images match on macOS and on the Ubuntu CI runner. CI compares only these.
+  - `goldens/macos/`: real Pretendard text, meant for people reading diffs. They are compared only on macOS machines outside CI, because font rasterization differs between platforms.
+- Commit both folders. Failed comparisons write diffs to `failures/`, which is gitignored and uploaded as the `golden-failures` artifact when CI fails.
+- After a deliberate visual change, regenerate the goldens with `fvm flutter test --update-goldens --tags golden`, then review the changed images before committing.
+
+```dart
+void main() {
+  goldenVariantsTest(
+    'AppButton',
+    fileName: 'app_button',
+    variants: {
+      'primary': AppButton(label: 'Save', onPressed: () {}),
+      'secondary': AppButton(label: 'Save', onPressed: () {}, variant: AppButtonVariant.secondary),
+      'disabled': const AppButton(label: 'Save', onPressed: null),
+    },
+  );
+}
+```
 
 ```dart
 class _MockNoteRepository extends Mock implements NoteRepository {}

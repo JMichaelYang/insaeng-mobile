@@ -21,6 +21,7 @@
 - Make components configurable through their constructors: content as strings, children, or slots, plus callbacks and sizes. Express variants with an enum rather than piling up booleans.
 - Callers pass in localized strings and plain values. Components never take domain models.
 - Prefix every component with `App`, and give each one a widget test that covers its variants.
+- Every `design_system/` component also gets a golden test that renders each variant in light and dark themes with `goldenVariantsTest`. See [testing.md](testing.md#golden-tests) for the update command.
 
 ## Typography
 
