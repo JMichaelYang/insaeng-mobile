@@ -108,6 +108,70 @@ void main() {
       );
     });
 
+    group('dispatch reload', () {
+      const reloaded = GenericPage(
+        id: 'counter',
+        root: ColumnNode(id: 'reloaded'),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'replaces the page with the same params and keeps values',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params)).thenAnswer((_) async => const Result.ok(reloaded)),
+        build: build,
+        seed: () => loaded(const {'count': 3}),
+        act: (cubit) => cubit.dispatch(const [ReloadAction()]),
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: reloaded, values: GenericValues(const {'count': 3})),
+        ],
+        verify: (_) => verify(() => repository.fetch('counter', _params)).called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'replaces values when the new page sends state',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params))
+                .thenAnswer((_) async => Result.ok(reloaded.copyWith(state: GenericValues(const {'count': 0})))),
+        build: build,
+        seed: () => loaded(const {'count': 3, 'draft': 'x'}),
+        act: (cubit) => cubit.dispatch(const [ReloadAction()]),
+        expect: () => [
+          isA<GenericState>().having((state) => state.values, 'values', GenericValues(const {'count': 0})),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'does not rerun onLoad and continues the list',
+        setUp: () => when(() => repository.fetch('counter', _params)).thenAnswer(
+          (_) async => Result.ok(
+            reloaded.copyWith(
+              onLoad: const [UpdateStateAction(path: 'loaded', value: Literal(true))],
+            ),
+          ),
+        ),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) =>
+            cubit.dispatch(const [ReloadAction(), UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]),
+        skip: 1,
+        expect: () => [
+          isA<GenericState>().having((state) => state.values, 'values', GenericValues(const {'count': 1})),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'a failed fetch keeps the page and skips the rest of the list',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params))
+                .thenAnswer((_) async => const Result.err(GenericPageOffline())),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) =>
+            cubit.dispatch(const [ReloadAction(), UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]),
+        expect: () => const <GenericState>[],
+      );
+    });
+
     group('dispatch updateState', () {
       blocTest<GenericCubit, GenericState>(
         'set replaces the value and creates missing parents',

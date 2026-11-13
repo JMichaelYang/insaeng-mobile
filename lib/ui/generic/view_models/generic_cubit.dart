@@ -34,13 +34,21 @@ class GenericCubit extends Cubit<GenericState> {
 
   Future<bool> _run(GenericAction action) async => switch (action) {
     final UpdateStateAction action => _updateState(action),
-    NavigateAction() ||
-    BackAction() ||
-    ReloadAction() ||
-    ShowMessageAction() ||
-    RequestAction() ||
-    UnknownAction() => true,
+    ReloadAction() => await _reload(),
+    NavigateAction() || BackAction() || ShowMessageAction() || RequestAction() || UnknownAction() => true,
   };
+
+  Future<bool> _reload() async {
+    final result = await _repository.fetch(pageId, params);
+    if (isClosed) return false;
+    switch (result) {
+      case Ok(value: final page):
+        emit(state.copyWith(page: page, values: page.state ?? state.values));
+        return true;
+      case Err():
+        return false;
+    }
+  }
 
   bool _updateState(UpdateStateAction action) {
     final values = state.values;
