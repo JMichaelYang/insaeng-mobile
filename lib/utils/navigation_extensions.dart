@@ -6,5 +6,9 @@ extension NavigationExtensions on BuildContext {
 
   Future<T?> pushTo<T extends Object?>(String location) => GoRouter.of(this).push<T>(location);
 
+  Future<T?> replaceWith<T extends Object?>(String location) => GoRouter.of(this).pushReplacement<T>(location);
+
+  bool get canGoBack => GoRouter.of(this).canPop();
+
   void back<T extends Object?>([T? result]) => GoRouter.of(this).pop<T>(result);
 }

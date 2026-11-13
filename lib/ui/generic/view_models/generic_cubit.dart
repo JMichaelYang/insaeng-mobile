@@ -33,6 +33,11 @@ class GenericCubit extends Cubit<GenericState> {
     }
   }
 
+  Future<void> retry() async {
+    emit(state.copyWith(status: GenericStatus.loading, failure: null));
+    await load();
+  }
+
   Future<void> dispatch(List<GenericAction> actions) async {
     for (final action in actions) {
       if (isClosed || !await _run(action)) return;
