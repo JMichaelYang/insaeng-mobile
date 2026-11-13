@@ -309,13 +309,110 @@ void main() {
         seed: () => loaded(const {'count': 0}),
         act: (cubit) => cubit.dispatch(const [
           UnknownAction(),
-          ShowMessageAction(text: Literal('hi')),
+          RequestAction(endpoint: Literal('/noop')),
           UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
         ]),
         expect: () => [
           loaded(const {'count': 1}),
         ],
       );
+    });
+
+    group('effects', () {
+      late GenericCubit cubit;
+
+      setUp(() => cubit = build()..emit(loaded(const {'target': 'detail', 'id': '7', 'name': 'Ana', 'count': 0})));
+
+      tearDown(() => cubit.close());
+
+      test('navigate emits a navigate effect with defaults', () async {
+        final effects = expectLater(cubit.effects, emits(const NavigateEffect(pageId: 'home')));
+        await cubit.dispatch(const [NavigateAction(pageId: Literal('home'))]);
+        await effects;
+      });
+
+      test('navigate resolves the page id, params, and replace', () async {
+        final effects = expectLater(
+          cubit.effects,
+          emits(const NavigateEffect(pageId: 'detail', params: {'id': '7', 'tab': 'info'}, replace: true)),
+        );
+        await cubit.dispatch(const [
+          NavigateAction(
+            pageId: Binding('target'),
+            params: Literal({'id': '7', 'tab': 'info'}),
+            replace: Literal(true),
+          ),
+        ]);
+        await effects;
+      });
+
+      test('navigate without a resolved page id emits nothing and continues', () async {
+        final effects = expectLater(cubit.effects, emits(const BackEffect()));
+        await cubit.dispatch(const [NavigateAction(pageId: Binding('missing')), BackAction()]);
+        await effects;
+      });
+
+      test('back emits a back effect', () async {
+        final effects = expectLater(cubit.effects, emits(const BackEffect()));
+        await cubit.dispatch(const [BackAction()]);
+        await effects;
+      });
+
+      test('showMessage emits the resolved text', () async {
+        final effects = expectLater(
+          cubit.effects,
+          emitsInOrder(const [ShowMessageEffect(text: 'saved'), ShowMessageEffect(text: 'Ana')]),
+        );
+        await cubit.dispatch(const [
+          ShowMessageAction(text: Literal('saved')),
+          ShowMessageAction(text: Binding('name')),
+        ]);
+        await effects;
+      });
+
+      test('showMessage without resolved text emits nothing and continues', () async {
+        final effects = expectLater(cubit.effects, emits(const BackEffect()));
+        await cubit.dispatch(const [ShowMessageAction(text: Binding('missing')), BackAction()]);
+        await effects;
+      });
+
+      test('effects run in order with state updates', () async {
+        final effects = expectLater(
+          cubit.effects,
+          emitsInOrder(const [ShowMessageEffect(text: '1'), NavigateEffect(pageId: 'detail', replace: true)]),
+        );
+        await cubit.dispatch(const [
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+          ShowMessageAction(text: Binding('count')),
+          NavigateAction(pageId: Binding('target'), replace: Literal(true)),
+        ]);
+        await effects;
+        expect(cubit.state.values.get('count'), 1);
+      });
+
+      test('a failed action stops later effects', () async {
+        final effects = expectLater(cubit.effects, emitsInOrder([const BackEffect(), emitsDone]));
+        await cubit.dispatch(const [
+          BackAction(),
+          UpdateStateAction(path: 'name', op: Literal(UpdateOp.increment)),
+          ShowMessageAction(text: Literal('unreachable')),
+        ]);
+        await cubit.close();
+        await effects;
+      });
+
+      test('the stream is broadcast', () async {
+        final first = expectLater(cubit.effects, emits(const BackEffect()));
+        final second = expectLater(cubit.effects, emits(const BackEffect()));
+        await cubit.dispatch(const [BackAction()]);
+        await Future.wait([first, second]);
+      });
+
+      test('close closes the stream', () async {
+        final effects = expectLater(cubit.effects, emitsDone);
+        await cubit.close();
+        await effects;
+      });
     });
   });
 }
