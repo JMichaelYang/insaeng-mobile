@@ -141,3 +141,22 @@ final class GenericValues {
   @override
   String toString() => 'GenericValues($_root)';
 }
+
+final class GenericValuesHook extends MappingHook {
+  const new();
+
+  @override
+  Object? beforeDecode(Object? value) => switch (value) {
+    null || GenericValues() => value,
+    final Map<Object?, Object?> json => GenericValues({
+      for (final MapEntry(:key, :value) in json.entries) '$key': value,
+    }),
+    _ => throw MapperException.unexpectedType(value.runtimeType, 'Map'),
+  };
+
+  @override
+  Object? beforeEncode(Object? value) => switch (value) {
+    GenericValues(:final values) => values,
+    _ => value,
+  };
+}
