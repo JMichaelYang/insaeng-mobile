@@ -14,6 +14,7 @@ void goldenVariantsTest(
   required Map<String, Widget> variants,
   int? columns,
   BoxConstraints constraints = const BoxConstraints(maxWidth: 360),
+  PumpAction pumpBeforeTest = onlyPumpAndSettle,
 }) {
   final runsHere = AlchemistConfig.current().platformGoldensConfig.platforms.contains(HostPlatform.current());
   for (final (themeName, theme) in [('light', AppTheme.light), ('dark', AppTheme.dark)]) {
@@ -22,6 +23,7 @@ void goldenVariantsTest(
         '$description in $themeName',
         fileName: '${fileName}_$themeName',
         skip: !runsHere,
+        pumpBeforeTest: pumpBeforeTest,
         builder: () => GoldenTestGroup(
           columns: columns,
           scenarioConstraints: constraints,
