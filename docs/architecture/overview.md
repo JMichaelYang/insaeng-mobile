@@ -10,6 +10,7 @@ MVVM in three layers wired by a composition root.
 | [design_system.md](design_system.md) | `lib/design_system/`: tokens and atomic components |
 | [composition_root.md](composition_root.md) | `bootstrap.dart`, `config/`, `routing/`: DI, flavors, and routes |
 | [testing.md](testing.md) | `test/`: layout, mocks, cubit tests, and widget tests |
+| [sdui.md](sdui.md) | The server-driven UI contract: screens, nodes, bindings, and actions |
 
 ## Layers and the dependency rule
 
