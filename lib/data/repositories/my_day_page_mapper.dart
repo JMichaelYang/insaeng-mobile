@@ -1,5 +1,6 @@
 import 'package:collection/collection.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
@@ -54,16 +55,30 @@ abstract final class MyDayPageMapper {
     );
   }
 
-  static CheckboxTileNode _tile(_Task task) => CheckboxTileNode(
-    id: 'task-${task.id}',
-    bind: 'tasks.${task.id}.done',
-    title: Literal(task.title),
-    subtitle: switch (_subtitle(task)) {
-      final subtitle? => Literal(subtitle),
-      null => null,
-    },
-    busy: Binding('tasks.${task.id}.saving', fallback: false),
-  );
+  static CheckboxTileNode _tile(_Task task) {
+    final donePath = 'tasks.${task.id}.done';
+    final savingPath = 'tasks.${task.id}.saving';
+    return CheckboxTileNode(
+      id: 'task-${task.id}',
+      bind: donePath,
+      title: Literal(task.title),
+      subtitle: switch (_subtitle(task)) {
+        final subtitle? => Literal(subtitle),
+        null => null,
+      },
+      busy: Binding(savingPath, fallback: false),
+      onChanged: [
+        UpdateStateAction(path: savingPath, value: const Literal(true)),
+        RequestAction(
+          method: const Literal(RequestMethod.patch),
+          endpoint: Literal('/my-day/tasks/${task.id}'),
+          body: JsonObject({'done': JsonBinding(Binding(donePath))}),
+          onError: [UpdateStateAction(path: donePath, op: const Literal(UpdateOp.toggle))],
+          onComplete: [UpdateStateAction(path: savingPath, value: const Literal(false))],
+        ),
+      ],
+    );
+  }
 
   static _Task? _task(Map<String, Object?> row) {
     if (row case {'id': final String id, 'properties': final Map<Object?, Object?> properties}) {

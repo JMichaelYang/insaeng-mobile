@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
@@ -28,6 +29,17 @@ Map<String, Object?> _row(String id, {String? title, String? start, String? end,
     },
   },
 };
+
+List<GenericAction> _checkActions(String id) => [
+  UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(true)),
+  RequestAction(
+    method: const Literal(RequestMethod.patch),
+    endpoint: Literal('/my-day/tasks/$id'),
+    body: JsonObject({'done': JsonBinding(Binding('tasks.$id.done'))}),
+    onError: [UpdateStateAction(path: 'tasks.$id.done', op: const Literal(UpdateOp.toggle))],
+    onComplete: [UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false))],
+  ),
+];
 
 String _utc(DateTime local) => local.toUtc().toIso8601String();
 
@@ -58,23 +70,24 @@ void main() {
               'a': {'done': false, 'saving': false},
             },
           }),
-          root: const ColumnNode(
+          root: ColumnNode(
             id: 'root',
             children: [
-              AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
+              const AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
               ExpandedNode(
                 id: 'body',
                 child: ScrollNode(
                   id: 'scroll',
-                  onRefresh: [ReloadAction()],
+                  onRefresh: const [ReloadAction()],
                   child: ColumnNode(
                     id: 'tasks',
                     children: [
                       CheckboxTileNode(
                         id: 'task-a',
                         bind: 'tasks.a.done',
-                        title: Literal('Gym'),
-                        busy: Binding('tasks.a.saving', fallback: false),
+                        title: const Literal('Gym'),
+                        busy: const Binding('tasks.a.saving', fallback: false),
+                        onChanged: _checkActions('a'),
                       ),
                     ],
                   ),
@@ -83,6 +96,18 @@ void main() {
             ],
           ),
         ),
+      );
+    });
+
+    test('marks each tile saving, patches its done value, and undoes the check on error', () {
+      final page = _map([
+        _row('a', start: '2026-11-15'),
+        _row('b', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
+      ]);
+
+      expect(
+        {for (final tile in _tiles(page)) tile.id: tile.onChanged},
+        {'task-a': _checkActions('a'), 'task-b': _checkActions('b')},
       );
     });
 
