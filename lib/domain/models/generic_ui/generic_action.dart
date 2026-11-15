@@ -1,5 +1,6 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 
 part 'generic_action.mapper.dart';
@@ -67,8 +68,8 @@ final class RequestAction extends GenericAction with RequestActionMappable {
   @MappableField(hook: BindableHook<String>())
   final Bindable<String> endpoint;
 
-  @MappableField(hook: BindableHook<Map<String, Object?>>())
-  final Bindable<Map<String, Object?>>? body;
+  @MappableField(hook: BindableJsonHook())
+  final BindableJson? body;
 
   final String? loadingPath;
 }

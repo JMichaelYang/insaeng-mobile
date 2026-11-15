@@ -60,23 +60,29 @@ final class BindableHook<T extends Object> extends MappingHook {
   static const bindKey = r'$bind';
   static const fallbackKey = 'fallback';
 
-  @override
-  Object? beforeDecode(Object? value) => switch (value) {
-    null || Bindable<T>() => value,
+  static Binding<T>? decodeBinding<T extends Object>(Object? value) => switch (value) {
     final Map<Object?, Object?> json when json.containsKey(bindKey) => switch (json[bindKey]) {
       final String path => Binding<T>(path, fallback: MapperContainer.globals.fromValue<T?>(json[fallbackKey])),
       final path => throw MapperException.unexpectedType(path.runtimeType, 'String'),
     },
-    _ => Literal<T>(MapperContainer.globals.fromValue<T>(value)),
+    _ => null,
+  };
+
+  static Map<String, Object?> encodeBinding<T extends Object>(Binding<T> binding) => {
+    bindKey: binding.path,
+    if (binding.fallback case final fallback?) fallbackKey: MapperContainer.globals.toValue<T>(fallback),
+  };
+
+  @override
+  Object? beforeDecode(Object? value) => switch (value) {
+    null || Bindable<T>() => value,
+    _ => decodeBinding<T>(value) ?? Literal<T>(MapperContainer.globals.fromValue<T>(value)),
   };
 
   @override
   Object? beforeEncode(Object? value) => switch (value) {
     Literal<T>(:final value) => MapperContainer.globals.toValue<T>(value),
-    Binding<T>(:final path, :final fallback) => <String, Object?>{
-      bindKey: path,
-      if (fallback != null) fallbackKey: MapperContainer.globals.toValue<T>(fallback),
-    },
+    final Binding<T> binding => encodeBinding(binding),
     _ => value,
   };
 }

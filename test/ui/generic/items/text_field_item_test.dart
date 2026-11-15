@@ -7,6 +7,7 @@ import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
+import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/ui/generic/items/text_field_item.dart';
@@ -17,6 +18,8 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/pump_app.dart';
 
 class _MockGenericCubit extends MockCubit<GenericState> implements GenericCubit;
+
+class _MockGenericActionRepository extends Mock implements GenericActionRepository;
 
 class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 
@@ -140,7 +143,7 @@ void main() {
         when(() => repository.fetch('form', const {})).thenAnswer(
           (_) async => Result.ok(GenericPage(id: 'form', root: _node, state: GenericValues(const {'edits': 0}))),
         );
-        cubit = GenericCubit(repository, pageId: 'form');
+        cubit = GenericCubit(repository, _MockGenericActionRepository(), pageId: 'form');
         await cubit.load();
       });
 

@@ -12,7 +12,7 @@ GoRouter router(GetIt getIt) {
   Widget genericScreen(String pageId, GoRouterState state) => BlocProvider(
     key: ValueKey(state.uri),
     create: (_) {
-      final cubit = GenericCubit(getIt(), pageId: pageId, params: state.uri.queryParameters);
+      final cubit = GenericCubit(getIt(), getIt(), pageId: pageId, params: state.uri.queryParameters);
       unawaited(cubit.load());
       return cubit;
     },

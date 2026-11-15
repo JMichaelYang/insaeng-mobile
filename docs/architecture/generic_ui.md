@@ -97,7 +97,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - `loadingPath` is a state path that is `true` while the request is in flight and `false` once it ends.
 - A `2xx` response body is `{ "actions": [...] }`. Those actions run in place of the `request`, and then the rest of the list continues.
 - Report expected outcomes, such as a wrong password, as a `2xx` response whose actions say what to show.
-- On a non-`2xx` response or a network error, the app shows a generic localized error and the list stops.
+- On a non-`2xx` response or a network error, the list stops. The app shows nothing on its own, so a page that should tell the user must say so itself.
 
 ## Versioning
 
@@ -177,6 +177,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 
 - The models live in `lib/domain/models/generic_ui/`. `GenericNode` and `GenericAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
 - `GenericCubit` holds the page and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
+- `request` resolves its bindings and calls `GenericActionRepository.perform`, which returns the actions to run in its place.
 - `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `GenericNode` that builds `design_system/` atoms.
 - **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
   - Each node model is its own `part` file of `nodes/generic_node.dart`, so the sealed family stays one library. Put it in `atoms/`, `molecules/`, or `organisms/` to match the design-system level of the component it renders, or in `layout/` if it arranges child nodes, as `column` and `row` do.

@@ -1,14 +1,18 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
+import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:mocktail/mocktail.dart';
+
+class _MockGenericActionRepository extends Mock implements GenericActionRepository;
 
 class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 
@@ -16,12 +20,18 @@ const _root = ColumnNode(id: 'root');
 const _params = {'from': 'test'};
 
 void main() {
+  setUpAll(() => registerFallbackValue(RequestMethod.post));
+
   group(GenericCubit, () {
     late GenericPageRepository repository;
+    late GenericActionRepository actions;
 
-    setUp(() => repository = _MockGenericPageRepository());
+    setUp(() {
+      repository = _MockGenericPageRepository();
+      actions = _MockGenericActionRepository();
+    });
 
-    GenericCubit build() => GenericCubit(repository, pageId: 'counter', params: _params);
+    GenericCubit build() => GenericCubit(repository, actions, pageId: 'counter', params: _params);
 
     GenericState loaded(Map<String, Object?> values) => GenericState(
       status: GenericStatus.success,
@@ -323,14 +333,176 @@ void main() {
         'skips actions it does not handle and continues',
         build: build,
         seed: () => loaded(const {'count': 0}),
+        act: (cubit) =>
+            cubit.dispatch(const [UnknownAction(), UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]),
+        expect: () => [
+          loaded(const {'count': 1}),
+        ],
+      );
+    });
+
+    group('dispatch request', () {
+      void stubPerform(Result<List<GenericAction>> result) => when(
+        () => actions.perform(
+          method: any(named: 'method'),
+          endpoint: any(named: 'endpoint'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async => result);
+
+      blocTest<GenericCubit, GenericState>(
+        'performs the resolved method, endpoint, and body',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {
+          'form': {'email': 'a@b.c', 'password': 'pw'},
+          'route': '/auth/login',
+        }),
         act: (cubit) => cubit.dispatch(const [
-          UnknownAction(),
-          RequestAction(endpoint: Literal('/noop')),
+          RequestAction(
+            method: Literal(RequestMethod.put),
+            endpoint: Binding('route'),
+            body: JsonObject({
+              'email': JsonBinding(Binding('form.email')),
+              'password': JsonBinding(Binding('form.password')),
+              'remember': JsonLiteral(true),
+            }),
+          ),
+        ]),
+        expect: () => const <GenericState>[],
+        verify: (_) => verify(
+          () => actions.perform(
+            method: RequestMethod.put,
+            endpoint: '/auth/login',
+            body: {'email': 'a@b.c', 'password': 'pw', 'remember': true},
+          ),
+        ).called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'defaults to POST with an empty body',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {}),
+        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Literal('/ping'))]),
+        verify: (_) => verify(() => actions.perform(method: RequestMethod.post, endpoint: '/ping')).called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'resolves a bound body from state',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {
+          'form': {'email': 'a@b.c'},
+        }),
+        act: (cubit) =>
+            cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), body: JsonBinding(Binding('form')))]),
+        verify: (_) =>
+            verify(() => actions.perform(method: RequestMethod.post, endpoint: '/save', body: {'email': 'a@b.c'}))
+                .called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'sends an empty body when the body is bound to something other than an object',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {'name': 'Ana'}),
+        act: (cubit) =>
+            cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), body: JsonBinding(Binding('name')))]),
+        verify: (_) => verify(() => actions.perform(method: RequestMethod.post, endpoint: '/save')).called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'runs the returned actions in place of the request, then the rest of the list',
+        setUp: () => stubPerform(
+          const Result.ok([
+            UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+            UpdateStateAction(path: 'saved', value: Literal(true)),
+          ]),
+        ),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(endpoint: Literal('/save')),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => [
+          loaded(const {'count': 1}),
+          loaded(const {'count': 1, 'saved': true}),
+          loaded(const {'count': 2, 'saved': true}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'a failed returned action skips the rest of the list',
+        setUp: () => stubPerform(
+          const Result.ok([UpdateStateAction(path: 'missing', op: Literal(UpdateOp.removeAt), value: Literal(0))]),
+        ),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(endpoint: Literal('/save')),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => const <GenericState>[],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'a failure emits no effect and skips the rest of the list',
+        setUp: () => stubPerform(const Result.err(GenericActionOffline())),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) async {
+          final effects = expectLater(cubit.effects, emitsDone);
+          await cubit.dispatch(const [
+            RequestAction(endpoint: Literal('/save')),
+            BackAction(),
+            UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+          ]);
+          await cubit.close();
+          await effects;
+        },
+        expect: () => const <GenericState>[],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'unresolved bindings fall back to their fallback, POST, or null',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            method: Binding('missing.method'),
+            endpoint: Literal('/save'),
+            body: JsonObject({
+              'name': JsonBinding(Binding('missing.name', fallback: 'Guest')),
+              'email': JsonBinding(Binding('missing.email')),
+            }),
+          ),
+        ]),
+        verify: (_) => verify(
+          () => actions.perform(method: RequestMethod.post, endpoint: '/save', body: {'name': 'Guest', 'email': null}),
+        ).called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'an unresolved endpoint skips the request and continues',
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(endpoint: Binding('missing')),
           UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
         ]),
         expect: () => [
           loaded(const {'count': 1}),
         ],
+        verify: (_) => verifyNever(
+          () => actions.perform(
+            method: any(named: 'method'),
+            endpoint: any(named: 'endpoint'),
+            body: any(named: 'body'),
+          ),
+        ),
       );
     });
 
