@@ -189,5 +189,35 @@ void main() {
 
       expect(page.actions, const [ShowMessageAction(text: Literal('Welcome')), BackAction(), ReloadAction()]);
     });
+
+    test('actions includes the actions nested in a request, depth first', () {
+      const page = GenericPage(
+        id: 'home',
+        onLoad: [
+          RequestAction(
+            endpoint: Literal('/a'),
+            onError: [
+              RequestAction(endpoint: Literal('/b'), onComplete: [BackAction()]),
+            ],
+            onComplete: [ReloadAction()],
+          ),
+        ],
+        root: ButtonNode(id: 'save', label: Literal('Save'), onTap: [UnknownAction()]),
+      );
+
+      expect(page.actions, const [
+        RequestAction(
+          endpoint: Literal('/a'),
+          onError: [
+            RequestAction(endpoint: Literal('/b'), onComplete: [BackAction()]),
+          ],
+          onComplete: [ReloadAction()],
+        ),
+        RequestAction(endpoint: Literal('/b'), onComplete: [BackAction()]),
+        BackAction(),
+        ReloadAction(),
+        UnknownAction(),
+      ]);
+    });
   });
 }

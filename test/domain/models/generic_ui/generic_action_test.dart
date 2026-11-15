@@ -181,7 +181,6 @@ void main() {
                 ],
               },
             },
-            'loadingPath': 'submitting',
           }),
           const RequestAction(
             endpoint: Literal('/auth/login'),
@@ -191,7 +190,6 @@ void main() {
                 'tags': JsonList([JsonLiteral('x'), JsonBinding(Binding('tag'))]),
               }),
             }),
-            loadingPath: 'submitting',
           ),
         );
       });
@@ -223,6 +221,36 @@ void main() {
         );
       });
 
+      test('decodes onError and onComplete in order', () {
+        expect(
+          _decode({
+            'type': 'request',
+            'endpoint': '/save',
+            'onError': [
+              {'type': 'showMessage', 'text': 'Failed'},
+              {'type': 'confetti'},
+            ],
+            'onComplete': [
+              {'type': 'updateState', 'path': 'busy', 'value': false},
+            ],
+          }),
+          const RequestAction(
+            endpoint: Literal('/save'),
+            onError: [
+              ShowMessageAction(text: Literal('Failed')),
+              UnknownAction(),
+            ],
+            onComplete: [UpdateStateAction(path: 'busy', value: Literal(false))],
+          ),
+        );
+      });
+
+      test('childActions lists onError and then onComplete', () {
+        const action = RequestAction(endpoint: Literal('/save'), onError: [BackAction()], onComplete: [ReloadAction()]);
+
+        expect(action.childActions, const [BackAction(), ReloadAction()]);
+      });
+
       test('fails without an endpoint or with an unknown method', () {
         expect(() => _decode({'type': 'request'}), throwsA(isA<MapperException>()));
         expect(
@@ -230,9 +258,25 @@ void main() {
           throwsA(isA<MapperException>()),
         );
       });
+
+      test('fails when onError or onComplete is not a list', () {
+        expect(
+          () => _decode({'type': 'request', 'endpoint': '/x', 'onError': 'back'}),
+          throwsA(isA<MapperException>()),
+        );
+        expect(
+          () => _decode({'type': 'request', 'endpoint': '/x', 'onComplete': 'back'}),
+          throwsA(isA<MapperException>()),
+        );
+      });
     });
 
     group(UnknownAction, () {
+      test('has no childActions', () {
+        expect(const UnknownAction().childActions, isEmpty);
+        expect(const BackAction().childActions, isEmpty);
+      });
+
       test('decodes an unknown type', () {
         expect(_decode({'type': 'vibrate', 'pattern': 'short'}), const UnknownAction());
       });
@@ -275,7 +319,12 @@ void main() {
           'body': {
             'title': {r'$bind': 'draft'},
           },
-          'loadingPath': 'saving',
+          'onError': [
+            {'type': 'showMessage', 'text': 'Failed'},
+          ],
+          'onComplete': [
+            {'type': 'updateState', 'path': 'saving', 'op': 'set', 'value': false},
+          ],
         },
       ];
 
