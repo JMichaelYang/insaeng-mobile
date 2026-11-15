@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insaeng/data/mappers/my_day_page_mapper.dart';
+import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
