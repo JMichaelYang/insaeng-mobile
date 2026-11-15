@@ -16,6 +16,7 @@ part 'layout/container_node.dart';
 part 'layout/expanded_node.dart';
 part 'layout/row_node.dart';
 part 'layout/scroll_node.dart';
+part 'molecules/checkbox_tile_node.dart';
 part 'organisms/app_bar_node.dart';
 part 'unknown_node.dart';
 
