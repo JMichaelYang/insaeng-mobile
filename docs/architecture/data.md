@@ -29,6 +29,11 @@ final class NoteRepositoryImpl implements NoteRepository {
 }
 ```
 
+## Mappers (`data/mappers/`)
+
+- A mapper is an `abstract final class` of static, pure functions that turn service data into domain models, such as Notion rows into a `GenericPage`.
+- Mappers take everything they depend on, including the current time, as arguments, so tests can cover them without mocks.
+
 ## Services (`data/services/`)
 
 - Each service is a stateless wrapper around one external source, such as an HTTP API, local storage, or a platform plugin.

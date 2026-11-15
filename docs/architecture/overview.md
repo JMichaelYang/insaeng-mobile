@@ -42,6 +42,7 @@ lib/
     result.dart, failure.dart
   data/
     repositories/                repository implementations
+    mappers/                     pure service data → domain model mapping
     services/                    stateless wrappers over APIs, storage, platform
   design_system/
     theme/                       tokens: AppTheme, AppColors.seed, Dimens, ThemeExtensions
