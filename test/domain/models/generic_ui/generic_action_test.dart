@@ -1,6 +1,7 @@
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 
@@ -166,19 +167,47 @@ void main() {
         }
       });
 
-      test('keeps bindings nested in a literal body for later resolution', () {
-        final body = {
-          'email': {r'$bind': 'form.email'},
-          'meta': {
-            'tags': [
-              {r'$bind': 'tag'},
-            ],
-          },
-        };
-
+      test('parses bindings nested in the body', () {
         expect(
-          _decode({'type': 'request', 'endpoint': '/auth/login', 'body': body, 'loadingPath': 'submitting'}),
-          RequestAction(endpoint: const Literal('/auth/login'), body: Literal(body), loadingPath: 'submitting'),
+          _decode({
+            'type': 'request',
+            'endpoint': '/auth/login',
+            'body': {
+              'email': {r'$bind': 'form.email'},
+              'meta': {
+                'tags': [
+                  'x',
+                  {r'$bind': 'tag'},
+                ],
+              },
+            },
+            'loadingPath': 'submitting',
+          }),
+          const RequestAction(
+            endpoint: Literal('/auth/login'),
+            body: JsonObject({
+              'email': JsonBinding(Binding('form.email')),
+              'meta': JsonObject({
+                'tags': JsonList([JsonLiteral('x'), JsonBinding(Binding('tag'))]),
+              }),
+            }),
+            loadingPath: 'submitting',
+          ),
+        );
+      });
+
+      test('fails on a malformed binding nested in the body', () {
+        expect(
+          () => _decode({
+            'type': 'request',
+            'endpoint': '/x',
+            'body': {
+              'meta': {
+                'email': {r'$bind': 3},
+              },
+            },
+          }),
+          throwsA(isA<MapperException>()),
         );
       });
 
@@ -190,7 +219,7 @@ void main() {
             'endpoint': {r'$bind': 'url'},
             'body': {r'$bind': 'form'},
           }),
-          const RequestAction(method: Binding('method'), endpoint: Binding('url'), body: Binding('form')),
+          const RequestAction(method: Binding('method'), endpoint: Binding('url'), body: JsonBinding(Binding('form'))),
         );
       });
 

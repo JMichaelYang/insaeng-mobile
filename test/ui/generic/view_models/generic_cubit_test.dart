@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
@@ -361,15 +362,10 @@ void main() {
           RequestAction(
             method: Literal(RequestMethod.put),
             endpoint: Binding('route'),
-            body: Literal({
-              'email': {r'$bind': 'form.email'},
-              'remember': true,
-              'meta': {
-                'tags': [
-                  'x',
-                  {r'$bind': 'form.password'},
-                ],
-              },
+            body: JsonObject({
+              'email': JsonBinding(Binding('form.email')),
+              'password': JsonBinding(Binding('form.password')),
+              'remember': JsonLiteral(true),
             }),
           ),
         ]),
@@ -378,13 +374,7 @@ void main() {
           () => actions.perform(
             method: RequestMethod.put,
             endpoint: '/auth/login',
-            body: {
-              'email': 'a@b.c',
-              'remember': true,
-              'meta': {
-                'tags': ['x', 'pw'],
-              },
-            },
+            body: {'email': 'a@b.c', 'password': 'pw', 'remember': true},
           ),
         ).called(1),
       );
@@ -405,10 +395,21 @@ void main() {
         seed: () => loaded(const {
           'form': {'email': 'a@b.c'},
         }),
-        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), body: Binding('form'))]),
+        act: (cubit) =>
+            cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), body: JsonBinding(Binding('form')))]),
         verify: (_) =>
             verify(() => actions.perform(method: RequestMethod.post, endpoint: '/save', body: {'email': 'a@b.c'}))
                 .called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'sends an empty body when the body is bound to something other than an object',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {'name': 'Ana'}),
+        act: (cubit) =>
+            cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), body: JsonBinding(Binding('name')))]),
+        verify: (_) => verify(() => actions.perform(method: RequestMethod.post, endpoint: '/save')).called(1),
       );
 
       blocTest<GenericCubit, GenericState>(
@@ -473,9 +474,9 @@ void main() {
           RequestAction(
             method: Binding('missing.method'),
             endpoint: Literal('/save'),
-            body: Literal({
-              'name': {r'$bind': 'missing.name', 'fallback': 'Guest'},
-              'email': {r'$bind': 'missing.email'},
+            body: JsonObject({
+              'name': JsonBinding(Binding('missing.name', fallback: 'Guest')),
+              'email': JsonBinding(Binding('missing.email')),
             }),
           ),
         ]),

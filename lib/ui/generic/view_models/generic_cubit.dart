@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
@@ -67,7 +66,10 @@ class GenericCubit extends Cubit<GenericState> {
     final result = await _actions.perform(
       method: action.method.resolve(values) ?? RequestMethod.post,
       endpoint: endpoint,
-      body: values.resolveBindings(action.body?.resolve(values) ?? const {}),
+      body: switch (action.body?.resolve(values)) {
+        final Map<String, Object?> body => body,
+        _ => const {},
+      },
     );
     if (isClosed) return false;
     return switch (result) {

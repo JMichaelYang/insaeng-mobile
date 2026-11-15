@@ -54,45 +54,35 @@ final class Binding<T extends Object> extends Bindable<T> {
   String toString() => 'Binding<$T>($path, fallback: $fallback)';
 }
 
-extension GenericValuesBindings on GenericValues {
-  Map<String, Object?> resolveBindings(Map<String, Object?> json) => {
-    for (final MapEntry(:key, :value) in json.entries) key: _resolveJson(value),
-  };
-
-  Object? _resolveJson(Object? json) => switch (json) {
-    final Map<Object?, Object?> map && {BindableHook.bindKey: final String path} => Binding<Object>(
-      path,
-      fallback: map[BindableHook.fallbackKey],
-    ).resolve(this),
-    final Map<Object?, Object?> map => {for (final MapEntry(:key, :value) in map.entries) '$key': _resolveJson(value)},
-    final List<Object?> list => [for (final item in list) _resolveJson(item)],
-    _ => json,
-  };
-}
-
 final class BindableHook<T extends Object> extends MappingHook {
   const new();
 
   static const bindKey = r'$bind';
   static const fallbackKey = 'fallback';
 
-  @override
-  Object? beforeDecode(Object? value) => switch (value) {
-    null || Bindable<T>() => value,
+  static Binding<T>? decodeBinding<T extends Object>(Object? value) => switch (value) {
     final Map<Object?, Object?> json when json.containsKey(bindKey) => switch (json[bindKey]) {
       final String path => Binding<T>(path, fallback: MapperContainer.globals.fromValue<T?>(json[fallbackKey])),
       final path => throw MapperException.unexpectedType(path.runtimeType, 'String'),
     },
-    _ => Literal<T>(MapperContainer.globals.fromValue<T>(value)),
+    _ => null,
+  };
+
+  static Map<String, Object?> encodeBinding<T extends Object>(Binding<T> binding) => {
+    bindKey: binding.path,
+    if (binding.fallback case final fallback?) fallbackKey: MapperContainer.globals.toValue<T>(fallback),
+  };
+
+  @override
+  Object? beforeDecode(Object? value) => switch (value) {
+    null || Bindable<T>() => value,
+    _ => decodeBinding<T>(value) ?? Literal<T>(MapperContainer.globals.fromValue<T>(value)),
   };
 
   @override
   Object? beforeEncode(Object? value) => switch (value) {
     Literal<T>(:final value) => MapperContainer.globals.toValue<T>(value),
-    Binding<T>(:final path, :final fallback) => <String, Object?>{
-      bindKey: path,
-      if (fallback != null) fallbackKey: MapperContainer.globals.toValue<T>(fallback),
-    },
+    final Binding<T> binding => encodeBinding(binding),
     _ => value,
   };
 }
