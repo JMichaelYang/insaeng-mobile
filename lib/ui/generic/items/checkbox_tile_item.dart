@@ -15,6 +15,7 @@ class CheckboxTileItem extends StatelessWidget {
     return AppCheckboxTile(
       title: context.watchBindable(node.title) ?? '',
       subtitle: context.watchBindable(node.subtitle),
+      emoji: context.watchBindable(node.emoji),
       checked: context.watchBindable(Binding<bool>(node.bind)) ?? false,
       busy: context.watchBindable(node.busy) ?? false,
       onChanged: (checked) =>

@@ -17,12 +17,14 @@ void main() {
           '${checked ? 'checked' : 'unchecked'}${subtitle == null ? '' : ' with subtitle'}': AppCheckboxTile(
             title: 'Stretch',
             subtitle: subtitle,
+            emoji: subtitle == null ? null : '🧘',
             checked: checked,
             onChanged: (_) {},
           ),
         '${checked ? 'checked' : 'unchecked'} busy': AppCheckboxTile(
           title: 'Stretch',
           subtitle: '10 minutes',
+          emoji: '🧘',
           checked: checked,
           busy: true,
           onChanged: (_) {},

@@ -9,9 +9,17 @@ import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 
 final _now = DateTime(2026, 11, 15, 12);
 
-Map<String, Object?> _row(String id, {String? title, String? start, String? end, String? status}) => {
+Map<String, Object?> _row(
+  String id, {
+  String? title,
+  String? start,
+  String? end,
+  String? status,
+  Map<String, Object?>? icon,
+}) => {
   'object': 'page',
   'id': id,
+  'icon': icon,
   'properties': {
     'Name': {
       'type': 'title',
@@ -65,7 +73,9 @@ void main() {
   group(MyDayPageMapper, () {
     test('builds an app bar and a refreshable scroll with a tile per row', () {
       expect(
-        _map([_row('a', title: 'Gym', start: '2026-11-15')]),
+        _map([
+          _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
+        ]),
         GenericPage(
           id: MyDayPageMapper.pageId,
           state: GenericValues(const {
@@ -88,6 +98,7 @@ void main() {
                       CheckboxTileNode(
                         id: 'task-a',
                         bind: 'tasks.a.done',
+                        emoji: const Literal('🏋️'),
                         title: const Literal('Gym'),
                         busy: const Binding('tasks.a.saving', fallback: false),
                         onChanged: _checkActions('a'),
@@ -111,6 +122,39 @@ void main() {
       expect(
         {for (final tile in _tiles(page)) tile.id: tile.onChanged},
         {'task-a': _checkActions('a'), 'task-b': _checkActions('b')},
+      );
+    });
+
+    test('shows the page emoji and falls back to a task emoji for other icons', () {
+      final page = _map([
+        _row('emoji', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🧘'}),
+        _row('noIcon', start: '2026-11-15'),
+        _row(
+          'file',
+          start: '2026-11-15',
+          icon: {
+            'type': 'file',
+            'file': {'url': 'https://example.com/icon.png'},
+          },
+        ),
+        _row(
+          'external',
+          start: '2026-11-15',
+          icon: {
+            'type': 'external',
+            'external': {'url': 'https://example.com/icon.png'},
+          },
+        ),
+      ]);
+
+      expect(
+        {for (final tile in _tiles(page)) tile.id: tile.emoji},
+        {
+          'task-emoji': const Literal('🧘'),
+          'task-noIcon': const Literal(MyDayPageMapper.fallbackEmoji),
+          'task-file': const Literal(MyDayPageMapper.fallbackEmoji),
+          'task-external': const Literal(MyDayPageMapper.fallbackEmoji),
+        },
       );
     });
 

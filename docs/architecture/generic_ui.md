@@ -1,4 +1,4 @@
-# Generic UI contract (v2)
+# Generic UI contract (v3)
 
 Every page is server-driven. The backend sends a **page**: a tree of typed **nodes**, starting local **state**, and **action** lists on node events. The app renders the nodes with design-system items and runs the actions.
 
