@@ -7,6 +7,7 @@ final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
     required this.bind,
     required this.title,
     this.subtitle,
+    this.emoji,
     this.busy = const Literal(false),
     this.onChanged = const [],
   });
@@ -18,6 +19,9 @@ final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
 
   @MappableField(hook: BindableHook<String>())
   final Bindable<String>? subtitle;
+
+  @MappableField(hook: BindableHook<String>())
+  final Bindable<String>? emoji;
 
   @MappableField(hook: BindableHook<bool>())
   final Bindable<bool> busy;

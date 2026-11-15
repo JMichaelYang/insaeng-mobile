@@ -7,27 +7,39 @@ class AppCheckboxTile extends StatelessWidget {
     required this.checked,
     required this.onChanged,
     this.subtitle,
+    this.emoji,
     this.busy = false,
     super.key,
   });
 
   final String title;
   final String? subtitle;
+  final String? emoji;
   final bool checked;
   final bool busy;
   final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final onChanged = this.onChanged;
+    final onChanged = busy ? null : this.onChanged;
     final subtitle = this.subtitle;
-    return CheckboxListTile(
-      value: checked,
-      onChanged: busy || onChanged == null ? null : (value) => onChanged(value ?? false),
-      controlAffinity: ListTileControlAffinity.leading,
-      title: Text(title),
-      subtitle: subtitle == null ? null : Text(subtitle),
-      secondary: busy ? const _AppCheckboxTileSpinner() : null,
+    final emoji = this.emoji;
+    return MergeSemantics(
+      child: ListTile(
+        enabled: onChanged != null,
+        onTap: onChanged == null ? null : () => onChanged(!checked),
+        leading: emoji == null ? null : Text(emoji, style: TextTheme.of(context).titleLarge),
+        title: Text(title),
+        subtitle: subtitle == null ? null : Text(subtitle),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          spacing: Dimens.spaceSm,
+          children: [
+            if (busy) const _AppCheckboxTileSpinner(),
+            Checkbox(value: checked, onChanged: onChanged == null ? null : (value) => onChanged(value ?? false)),
+          ],
+        ),
+      ),
     );
   }
 }

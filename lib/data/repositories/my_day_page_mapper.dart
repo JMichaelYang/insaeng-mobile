@@ -6,7 +6,7 @@ import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 
-typedef _Task = ({String id, String title, String? status, bool allDay, DateTime start, DateTime? end});
+typedef _Task = ({String id, String emoji, String title, String? status, bool allDay, DateTime start, DateTime? end});
 
 abstract final class MyDayPageMapper {
   static const pageId = 'myDay';
@@ -14,6 +14,7 @@ abstract final class MyDayPageMapper {
   static const emptyText = 'Nothing planned today';
   static const skippedText = 'Skipped';
   static const saveErrorText = "Couldn't update the task. Try again.";
+  static const fallbackEmoji = '📝';
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
@@ -70,6 +71,7 @@ abstract final class MyDayPageMapper {
     return CheckboxTileNode(
       id: 'task-${task.id}',
       bind: donePath,
+      emoji: Literal(task.emoji),
       title: Literal(task.title),
       subtitle: switch (_subtitle(task)) {
         final subtitle? => Literal(subtitle),
@@ -99,6 +101,7 @@ abstract final class MyDayPageMapper {
         if (startAt == null) return null;
         return (
           id: id,
+          emoji: _emoji(row),
           title: _title(properties),
           status: _status(properties),
           allDay: !start.contains('T'),
@@ -112,6 +115,11 @@ abstract final class MyDayPageMapper {
     }
     return null;
   }
+
+  static String _emoji(Map<String, Object?> row) => switch (row['icon']) {
+    {'type': 'emoji', 'emoji': final String emoji} => emoji,
+    _ => fallbackEmoji,
+  };
 
   static String _title(Map<Object?, Object?> properties) =>
       properties.values

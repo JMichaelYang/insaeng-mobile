@@ -39,7 +39,33 @@ void main() {
       expect(find.text('10 minutes'), findsOneWidget);
     });
 
+    testWidgets('shows the emoji before the title and the box after it', (tester) async {
+      await pumpTile(tester, AppCheckboxTile(title: 'Stretch', emoji: '🧘', checked: false, onChanged: (_) {}));
+
+      final emoji = tester.getCenter(find.text('🧘')).dx;
+      final title = tester.getCenter(find.text('Stretch')).dx;
+      final box = tester.getCenter(find.byType(Checkbox)).dx;
+      expect(emoji, lessThan(title));
+      expect(title, lessThan(box));
+    });
+
+    testWidgets('shows no emoji when none is given', (tester) async {
+      await pumpTile(tester, AppCheckboxTile(title: 'Stretch', checked: false, onChanged: (_) {}));
+
+      expect(find.byType(Text), findsOneWidget);
+    });
+
     for (final checked in [false, true]) {
+      testWidgets('reports ${!checked} when the box is tapped while ${checked ? 'checked' : 'unchecked'}', (
+        tester,
+      ) async {
+        final values = <bool>[];
+        await pumpTile(tester, AppCheckboxTile(title: 'Stretch', checked: checked, onChanged: values.add));
+
+        await tester.tap(find.byType(Checkbox));
+        expect(values, [!checked]);
+      });
+
       testWidgets('reports ${!checked} when tapped while ${checked ? 'checked' : 'unchecked'}', (tester) async {
         final values = <bool>[];
         await pumpTile(tester, AppCheckboxTile(title: 'Stretch', checked: checked, onChanged: values.add));
@@ -57,6 +83,7 @@ void main() {
       expect(checkbox(tester).onChanged, isNull);
 
       await tester.tap(find.text('Stretch'), warnIfMissed: false);
+      await tester.tap(find.byType(Checkbox), warnIfMissed: false);
       expect(values, isEmpty);
     });
 
@@ -64,6 +91,7 @@ void main() {
       await pumpTile(tester, const AppCheckboxTile(title: 'Stretch', checked: false, onChanged: null));
 
       expect(checkbox(tester).onChanged, isNull);
+      expect(tester.widget<ListTile>(find.byType(ListTile)).enabled, isFalse);
     });
   });
 }

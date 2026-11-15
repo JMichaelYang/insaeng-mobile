@@ -30,6 +30,7 @@ const _node = CheckboxTileNode(
   bind: 'todo.done',
   title: Literal('Stretch'),
   subtitle: Literal('10 minutes'),
+  emoji: Literal('🧘'),
   onChanged: _onChanged,
 );
 
@@ -57,7 +58,7 @@ void main() {
         return pumpItem(tester, cubit, node);
       }
 
-      testWidgets('shows the title, subtitle, and bound value', (tester) async {
+      testWidgets('shows the emoji, title, subtitle, and bound value', (tester) async {
         await pump(
           tester,
           _node,
@@ -68,6 +69,7 @@ void main() {
 
         expect(tile(tester).title, 'Stretch');
         expect(tile(tester).subtitle, '10 minutes');
+        expect(tile(tester).emoji, '🧘');
         expect(tile(tester).checked, isTrue);
         expect(tile(tester).busy, isFalse);
         expect(find.text('Stretch'), findsOneWidget);
@@ -79,6 +81,7 @@ void main() {
 
         expect(tile(tester).checked, isFalse);
         expect(tile(tester).subtitle, isNull);
+        expect(tile(tester).emoji, isNull);
       });
 
       testWidgets('is unchecked when the bound path is not a bool', (tester) async {
@@ -93,7 +96,7 @@ void main() {
         expect(tile(tester).checked, isFalse);
       });
 
-      testWidgets('resolves bound title, subtitle, and busy from the values', (tester) async {
+      testWidgets('resolves bound title, subtitle, emoji, and busy from the values', (tester) async {
         await pump(
           tester,
           const CheckboxTileNode(
@@ -101,16 +104,18 @@ void main() {
             bind: 'todo.done',
             title: Binding('todo.title'),
             subtitle: Binding('todo.due'),
+            emoji: Binding('todo.emoji'),
             busy: Binding('saving'),
           ),
           values: {
-            'todo': {'title': 'Stretch', 'due': 'Today'},
+            'todo': {'title': 'Stretch', 'due': 'Today', 'emoji': '🧘'},
             'saving': true,
           },
         );
 
         expect(tile(tester).title, 'Stretch');
         expect(tile(tester).subtitle, 'Today');
+        expect(tile(tester).emoji, '🧘');
         expect(tile(tester).busy, isTrue);
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
       });

@@ -16,7 +16,7 @@ void main() {
       );
     });
 
-    test('decodes literal subtitle and busy', () {
+    test('decodes literal subtitle, emoji, and busy', () {
       expect(
         _decode({
           'type': 'checkboxTile',
@@ -24,6 +24,7 @@ void main() {
           'bind': 'todo.done',
           'title': 'Done',
           'subtitle': 'Mark the task complete',
+          'emoji': '🧘',
           'busy': true,
         }),
         const CheckboxTileNode(
@@ -31,12 +32,13 @@ void main() {
           bind: 'todo.done',
           title: Literal('Done'),
           subtitle: Literal('Mark the task complete'),
+          emoji: Literal('🧘'),
           busy: Literal(true),
         ),
       );
     });
 
-    test('decodes bound title, subtitle, and busy', () {
+    test('decodes bound title, subtitle, emoji, and busy', () {
       expect(
         _decode({
           'type': 'checkboxTile',
@@ -44,6 +46,7 @@ void main() {
           'bind': 'todo.done',
           'title': {r'$bind': 'todo.title'},
           'subtitle': {r'$bind': 'todo.due', 'fallback': 'No due date'},
+          'emoji': {r'$bind': 'todo.emoji', 'fallback': '📝'},
           'busy': {r'$bind': 'saving', 'fallback': false},
         }),
         const CheckboxTileNode(
@@ -51,6 +54,7 @@ void main() {
           bind: 'todo.done',
           title: Binding('todo.title'),
           subtitle: Binding('todo.due', fallback: 'No due date'),
+          emoji: Binding('todo.emoji', fallback: '📝'),
           busy: Binding('saving', fallback: false),
         ),
       );
