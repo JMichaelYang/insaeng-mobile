@@ -67,7 +67,7 @@ class GenericCubit extends Cubit<GenericState> {
     final result = await _actions.perform(
       method: action.method.resolve(values) ?? RequestMethod.post,
       endpoint: endpoint,
-      body: _resolveBody(action.body?.resolve(values) ?? const {}, values),
+      body: values.resolveBindings(action.body?.resolve(values) ?? const {}),
     );
     if (isClosed) return false;
     switch (result) {
@@ -78,22 +78,6 @@ class GenericCubit extends Cubit<GenericState> {
         return false;
     }
   }
-
-  static Map<String, Object?> _resolveBody(Map<String, Object?> body, GenericValues values) => {
-    for (final MapEntry(:key, :value) in body.entries) key: _resolveJson(value, values),
-  };
-
-  static Object? _resolveJson(Object? json, GenericValues values) => switch (json) {
-    final Map<Object?, Object?> map && {BindableHook.bindKey: final String path} => Binding<Object>(
-      path,
-      fallback: map[BindableHook.fallbackKey],
-    ).resolve(values),
-    final Map<Object?, Object?> map => {
-      for (final MapEntry(:key, :value) in map.entries) '$key': _resolveJson(value, values),
-    },
-    final List<Object?> list => [for (final item in list) _resolveJson(item, values)],
-    _ => json,
-  };
 
   Future<bool> _reload() async {
     final result = await _pages.fetch(pageId, params);

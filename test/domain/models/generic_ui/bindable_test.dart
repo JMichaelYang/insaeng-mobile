@@ -219,4 +219,87 @@ void main() {
       });
     });
   });
+
+  group('GenericValuesBindings', () {
+    final values = GenericValues(const {
+      'form': {'email': 'a@b.c', 'age': 30},
+      'tags': ['x', 'y'],
+    });
+
+    test('keeps literals as they are', () {
+      expect(values.resolveBindings(const {'a': 1, 'b': 'two', 'c': true, 'd': null}), {
+        'a': 1,
+        'b': 'two',
+        'c': true,
+        'd': null,
+      });
+    });
+
+    test('resolves top-level bindings to any value type', () {
+      expect(
+        values.resolveBindings(const {
+          'email': {r'$bind': 'form.email'},
+          'age': {r'$bind': 'form.age'},
+          'form': {r'$bind': 'form'},
+          'tags': {r'$bind': 'tags'},
+        }),
+        {
+          'email': 'a@b.c',
+          'age': 30,
+          'form': {'email': 'a@b.c', 'age': 30},
+          'tags': ['x', 'y'],
+        },
+      );
+    });
+
+    test('resolves bindings nested in objects and lists', () {
+      expect(
+        values.resolveBindings(const {
+          'user': {
+            'contact': {
+              'email': {r'$bind': 'form.email'},
+            },
+          },
+          'items': [
+            'z',
+            {r'$bind': 'tags.1'},
+            {
+              'age': {r'$bind': 'form.age'},
+            },
+          ],
+        }),
+        {
+          'user': {
+            'contact': {'email': 'a@b.c'},
+          },
+          'items': [
+            'z',
+            'y',
+            {'age': 30},
+          ],
+        },
+      );
+    });
+
+    test('uses the fallback for a missing path, or null without one', () {
+      expect(
+        values.resolveBindings(const {
+          'name': {r'$bind': 'user.name', 'fallback': 'Guest'},
+          'phone': {r'$bind': 'user.phone'},
+        }),
+        {'name': 'Guest', 'phone': null},
+      );
+    });
+
+    test('treats an object whose bind key is not a string as a plain object', () {
+      expect(
+        values.resolveBindings(const {
+          'weird': {r'$bind': 3},
+        }),
+        {
+          'weird': {r'$bind': 3},
+        },
+      );
+    });
+  });
 }

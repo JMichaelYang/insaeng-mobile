@@ -54,6 +54,22 @@ final class Binding<T extends Object> extends Bindable<T> {
   String toString() => 'Binding<$T>($path, fallback: $fallback)';
 }
 
+extension GenericValuesBindings on GenericValues {
+  Map<String, Object?> resolveBindings(Map<String, Object?> json) => {
+    for (final MapEntry(:key, :value) in json.entries) key: _resolveJson(value),
+  };
+
+  Object? _resolveJson(Object? json) => switch (json) {
+    final Map<Object?, Object?> map && {BindableHook.bindKey: final String path} => Binding<Object>(
+      path,
+      fallback: map[BindableHook.fallbackKey],
+    ).resolve(this),
+    final Map<Object?, Object?> map => {for (final MapEntry(:key, :value) in map.entries) '$key': _resolveJson(value)},
+    final List<Object?> list => [for (final item in list) _resolveJson(item)],
+    _ => json,
+  };
+}
+
 final class BindableHook<T extends Object> extends MappingHook {
   const new();
 
