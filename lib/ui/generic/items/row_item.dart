@@ -19,7 +19,13 @@ class RowItem extends StatelessWidget {
         crossAxisAlignment: alignment.crossAxis,
         children: [
           for (final child in node.children)
-            NodeView(node: child, expanded: constraints.hasBoundedWidth && child.expandsAlong(Axis.horizontal)),
+            if (constraints.hasBoundedWidth && child.expandsAlong(Axis.horizontal))
+              Expanded(
+                key: ValueKey(('expanded', child.id)),
+                child: NodeView(node: child),
+              )
+            else
+              NodeView(node: child),
         ],
       ),
     );

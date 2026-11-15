@@ -126,6 +126,23 @@ void main() {
       expect(tester.getBottomLeft(find.text('Bottom')).dy, screenHeight);
     });
 
+    testWidgets('keeps each expanded child element when siblings are reordered', (tester) async {
+      const first = ScrollNode(id: 'first');
+      const second = ScrollNode(id: 'second');
+      await pumpItem(tester, const ColumnNode(id: 'column', children: [first, second]));
+      final firstElement = tester.element(find.byKey(const ValueKey('first')));
+      final secondElement = tester.element(find.byKey(const ValueKey('second')));
+
+      await pumpItem(tester, const ColumnNode(id: 'column', children: [second, first]));
+
+      expect(tester.element(find.byKey(const ValueKey('first'))), same(firstElement));
+      expect(tester.element(find.byKey(const ValueKey('second'))), same(secondElement));
+      expect(
+        tester.getTopLeft(find.byKey(const ValueKey('second'))).dy,
+        lessThan(tester.getTopLeft(find.byKey(const ValueKey('first'))).dy),
+      );
+    });
+
     testWidgets('expands an unknown node whose fallback expands', (tester) async {
       await pumpItem(
         tester,
