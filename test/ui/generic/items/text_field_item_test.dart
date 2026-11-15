@@ -77,7 +77,7 @@ void main() {
       testWidgets('passes the secure flag to the field', (tester) async {
         await pump(
           tester,
-          const TextFieldNode(id: 'token', bind: 'token', secure: true),
+          const TextFieldNode(id: 'token', bind: 'token', secure: Literal(true)),
           values: {'token': 'secret'},
         );
 
@@ -178,6 +178,18 @@ void main() {
         await tester.pump();
 
         expect(field(tester).label, 'Name');
+      });
+
+      testWidgets('follows a bound secure flag', (tester) async {
+        await pumpItem(tester, cubit, const TextFieldNode(id: 'token', bind: 'token', secure: Binding('hideToken')));
+
+        expect(field(tester).secure, isFalse);
+
+        await cubit.dispatch(const [UpdateStateAction(path: 'hideToken', value: Literal(true))]);
+        await tester.pump();
+
+        expect(field(tester).secure, isTrue);
+        expect(tester.widget<TextField>(find.byType(TextField)).obscureText, isTrue);
       });
 
       testWidgets('shows a value written to the bound path elsewhere', (tester) async {

@@ -16,7 +16,7 @@ class TextFieldItem extends StatelessWidget {
       value: context.watchBindable(Binding<String>(node.bind)) ?? '',
       label: context.watchBindable(node.label),
       hint: context.watchBindable(node.hint),
-      secure: node.secure,
+      secure: context.watchBindable(node.secure) ?? false,
       onChanged: (text) =>
           context.dispatch([UpdateStateAction(path: node.bind, value: Literal(text)), ...node.onChanged]),
       onSubmitted: (_) => context.dispatch(node.onSubmit),

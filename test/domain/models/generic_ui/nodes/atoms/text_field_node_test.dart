@@ -32,7 +32,19 @@ void main() {
     test('decodes a secure field', () {
       expect(
         _decode({'type': 'textField', 'id': 'token', 'bind': 'form.token', 'secure': true}),
-        const TextFieldNode(id: 'token', bind: 'form.token', secure: true),
+        const TextFieldNode(id: 'token', bind: 'form.token', secure: Literal(true)),
+      );
+    });
+
+    test('decodes a bound secure flag', () {
+      expect(
+        _decode({
+          'type': 'textField',
+          'id': 'token',
+          'bind': 'form.token',
+          'secure': {r'$bind': 'hideToken', 'fallback': true},
+        }),
+        const TextFieldNode(id: 'token', bind: 'form.token', secure: Binding('hideToken', fallback: true)),
       );
     });
 
