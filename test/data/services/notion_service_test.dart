@@ -10,6 +10,17 @@ NotionService _service(Future<Response> Function(Request request) handler) => No
 Future<Map<String, Object?>> _query(NotionService service) =>
     service.queryDataSource('secret', 'ds-1', const {'page_size': 10});
 
+Future<Map<String, Object?>> _update(NotionService service) => service.updatePage('secret', 'page-1', const {
+  'Status': {
+    'status': {'name': 'Done'},
+  },
+});
+
+const _endpoints = <String, Future<Map<String, Object?>> Function(NotionService service)>{
+  'queryDataSource': _query,
+  'updatePage': _update,
+};
+
 void main() {
   group(NotionService, () {
     group('queryDataSource', () {
@@ -40,58 +51,93 @@ void main() {
           ],
         });
       });
+    });
 
-      test('throws unauthorized on 401', () {
-        final service = _service((_) async => Response('{"code": "unauthorized"}', 401));
+    group('updatePage', () {
+      test('patches the properties to the page endpoint with the auth and version headers', () async {
+        late Request sent;
+        final service = _service((request) async {
+          sent = request;
+          return Response('{"object": "page", "id": "page-1"}', 200);
+        });
 
-        expect(_query(service), throwsA(isA<NotionUnauthorizedException>()));
+        await _update(service);
+
+        expect(sent.method, 'PATCH');
+        expect(sent.url, Uri.parse('https://api.notion.com/v1/pages/page-1'));
+        expect(sent.headers['Authorization'], 'Bearer secret');
+        expect(sent.headers['Notion-Version'], NotionService.version);
+        expect(sent.headers['Content-Type'], startsWith('application/json'));
+        expect(jsonDecode(sent.body), {
+          'properties': {
+            'Status': {
+              'status': {'name': 'Done'},
+            },
+          },
+        });
       });
 
-      test('throws rate limited with the retry delay on 429', () {
-        final service = _service((_) async => Response('{}', 429, headers: {'retry-after': '3'}));
+      test('returns the decoded JSON on success', () async {
+        final service = _service((_) async => Response('{"object": "page", "id": "page-1"}', 200));
 
-        expect(
-          _query(service),
-          throwsA(
-            isA<NotionRateLimitedException>().having((e) => e.retryAfter, 'retryAfter', const Duration(seconds: 3)),
-          ),
-        );
-      });
-
-      test('throws rate limited without a retry delay when the header is missing', () {
-        final service = _service((_) async => Response('{}', 429));
-
-        expect(
-          _query(service),
-          throwsA(isA<NotionRateLimitedException>().having((e) => e.retryAfter, 'retryAfter', isNull)),
-        );
-      });
-
-      test('throws an http exception with the status and body on other non-2xx responses', () {
-        final service = _service((_) async => Response('{"code": "object_not_found"}', 404));
-
-        expect(
-          _query(service),
-          throwsA(
-            isA<NotionHttpException>()
-                .having((e) => e.statusCode, 'statusCode', 404)
-                .having((e) => e.body, 'body', '{"code": "object_not_found"}'),
-          ),
-        );
-      });
-
-      test('throws a network exception when the request fails', () {
-        final failure = ClientException('Connection refused');
-        final service = _service((_) async => throw failure);
-
-        expect(_query(service), throwsA(isA<NotionNetworkException>().having((e) => e.cause, 'cause', failure)));
-      });
-
-      test('throws a format exception when the response is not a JSON object', () {
-        final service = _service((_) async => Response('[1]', 200));
-
-        expect(_query(service), throwsFormatException);
+        expect(await _update(service), {'object': 'page', 'id': 'page-1'});
       });
     });
+
+    for (final MapEntry(key: name, value: call) in _endpoints.entries) {
+      group('$name errors', () {
+        test('throws unauthorized on 401', () {
+          final service = _service((_) async => Response('{"code": "unauthorized"}', 401));
+
+          expect(call(service), throwsA(isA<NotionUnauthorizedException>()));
+        });
+
+        test('throws rate limited with the retry delay on 429', () {
+          final service = _service((_) async => Response('{}', 429, headers: {'retry-after': '3'}));
+
+          expect(
+            call(service),
+            throwsA(
+              isA<NotionRateLimitedException>().having((e) => e.retryAfter, 'retryAfter', const Duration(seconds: 3)),
+            ),
+          );
+        });
+
+        test('throws rate limited without a retry delay when the header is missing', () {
+          final service = _service((_) async => Response('{}', 429));
+
+          expect(
+            call(service),
+            throwsA(isA<NotionRateLimitedException>().having((e) => e.retryAfter, 'retryAfter', isNull)),
+          );
+        });
+
+        test('throws an http exception with the status and body on other non-2xx responses', () {
+          final service = _service((_) async => Response('{"code": "object_not_found"}', 404));
+
+          expect(
+            call(service),
+            throwsA(
+              isA<NotionHttpException>()
+                  .having((e) => e.statusCode, 'statusCode', 404)
+                  .having((e) => e.body, 'body', '{"code": "object_not_found"}'),
+            ),
+          );
+        });
+
+        test('throws a network exception when the request fails', () {
+          final failure = ClientException('Connection refused');
+          final service = _service((_) async => throw failure);
+
+          expect(call(service), throwsA(isA<NotionNetworkException>().having((e) => e.cause, 'cause', failure)));
+        });
+
+        test('throws a format exception when the response is not a JSON object', () {
+          final service = _service((_) async => Response('[1]', 200));
+
+          expect(call(service), throwsFormatException);
+        });
+      });
+    }
   });
 }

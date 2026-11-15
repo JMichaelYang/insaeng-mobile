@@ -50,12 +50,20 @@ class NotionService {
   final Client _client;
 
   Future<Map<String, Object?>> queryDataSource(String token, String dataSourceId, Map<String, Object?> body) =>
-      _post(token, 'data_sources/${Uri.encodeComponent(dataSourceId)}/query', body);
+      _send(_client.post, token, 'data_sources/${Uri.encodeComponent(dataSourceId)}/query', body);
 
-  Future<Map<String, Object?>> _post(String token, String path, Map<String, Object?> body) async {
+  Future<Map<String, Object?>> updatePage(String token, String pageId, Map<String, Object?> properties) =>
+      _send(_client.patch, token, 'pages/${Uri.encodeComponent(pageId)}', {'properties': properties});
+
+  Future<Map<String, Object?>> _send(
+    Future<Response> Function(Uri url, {Map<String, String>? headers, Object? body}) method,
+    String token,
+    String path,
+    Map<String, Object?> body,
+  ) async {
     final Response response;
     try {
-      response = await _client.post(
+      response = await method(
         baseUri.resolve(path),
         headers: {'Authorization': 'Bearer $token', 'Notion-Version': version, 'Content-Type': 'application/json'},
         body: jsonEncode(body),
