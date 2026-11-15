@@ -12,15 +12,13 @@ class ContainerItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = context.watchBindable(node.padding) ?? SpacingToken.none;
     final alignment = context.watchBindable(node.alignment) ?? AlignmentToken.start;
-    final child = switch (node.child) {
-      final child? => NodeView(node: child),
-      null => null,
-    };
-    return Padding(
+    return Container(
       padding: EdgeInsets.all(padding.size),
-      child: switch (alignment.horizontal) {
-        final horizontal? => Align(alignment: horizontal, heightFactor: 1, child: child),
-        null => SizedBox(width: double.infinity, child: child),
+      alignment: alignment.horizontal,
+      width: alignment == AlignmentToken.stretch ? double.infinity : null,
+      child: switch (node.child) {
+        final child? => NodeView(node: child),
+        null => null,
       },
     );
   }
