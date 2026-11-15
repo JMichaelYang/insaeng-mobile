@@ -19,12 +19,6 @@ void main() {
         expect(getIt<Flavor>(), flavor);
       });
 
-      test('registers the agenda data source id for ${flavor.name}', () {
-        configureDependencies(flavor);
-
-        expect(getIt<String>(instanceName: agendaDataSourceId), '0ffee326-f284-41bf-a0c4-3ad78314f568');
-      });
-
       test('registers the Notion page repository for ${flavor.name}', () {
         configureDependencies(flavor);
 

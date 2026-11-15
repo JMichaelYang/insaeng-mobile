@@ -4,6 +4,7 @@ class SecureStorageService {
   const new(this._storage);
 
   static const notionTokenKey = 'notion_token';
+  static const notionDataSourceIdKey = 'notion_data_source_id';
 
   final FlutterSecureStorage _storage;
 

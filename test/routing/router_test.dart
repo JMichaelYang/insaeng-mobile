@@ -34,20 +34,23 @@ void main() {
 
       tearDown(getIt.reset);
 
-      testWidgets('opens on the Notion connect page and reloads after saving a token', (tester) async {
+      testWidgets('opens on the Notion connect page and reloads after connecting', (tester) async {
         await tester.pumpWidget(App(router: getIt<GoRouter>()));
         await tester.pumpAndSettle();
 
         expect(find.byType(GenericScreen), findsOneWidget);
         expect(find.text(GenericNotionPageRepositoryImpl.connectTitle), findsOneWidget);
 
-        await tester.enterText(find.byType(TextField), '  secret  ');
+        await tester.enterText(find.byType(TextField).first, '  secret  ');
+        await tester.enterText(find.byType(TextField).last, ' agenda ');
         await tester.tap(find.text(GenericNotionPageRepositoryImpl.connectLabel));
         await tester.pumpAndSettle();
 
         expect(find.text(GenericNotionPageRepositoryImpl.connectTitle), findsNothing);
         expect(find.text(MyDayPageMapper.emptyText), findsOneWidget);
-        expect(await getIt<SecureStorageService>().read(SecureStorageService.notionTokenKey), 'secret');
+        final storage = getIt<SecureStorageService>();
+        expect(await storage.read(SecureStorageService.notionTokenKey), 'secret');
+        expect(await storage.read(SecureStorageService.notionDataSourceIdKey), 'agenda');
       });
     });
 

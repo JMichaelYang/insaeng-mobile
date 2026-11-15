@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:insaeng/data/repositories/generic_notion_action_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_notion_page_repository_impl.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
@@ -33,17 +34,27 @@ void main() {
     group(MyDayPageMapper.pageId, () {
       Future<Result<GenericPage>> fetch() => repository.fetch(MyDayPageMapper.pageId, const {});
 
-      for (final (description, token) in [('missing', null), ('empty', '')]) {
+      void stub({String? token = 'secret', String? dataSourceId = 'agenda'}) {
+        when(() => storage.read(SecureStorageService.notionTokenKey)).thenAnswer((_) async => token);
+        when(() => storage.read(SecureStorageService.notionDataSourceIdKey)).thenAnswer((_) async => dataSourceId);
+      }
+
+      for (final (description, value) in [('missing', null), ('empty', '')]) {
         test('returns the connect page when the token is $description', () async {
-          when(() => storage.read(any())).thenAnswer((_) async => token);
+          stub(token: value);
 
           expect(await fetch(), Result<GenericPage>.ok(GenericNotionPageRepositoryImpl.connectPage));
-          verify(() => storage.read(SecureStorageService.notionTokenKey)).called(1);
+        });
+
+        test('returns the connect page when the data source id is $description', () async {
+          stub(dataSourceId: value);
+
+          expect(await fetch(), Result<GenericPage>.ok(GenericNotionPageRepositoryImpl.connectPage));
         });
       }
 
-      test('returns the My Day page when a token is stored', () async {
-        when(() => storage.read(any())).thenAnswer((_) async => 'secret');
+      test('returns the My Day page when a token and data source id are stored', () async {
+        stub();
 
         final page = _page(await fetch());
 
@@ -73,11 +84,11 @@ void main() {
         expect(ids.toSet(), hasLength(ids.length));
       });
 
-      test('starts with an empty token and no save in progress', () {
+      test('starts with empty fields and no save in progress', () {
         expect(
           page.state,
           GenericValues(const {
-            'notion': {'token': ''},
+            'notion': {'token': '', 'dataSourceId': ''},
             'saving': false,
           }),
         );
@@ -87,14 +98,13 @@ void main() {
         expect(page.nodes.whereType<AppBarNode>().single.title, const Literal(MyDayPageMapper.title));
       });
 
-      test('binds a secure text field to notion.token', () {
-        final field = page.nodes.whereType<TextFieldNode>().single;
+      test('binds a secure token field and a plain data source id field', () {
+        final fields = {for (final field in page.nodes.whereType<TextFieldNode>()) field.bind: field.secure};
 
-        expect(field.bind, 'notion.token');
-        expect(field.secure, const Literal(true));
+        expect(fields, const {'notion.token': Literal(true), 'notion.dataSourceId': Literal(false)});
       });
 
-      test('saves the token through PUT /notion/token', () {
+      test('saves both fields through the connection endpoint', () {
         final button = page.nodes.whereType<ButtonNode>().single;
 
         expect(button.loading, const Binding('saving', fallback: false));
@@ -102,8 +112,11 @@ void main() {
           UpdateStateAction(path: 'saving', value: Literal(true)),
           RequestAction(
             method: Literal(RequestMethod.put),
-            endpoint: Literal('/notion/token'),
-            body: JsonObject({'token': JsonBinding(Binding('notion.token'))}),
+            endpoint: Literal(GenericNotionActionRepositoryImpl.connectionEndpoint),
+            body: JsonObject({
+              'token': JsonBinding(Binding('notion.token')),
+              'dataSourceId': JsonBinding(Binding('notion.dataSourceId')),
+            }),
             onError: [ShowMessageAction(text: Literal(GenericNotionPageRepositoryImpl.connectErrorText))],
             onComplete: [UpdateStateAction(path: 'saving', value: Literal(false))],
           ),

@@ -13,12 +13,9 @@ import 'package:insaeng/routing/router.dart';
 
 final GetIt getIt = GetIt.instance;
 
-const agendaDataSourceId = 'agendaDataSourceId';
-
 void configureDependencies(Flavor flavor) {
   getIt
     ..registerSingleton<Flavor>(flavor)
-    ..registerSingleton<String>('0ffee326-f284-41bf-a0c4-3ad78314f568', instanceName: agendaDataSourceId)
     ..registerLazySingleton<Client>(Client.new)
     ..registerLazySingleton(() => const FlutterSecureStorage())
     ..registerLazySingleton(() => NotionService(getIt()))

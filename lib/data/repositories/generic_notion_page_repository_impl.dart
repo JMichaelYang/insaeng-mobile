@@ -14,15 +14,16 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
   const new(this._storage);
 
   static const connectTitle = 'Connect Notion';
-  static const connectDescription = 'Paste a Notion integration token to see your day.';
+  static const connectDescription = 'Paste a Notion integration token and the ID of your agenda data source.';
   static const tokenLabel = 'Notion token';
+  static const dataSourceIdLabel = 'Agenda data source ID';
   static const connectLabel = 'Connect';
-  static const connectErrorText = "Couldn't save the token. Try again.";
+  static const connectErrorText = "Couldn't connect Notion. Check both fields and try again.";
 
   static final GenericPage connectPage = GenericPage(
     id: MyDayPageMapper.pageId,
     state: GenericValues(const {
-      'notion': {'token': ''},
+      'notion': {'token': '', 'dataSourceId': ''},
       'saving': false,
     }),
     root: const ColumnNode(
@@ -44,6 +45,7 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
                   TextNode(id: 'connectTitle', text: Literal(connectTitle), style: Literal(TextStyleToken.titleLarge)),
                   TextNode(id: 'connectDescription', text: Literal(connectDescription)),
                   TextFieldNode(id: 'token', bind: 'notion.token', label: Literal(tokenLabel), secure: Literal(true)),
+                  TextFieldNode(id: 'dataSourceId', bind: 'notion.dataSourceId', label: Literal(dataSourceIdLabel)),
                   ButtonNode(
                     id: 'connectButton',
                     label: Literal(connectLabel),
@@ -52,8 +54,11 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
                       UpdateStateAction(path: 'saving', value: Literal(true)),
                       RequestAction(
                         method: Literal(RequestMethod.put),
-                        endpoint: Literal('/notion/token'),
-                        body: JsonObject({'token': JsonBinding(Binding('notion.token'))}),
+                        endpoint: Literal('/notion/connection'),
+                        body: JsonObject({
+                          'token': JsonBinding(Binding('notion.token')),
+                          'dataSourceId': JsonBinding(Binding('notion.dataSourceId')),
+                        }),
                         onError: [ShowMessageAction(text: Literal(connectErrorText))],
                         onComplete: [UpdateStateAction(path: 'saving', value: Literal(false))],
                       ),
@@ -78,12 +83,16 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
 
   Future<Result<GenericPage>> _myDay() async {
     final String? token;
+    final String? dataSourceId;
     try {
       token = await _storage.read(SecureStorageService.notionTokenKey);
+      dataSourceId = await _storage.read(SecureStorageService.notionDataSourceIdKey);
     } on PlatformException {
       return const Result.err(GenericPageServerError());
     }
-    if (token == null || token.isEmpty) return Result.ok(connectPage);
+    if (token == null || token.isEmpty || dataSourceId == null || dataSourceId.isEmpty) {
+      return Result.ok(connectPage);
+    }
     return Result.ok(MyDayPageMapper.fromRows(const [], now: DateTime.now()));
   }
 }
