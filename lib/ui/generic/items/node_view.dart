@@ -4,6 +4,7 @@ import 'package:insaeng/ui/generic/items/button_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
+import 'package:insaeng/ui/generic/items/expanded_item.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
 import 'package:insaeng/ui/generic/items/scroll_item.dart';
 import 'package:insaeng/ui/generic/items/spacer_item.dart';
@@ -23,6 +24,7 @@ class NodeView extends StatelessWidget {
     final RowNode node => RowItem(node: node),
     final ContainerNode node => ContainerItem(node: node),
     final ScrollNode node => ScrollItem(node: node),
+    final ExpandedNode node => ExpandedItem(node: node),
     final AppBarNode node => AppBarItem(node: node),
     final TextNode node => TextItem(node: node),
     final ButtonNode node => ButtonItem(node: node),

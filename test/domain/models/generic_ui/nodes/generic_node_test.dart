@@ -13,6 +13,7 @@ void main() {
         'column',
         'row',
         'container',
+        'expanded',
         'scroll',
         'appBar',
         'text',
@@ -49,13 +50,15 @@ void main() {
       expect(const RowNode(id: 'row', children: children).childNodes, children);
     });
 
-    test('childNodes lists the child of a container or scroll', () {
+    test('childNodes lists the child of a container, scroll, or expanded', () {
       const child = TextNode(id: 'a', text: Literal('a'));
 
       expect(const ContainerNode(id: 'content', child: child).childNodes, [child]);
       expect(const ContainerNode(id: 'content').childNodes, isEmpty);
       expect(const ScrollNode(id: 'scroll', child: child).childNodes, [child]);
       expect(const ScrollNode(id: 'scroll').childNodes, isEmpty);
+      expect(const ExpandedNode(id: 'body', child: child).childNodes, [child]);
+      expect(const ExpandedNode(id: 'gap').childNodes, isEmpty);
     });
 
     test('childNodes lists the fallback of an unknown node', () {
@@ -84,6 +87,7 @@ void main() {
       expect(const RowNode(id: 'row').actions, isEmpty);
       expect(const ContainerNode(id: 'content').actions, isEmpty);
       expect(const ScrollNode(id: 'scroll').actions, isEmpty);
+      expect(const ExpandedNode(id: 'gap').actions, isEmpty);
       expect(const SpacerNode(id: 'gap').actions, isEmpty);
       expect(const DividerNode(id: 'divider').actions, isEmpty);
       expect(const TextNode(id: 'a', text: Literal('a')).actions, isEmpty);

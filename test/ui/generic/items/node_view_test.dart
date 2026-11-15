@@ -8,6 +8,7 @@ import 'package:insaeng/ui/generic/items/button_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
+import 'package:insaeng/ui/generic/items/expanded_item.dart';
 import 'package:insaeng/ui/generic/items/node_view.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
 import 'package:insaeng/ui/generic/items/scroll_item.dart';
@@ -44,6 +45,7 @@ void main() {
       const RowNode(id: 'row'): RowItem,
       const ContainerNode(id: 'container'): ContainerItem,
       const ScrollNode(id: 'scroll'): ScrollItem,
+      const ExpandedNode(id: 'expanded'): ExpandedItem,
       const AppBarNode(id: 'appBar'): AppBarItem,
       const TextNode(id: 'text', text: Literal('Hi')): TextItem,
       const ButtonNode(id: 'button', label: Literal('Add')): ButtonItem,

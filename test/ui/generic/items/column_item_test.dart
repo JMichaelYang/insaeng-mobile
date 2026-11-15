@@ -7,7 +7,6 @@ import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/scroll_item.dart';
-import 'package:insaeng/ui/generic/items/unknown_item.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
@@ -92,75 +91,116 @@ void main() {
       });
     }
 
-    testWidgets('expands a scroll child to fill the remaining height', (tester) async {
+    double screenHeight(WidgetTester tester) => tester.getSize(find.byType(Scaffold)).height;
+
+    testWidgets('grows an expanded child into the remaining height', (tester) async {
       await pumpItem(
         tester,
         const ColumnNode(
           id: 'column',
           children: [
             TextNode(id: 'title', text: Literal('Title')),
-            ScrollNode(id: 'scroll'),
+            ExpandedNode(
+              id: 'body',
+              child: ScrollNode(id: 'scroll'),
+            ),
           ],
         ),
       );
 
-      final screenHeight = tester.getSize(find.byType(Scaffold)).height;
       expect(find.ancestor(of: find.byType(ScrollItem), matching: find.byType(Expanded)), findsOneWidget);
-      expect(tester.getBottomLeft(find.byType(ScrollItem)).dy, screenHeight);
+      expect(tester.getTopLeft(find.byType(ScrollItem)).dy, tester.getBottomLeft(find.text('Title')).dy);
+      expect(tester.getBottomLeft(find.byType(ScrollItem)).dy, screenHeight(tester));
     });
 
-    testWidgets('expands a spacer to push later children to the bottom', (tester) async {
+    testWidgets('pushes later children to the bottom past an empty expanded', (tester) async {
       await pumpItem(
         tester,
         const ColumnNode(
           id: 'column',
           children: [
             TextNode(id: 'top', text: Literal('Top')),
-            SpacerNode(id: 'gap'),
+            ExpandedNode(id: 'gap'),
             TextNode(id: 'bottom', text: Literal('Bottom')),
           ],
         ),
       );
 
-      final screenHeight = tester.getSize(find.byType(Scaffold)).height;
-      expect(tester.getBottomLeft(find.text('Bottom')).dy, screenHeight);
+      expect(tester.getBottomLeft(find.text('Bottom')).dy, screenHeight(tester));
+    });
+
+    testWidgets('shares the remaining height by flex', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            ExpandedNode(id: 'one'),
+            ExpandedNode(id: 'three', flex: 3),
+          ],
+        ),
+      );
+
+      expect(tester.getSize(find.byKey(const ValueKey('one'))).height, screenHeight(tester) / 4);
+      expect(tester.getSize(find.byKey(const ValueKey('three'))).height, screenHeight(tester) * 3 / 4);
+    });
+
+    testWidgets('does not grow an expanded with a flex below one', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [ExpandedNode(id: 'gap', flex: 0)],
+        ),
+      );
+
+      expect(find.byType(Expanded), findsNothing);
+      expect(tester.getSize(find.byKey(const ValueKey('gap'))).height, 0);
+    });
+
+    testWidgets('does not grow a scroll that is not wrapped in an expanded', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            ScrollNode(
+              id: 'scroll',
+              child: TextNode(id: 'hello', text: Literal('Hello')),
+            ),
+          ],
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(Expanded), findsNothing);
+      expect(find.text('Hello'), findsOneWidget);
     });
 
     testWidgets('keeps each expanded child element when siblings are reordered', (tester) async {
-      const first = ScrollNode(id: 'first');
-      const second = ScrollNode(id: 'second');
+      const first = ExpandedNode(
+        id: 'first',
+        child: ScrollNode(id: 'firstScroll'),
+      );
+      const second = ExpandedNode(
+        id: 'second',
+        child: ScrollNode(id: 'secondScroll'),
+      );
       await pumpItem(tester, const ColumnNode(id: 'column', children: [first, second]));
-      final firstElement = tester.element(find.byKey(const ValueKey('first')));
-      final secondElement = tester.element(find.byKey(const ValueKey('second')));
+      final firstElement = tester.element(find.byKey(const ValueKey('firstScroll')));
+      final secondElement = tester.element(find.byKey(const ValueKey('secondScroll')));
 
       await pumpItem(tester, const ColumnNode(id: 'column', children: [second, first]));
 
-      expect(tester.element(find.byKey(const ValueKey('first'))), same(firstElement));
-      expect(tester.element(find.byKey(const ValueKey('second'))), same(secondElement));
+      expect(tester.element(find.byKey(const ValueKey('firstScroll'))), same(firstElement));
+      expect(tester.element(find.byKey(const ValueKey('secondScroll'))), same(secondElement));
       expect(
         tester.getTopLeft(find.byKey(const ValueKey('second'))).dy,
         lessThan(tester.getTopLeft(find.byKey(const ValueKey('first'))).dy),
       );
     });
 
-    testWidgets('expands an unknown node whose fallback expands', (tester) async {
-      await pumpItem(
-        tester,
-        const ColumnNode(
-          id: 'column',
-          children: [
-            UnknownNode(
-              id: 'feed',
-              fallback: ScrollNode(id: 'feedFallback'),
-            ),
-          ],
-        ),
-      );
-
-      expect(find.ancestor(of: find.byType(UnknownItem), matching: find.byType(Expanded)), findsOneWidget);
-    });
-
-    testWidgets('does not expand children when its height is unbounded', (tester) async {
+    testWidgets('does not grow expanded children when its height is unbounded', (tester) async {
       when(() => cubit.state).thenReturn(const GenericState(status: GenericStatus.success));
       await tester.pumpApp(
         BlocProvider.value(
@@ -172,7 +212,7 @@ void main() {
                   id: 'column',
                   children: [
                     TextNode(id: 'top', text: Literal('Top')),
-                    SpacerNode(id: 'gap'),
+                    ExpandedNode(id: 'gap'),
                     TextNode(id: 'bottom', text: Literal('Bottom')),
                   ],
                 ),

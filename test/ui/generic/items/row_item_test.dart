@@ -6,7 +6,6 @@ import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
-import 'package:insaeng/ui/generic/items/scroll_item.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
@@ -91,14 +90,14 @@ void main() {
       });
     }
 
-    testWidgets('expands a spacer to push later children to the end', (tester) async {
+    testWidgets('pushes later children to the end past an empty expanded', (tester) async {
       await pumpItem(
         tester,
         const RowNode(
           id: 'row',
           children: [
             TextNode(id: 'start', text: Literal('Start')),
-            SpacerNode(id: 'gap'),
+            ExpandedNode(id: 'gap'),
             TextNode(id: 'end', text: Literal('End')),
           ],
         ),
@@ -108,19 +107,24 @@ void main() {
       expect(tester.getTopRight(find.text('End')).dx, screenWidth);
     });
 
-    testWidgets('does not expand a vertical scroll child', (tester) async {
+    testWidgets('shares the remaining width by flex', (tester) async {
       await pumpItem(
         tester,
         const RowNode(
           id: 'row',
-          children: [ScrollNode(id: 'scroll')],
+          children: [
+            ExpandedNode(id: 'one'),
+            ExpandedNode(id: 'three', flex: 3),
+          ],
         ),
       );
 
-      expect(find.ancestor(of: find.byType(ScrollItem), matching: find.byType(Expanded)), findsNothing);
+      final screenWidth = tester.getSize(find.byType(Scaffold)).width;
+      expect(tester.getSize(find.byKey(const ValueKey('one'))).width, screenWidth / 4);
+      expect(tester.getSize(find.byKey(const ValueKey('three'))).width, screenWidth * 3 / 4);
     });
 
-    testWidgets('does not expand children when its width is unbounded', (tester) async {
+    testWidgets('does not grow expanded children when its width is unbounded', (tester) async {
       when(() => cubit.state).thenReturn(const GenericState(status: GenericStatus.success));
       await tester.pumpApp(
         BlocProvider.value(
@@ -133,7 +137,7 @@ void main() {
                   id: 'row',
                   children: [
                     TextNode(id: 'start', text: Literal('Start')),
-                    SpacerNode(id: 'gap'),
+                    ExpandedNode(id: 'gap'),
                     TextNode(id: 'end', text: Literal('End')),
                   ],
                 ),

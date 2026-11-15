@@ -63,12 +63,3 @@ extension AlignmentTokenHorizontal on AlignmentToken {
     AlignmentToken.stretch => null,
   };
 }
-
-extension GenericNodeFlex on GenericNode {
-  bool expandsAlong(Axis axis) => switch (this) {
-    SpacerNode() => true,
-    ScrollNode() => axis == Axis.vertical,
-    UnknownNode(:final fallback?) => fallback.expandsAlong(axis),
-    _ => false,
-  };
-}

@@ -8,10 +8,14 @@ class ScrollItem extends StatelessWidget {
   final ScrollNode node;
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    child: switch (node.child) {
+  Widget build(BuildContext context) {
+    final child = switch (node.child) {
       final child? => NodeView(node: child),
       null => null,
-    },
-  );
+    };
+    return LayoutBuilder(
+      builder: (context, constraints) =>
+          constraints.hasBoundedHeight ? SingleChildScrollView(child: child) : child ?? const SizedBox.shrink(),
+    );
+  }
 }

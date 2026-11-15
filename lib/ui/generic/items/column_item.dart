@@ -19,13 +19,14 @@ class ColumnItem extends StatelessWidget {
         crossAxisAlignment: alignment.crossAxis,
         children: [
           for (final child in node.children)
-            if (constraints.hasBoundedHeight && child.expandsAlong(Axis.vertical))
-              Expanded(
+            switch (child) {
+              ExpandedNode(:final flex) when constraints.hasBoundedHeight && flex > 0 => Expanded(
                 key: ValueKey(('expanded', child.id)),
+                flex: flex,
                 child: NodeView(node: child),
-              )
-            else
-              NodeView(node: child),
+              ),
+              _ => NodeView(node: child),
+            },
         ],
       ),
     );

@@ -55,5 +55,43 @@ void main() {
 
       expect(find.text('Line 49').hitTestable(), findsOneWidget);
     });
+
+    testWidgets('lays its child out in full when its height is unbounded', (tester) async {
+      await tester.pumpApp(
+        BlocProvider.value(
+          value: cubit,
+          child: const Scaffold(
+            body: SingleChildScrollView(
+              child: ScrollItem(
+                node: ScrollNode(
+                  id: 'inner',
+                  child: TextNode(id: 'hello', text: Literal('Hello')),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SingleChildScrollView), findsOneWidget);
+      expect(find.byKey(const ValueKey('hello')), findsOneWidget);
+    });
+
+    testWidgets('takes no space without a child when its height is unbounded', (tester) async {
+      await tester.pumpApp(
+        BlocProvider.value(
+          value: cubit,
+          child: const Scaffold(
+            body: SingleChildScrollView(
+              child: ScrollItem(node: ScrollNode(id: 'inner')),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byType(ScrollItem)).height, 0);
+    });
   });
 }

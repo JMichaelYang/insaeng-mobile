@@ -13,6 +13,7 @@ part 'atoms/text_node.dart';
 part 'generic_node.mapper.dart';
 part 'layout/column_node.dart';
 part 'layout/container_node.dart';
+part 'layout/expanded_node.dart';
 part 'layout/row_node.dart';
 part 'layout/scroll_node.dart';
 part 'organisms/app_bar_node.dart';
