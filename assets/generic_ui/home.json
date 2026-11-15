@@ -12,6 +12,7 @@
         "child": {
           "type": "scroll",
           "id": "scroll",
+          "onRefresh": [{ "type": "reload" }, { "type": "showMessage", "text": "Refreshed" }],
           "child": {
             "type": "container",
             "id": "content",
