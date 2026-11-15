@@ -22,7 +22,14 @@ final class GenericPage with GenericPageMappable {
 
   Iterable<GenericNode> get nodes => _descendants(root);
 
-  Iterable<GenericAction> get actions => [...onLoad, for (final node in nodes) ...node.actions];
+  Iterable<GenericAction> get actions => [...onLoad, for (final node in nodes) ...node.actions].expand(_withChildren);
+
+  static Iterable<GenericAction> _withChildren(GenericAction action) sync* {
+    yield action;
+    for (final child in action.childActions) {
+      yield* _withChildren(child);
+    }
+  }
 
   static Iterable<GenericNode> _descendants(GenericNode node) sync* {
     yield node;

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
@@ -344,10 +342,6 @@ void main() {
     });
 
     group('dispatch request', () {
-      late Completer<Result<List<GenericAction>>> response;
-
-      setUp(() => response = Completer());
-
       void stubPerform(Result<List<GenericAction>> result) => when(
         () => actions.perform(
           method: any(named: 'method'),
@@ -472,81 +466,122 @@ void main() {
       );
 
       blocTest<GenericCubit, GenericState>(
-        'sets loadingPath while a successful request is in flight, then runs the returned actions',
-        setUp: () => stubPerform(const Result.ok([UpdateStateAction(path: 'saved', value: Literal(true))])),
+        'on success runs the returned actions, then onComplete, then the rest of the list',
+        setUp: () => stubPerform(
+          const Result.ok([UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('ok'))]),
+        ),
         build: build,
-        seed: () => loaded(const {
-          'task': {'busy': false},
-        }),
-        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), loadingPath: 'task.busy')]),
+        seed: () => loaded(const {'log': <Object?>[]}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            endpoint: Literal('/save'),
+            onError: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('error'))],
+            onComplete: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('complete'))],
+          ),
+          UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('next')),
+        ]),
         expect: () => [
           loaded(const {
-            'task': {'busy': true},
+            'log': ['ok'],
           }),
           loaded(const {
-            'task': {'busy': false},
+            'log': ['ok', 'complete'],
           }),
           loaded(const {
-            'task': {'busy': false},
-            'saved': true,
+            'log': ['ok', 'complete', 'next'],
           }),
         ],
       );
 
       blocTest<GenericCubit, GenericState>(
-        'clears loadingPath when the request fails',
+        'on failure runs onError, then onComplete, and skips the rest of the list',
+        setUp: () => stubPerform(const Result.err(GenericActionOffline())),
+        build: build,
+        seed: () => loaded(const {'log': <Object?>[]}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            endpoint: Literal('/save'),
+            onError: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('error'))],
+            onComplete: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('complete'))],
+          ),
+          UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('next')),
+        ]),
+        expect: () => [
+          loaded(const {
+            'log': ['error'],
+          }),
+          loaded(const {
+            'log': ['error', 'complete'],
+          }),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'clears a busy flag set before the request when it fails',
+        setUp: () => stubPerform(const Result.err(GenericActionOffline())),
+        build: build,
+        seed: () => loaded(const {'busy': false}),
+        act: (cubit) => cubit.dispatch(const [
+          UpdateStateAction(path: 'busy', value: Literal(true)),
+          RequestAction(
+            endpoint: Literal('/save'),
+            onComplete: [UpdateStateAction(path: 'busy', value: Literal(false))],
+          ),
+        ]),
+        expect: () => [
+          loaded(const {'busy': true}),
+          loaded(const {'busy': false}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'runs onComplete when a returned action fails, then skips the rest of the list',
+        setUp: () => stubPerform(
+          const Result.ok([UpdateStateAction(path: 'missing', op: Literal(UpdateOp.removeAt), value: Literal(0))]),
+        ),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            endpoint: Literal('/save'),
+            onComplete: [UpdateStateAction(path: 'done', value: Literal(true))],
+          ),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => [
+          loaded(const {'count': 0, 'done': true}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'runs onComplete when onError fails',
         setUp: () => stubPerform(const Result.err(GenericActionOffline())),
         build: build,
         seed: () => loaded(const {'count': 0}),
         act: (cubit) => cubit.dispatch(const [
-          RequestAction(endpoint: Literal('/save'), loadingPath: 'busy'),
-          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+          RequestAction(
+            endpoint: Literal('/save'),
+            onError: [UpdateStateAction(path: 'missing', op: Literal(UpdateOp.removeAt), value: Literal(0))],
+            onComplete: [UpdateStateAction(path: 'done', value: Literal(true))],
+          ),
         ]),
         expect: () => [
-          loaded(const {'count': 0, 'busy': true}),
-          loaded(const {'count': 0, 'busy': false}),
+          loaded(const {'count': 0, 'done': true}),
         ],
       );
 
       blocTest<GenericCubit, GenericState>(
-        'keeps state that changed while the request was in flight',
-        setUp: () => when(
-          () => actions.perform(
-            method: any(named: 'method'),
-            endpoint: any(named: 'endpoint'),
-            body: any(named: 'body'),
-          ),
-        ).thenAnswer((_) => response.future),
-        build: build,
-        seed: () => loaded(const {'count': 0}),
-        act: (cubit) async {
-          final request = cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), loadingPath: 'busy')]);
-          await cubit.dispatch(const [UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]);
-          response.complete(const Result.ok([]));
-          await request;
-        },
-        expect: () => [
-          loaded(const {'count': 0, 'busy': true}),
-          loaded(const {'count': 1, 'busy': true}),
-          loaded(const {'count': 1, 'busy': false}),
-        ],
-      );
-
-      blocTest<GenericCubit, GenericState>(
-        'skips loadingPath when it cannot be written',
+        'a failed onComplete skips the rest of the list after a success',
         setUp: () => stubPerform(const Result.ok([])),
         build: build,
-        seed: () => loaded(const {'name': 'Ana'}),
-        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), loadingPath: 'name.busy')]),
-        expect: () => const <GenericState>[],
-        verify: (_) => verify(() => actions.perform(method: RequestMethod.post, endpoint: '/save')).called(1),
-      );
-
-      blocTest<GenericCubit, GenericState>(
-        'leaves loadingPath untouched when the endpoint is unresolved',
-        build: build,
-        seed: () => loaded(const {}),
-        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Binding('missing'), loadingPath: 'busy')]),
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            endpoint: Literal('/save'),
+            onComplete: [UpdateStateAction(path: 'missing', op: Literal(UpdateOp.removeAt), value: Literal(0))],
+          ),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
         expect: () => const <GenericState>[],
       );
 
@@ -571,11 +606,15 @@ void main() {
       );
 
       blocTest<GenericCubit, GenericState>(
-        'an unresolved endpoint skips the request and continues',
+        'an unresolved endpoint skips the request, onError, and onComplete, and continues',
         build: build,
         seed: () => loaded(const {'count': 0}),
         act: (cubit) => cubit.dispatch(const [
-          RequestAction(endpoint: Binding('missing')),
+          RequestAction(
+            endpoint: Binding('missing'),
+            onError: [UpdateStateAction(path: 'error', value: Literal(true))],
+            onComplete: [UpdateStateAction(path: 'complete', value: Literal(true))],
+          ),
           UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
         ]),
         expect: () => [

@@ -63,7 +63,6 @@ class GenericCubit extends Cubit<GenericState> {
     final values = state.values;
     final endpoint = action.endpoint.resolve(values);
     if (endpoint == null) return true;
-    _setLoading(action.loadingPath, true);
     final result = await _actions.perform(
       method: action.method.resolve(values) ?? RequestMethod.post,
       endpoint: endpoint,
@@ -73,18 +72,15 @@ class GenericCubit extends Cubit<GenericState> {
       },
     );
     if (isClosed) return false;
-    _setLoading(action.loadingPath, false);
-    return switch (result) {
-      Ok(value: final actions) => await _runAll(actions),
-      Err() => false,
-    };
-  }
-
-  void _setLoading(String? path, bool loading) {
-    if (path == null) return;
-    if (state.values.set(path, loading) case Ok(value: final updated)) {
-      emit(state.copyWith(values: updated));
+    var succeeded = false;
+    switch (result) {
+      case Ok(value: final actions):
+        succeeded = await _runAll(actions);
+      case Err():
+        await _runAll(action.onError);
     }
+    final completed = await _runAll(action.onComplete);
+    return succeeded && completed;
   }
 
   Future<bool> _reload() async {

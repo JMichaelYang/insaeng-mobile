@@ -11,6 +11,8 @@ enum RequestMethod { get, post, put, patch, delete }
 @MappableClass(discriminatorKey: 'type')
 sealed class GenericAction with GenericActionMappable {
   const new();
+
+  List<GenericAction> get childActions => const [];
 }
 
 @MappableClass(discriminatorValue: 'updateState')
@@ -60,7 +62,13 @@ final class ShowMessageAction extends GenericAction with ShowMessageActionMappab
 
 @MappableClass(discriminatorValue: 'request')
 final class RequestAction extends GenericAction with RequestActionMappable {
-  const new({required this.endpoint, this.method = const Literal(RequestMethod.post), this.body, this.loadingPath});
+  const new({
+    required this.endpoint,
+    this.method = const Literal(RequestMethod.post),
+    this.body,
+    this.onError = const [],
+    this.onComplete = const [],
+  });
 
   @MappableField(hook: BindableHook<RequestMethod>())
   final Bindable<RequestMethod> method;
@@ -71,7 +79,12 @@ final class RequestAction extends GenericAction with RequestActionMappable {
   @MappableField(hook: BindableJsonHook())
   final BindableJson? body;
 
-  final String? loadingPath;
+  final List<GenericAction> onError;
+
+  final List<GenericAction> onComplete;
+
+  @override
+  List<GenericAction> get childActions => [...onError, ...onComplete];
 }
 
 @MappableClass(discriminatorValue: MappableClass.useAsDefault)

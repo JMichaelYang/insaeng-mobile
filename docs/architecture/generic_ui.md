@@ -30,7 +30,7 @@ Every request the app makes, including `request` actions, sends:
   - `type` and `id`;
   - node slots: `child`, `children`, and `fallback`;
   - action lists: `on<Event>`;
-  - state paths: `bind`, `path`, and `loadingPath`.
+  - state paths: `bind` and `path`.
 - The `fallback` applies when the path is missing or holds the wrong type. Without a `fallback`, the property's default applies. The only conversion is a number or bool bound to a string property, which is shown as text.
 - Bindings don't compute anything. Derived values, such as "the form is valid", go into state, through `state` or an `updateState` returned by a `request`.
 
@@ -63,7 +63,7 @@ This doc does not list the node catalogue, which grows with every release. The m
 
 ## Actions
 
-Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
+Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`, `onError`, `onComplete`) hold action lists.
 
 - Actions run one at a time, in order.
 - A failed action skips the rest of the list.
@@ -94,10 +94,12 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - `method` is `GET`, `POST`, `PUT`, `PATCH`, or `DELETE`, and defaults to `POST`.
 - `endpoint` is required. It is relative to the API base URL, as in `/auth/login`.
 - `body` is a JSON object with bindings at any depth. `GET` and `DELETE` send no body.
-- `loadingPath` is a state path that is `true` while the request is in flight and `false` once it ends.
-- A `2xx` response body is `{ "actions": [...] }`. Those actions run in place of the `request`, and then the rest of the list continues.
+- `onError` and `onComplete` are action lists, and both default to empty.
+- A `2xx` response body is `{ "actions": [...] }`. Those actions run in place of the `request`, then `onComplete` runs, and then the rest of the list continues.
 - Report expected outcomes, such as a wrong password, as a `2xx` response whose actions say what to show.
-- On a non-`2xx` response or a network error, the list stops. The app shows nothing on its own, so a page that should tell the user must say so itself.
+- On a non-`2xx` response or a network error, `onError` runs, then `onComplete` runs, and then the list stops. The app shows nothing on its own, so a page that should tell the user puts a `showMessage` in `onError`.
+- `onComplete` runs whenever the request ends, even if the returned actions or `onError` fail, so it is where a page clears a busy flag it set before the `request`. If `onComplete` fails, the list stops.
+- If `endpoint` resolves to nothing, the `request` is skipped, neither `onError` nor `onComplete` runs, and the list continues.
 
 ## Versioning
 
@@ -156,10 +158,15 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
                 { "type": "textField", "id": "password", "bind": "form.password", "label": "Password", "secure": true },
                 {
                   "type": "button", "id": "submit", "label": "Log in", "loading": { "$bind": "submitting" },
-                  "onTap": [{
-                    "type": "request", "endpoint": "/auth/login", "loadingPath": "submitting",
-                    "body": { "email": { "$bind": "form.email" }, "password": { "$bind": "form.password" } }
-                  }]
+                  "onTap": [
+                    { "type": "updateState", "path": "submitting", "value": true },
+                    {
+                      "type": "request", "endpoint": "/auth/login",
+                      "body": { "email": { "$bind": "form.email" }, "password": { "$bind": "form.password" } },
+                      "onError": [{ "type": "showMessage", "text": "Couldn't log in. Try again." }],
+                      "onComplete": [{ "type": "updateState", "path": "submitting", "value": false }]
+                    }
+                  ]
                 }
               ]
             }
@@ -177,7 +184,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 
 - The models live in `lib/domain/models/generic_ui/`. `GenericNode` and `GenericAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
 - `GenericCubit` holds the page and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
-- `request` resolves its bindings and calls `GenericActionRepository.perform`, which returns the actions to run in its place.
+- `request` resolves its bindings and calls `GenericActionRepository.perform`, which returns the actions to run in its place. `GenericAction.childActions` lists the actions nested in `onError` and `onComplete`, and `GenericPage.actions` walks them.
 - `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `GenericNode` that builds `design_system/` atoms.
 - **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
   - Each node model is its own `part` file of `nodes/generic_node.dart`, so the sealed family stays one library. Put it in `atoms/`, `molecules/`, or `organisms/` to match the design-system level of the component it renders, or in `layout/` if it arranges child nodes, as `column` and `row` do.
