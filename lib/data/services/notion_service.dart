@@ -45,7 +45,7 @@ class NotionService {
   const new(this._client);
 
   static final Uri baseUri = Uri.parse('https://api.notion.com/v1/');
-  static const version = '2025-09-03';
+  static const version = '2026-03-11';
 
   final Client _client;
 
