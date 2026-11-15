@@ -8,9 +8,10 @@ import 'package:insaeng/domain/result.dart';
 final class GenericNotionActionRepositoryImpl implements GenericActionRepository {
   const new(this._storage, this._notion);
 
-  static const tokenKey = 'notion_token';
   static const doneStatus = 'Done';
   static const todoStatus = 'To do';
+
+  static const connectionEndpoint = '/notion/connection';
 
   final SecureStorageService _storage;
   final NotionService _notion;
@@ -21,19 +22,18 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
     required String endpoint,
     Map<String, Object?> body = const {},
   }) => switch ((method, endpoint.split('/'))) {
-    (RequestMethod.put, ['', 'notion', 'token']) => _saveToken(body),
+    (RequestMethod.put, _) when endpoint == connectionEndpoint => _saveConnection(body),
     (RequestMethod.patch, ['', 'my-day', 'tasks', final id]) when id.isNotEmpty => _updateTaskStatus(id, body),
     _ => Future.value(const Result.err(GenericActionNotFound())),
   };
 
-  Future<Result<List<GenericAction>>> _saveToken(Map<String, Object?> body) async {
-    final token = switch (body['token']) {
-      final String value => value.trim(),
-      _ => '',
-    };
-    if (token.isEmpty) return const Result.err(GenericActionInvalid());
+  Future<Result<List<GenericAction>>> _saveConnection(Map<String, Object?> body) async {
+    final token = _trimmed(body['token']);
+    final dataSourceId = _trimmed(body['dataSourceId']);
+    if (token.isEmpty || dataSourceId.isEmpty) return const Result.err(GenericActionInvalid());
     try {
-      await _storage.write(tokenKey, token);
+      await _storage.write(SecureStorageService.notionTokenKey, token);
+      await _storage.write(SecureStorageService.notionDataSourceIdKey, dataSourceId);
       return const Result.ok([ReloadAction()]);
     } on PlatformException {
       return const Result.err(GenericActionServerError());
@@ -48,7 +48,7 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
     };
     if (status == null) return const Result.err(GenericActionInvalid());
     try {
-      final token = await _storage.read(tokenKey);
+      final token = await _storage.read(SecureStorageService.notionTokenKey);
       if (token == null || token.isEmpty) return const Result.err(GenericActionUnauthorized());
       await _notion.updatePage(token, id, {
         'Status': {
@@ -68,4 +68,9 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
       return const Result.err(GenericActionServerError());
     }
   }
+
+  static String _trimmed(Object? value) => switch (value) {
+    final String value => value.trim(),
+    _ => '',
+  };
 }

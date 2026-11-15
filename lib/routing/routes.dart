@@ -1,5 +1,7 @@
+import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
+
 abstract final class Routes {
-  static const String homePageId = 'home';
+  static const String homePageId = MyDayPageMapper.pageId;
   static const String pageIdParameter = 'pageId';
 
   static const String home = '/';

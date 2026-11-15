@@ -13,6 +13,8 @@ class _MockSecureStorageService extends Mock implements SecureStorageService;
 
 class _MockNotionService extends Mock implements NotionService;
 
+const _body = <String, Object?>{'token': 'secret', 'dataSourceId': 'agenda'};
+
 void main() {
   group(GenericNotionActionRepositoryImpl, () {
     late SecureStorageService storage;
@@ -28,29 +30,36 @@ void main() {
       when(() => notion.updatePage(any(), any(), any())).thenAnswer((_) async => const {});
     });
 
-    group('PUT /notion/token', () {
-      Future<Result<List<GenericAction>>> put(Map<String, Object?> body) =>
-          repository.perform(method: RequestMethod.put, endpoint: '/notion/token', body: body);
+    group('PUT ${GenericNotionActionRepositoryImpl.connectionEndpoint}', () {
+      Future<Result<List<GenericAction>>> put(Map<String, Object?> body) => repository.perform(
+        method: RequestMethod.put,
+        endpoint: GenericNotionActionRepositoryImpl.connectionEndpoint,
+        body: body,
+      );
 
-      test('saves the token and reloads', () async {
-        expect(await put({'token': 'secret'}), const Result<List<GenericAction>>.ok([ReloadAction()]));
-        verify(() => storage.write(GenericNotionActionRepositoryImpl.tokenKey, 'secret')).called(1);
+      test('saves the token and data source id and reloads', () async {
+        expect(await put(_body), const Result<List<GenericAction>>.ok([ReloadAction()]));
+        verify(() => storage.write(SecureStorageService.notionTokenKey, 'secret')).called(1);
+        verify(() => storage.write(SecureStorageService.notionDataSourceIdKey, 'agenda')).called(1);
       });
 
-      test('trims whitespace around the token', () async {
-        await put({'token': '  secret\n'});
+      test('trims whitespace around both fields', () async {
+        await put({'token': '  secret\n', 'dataSourceId': ' agenda '});
 
-        verify(() => storage.write(GenericNotionActionRepositoryImpl.tokenKey, 'secret')).called(1);
+        verify(() => storage.write(SecureStorageService.notionTokenKey, 'secret')).called(1);
+        verify(() => storage.write(SecureStorageService.notionDataSourceIdKey, 'agenda')).called(1);
       });
 
-      for (final (description, body) in [
-        ('missing', const <String, Object?>{}),
-        ('null', const <String, Object?>{'token': null}),
-        ('blank', const <String, Object?>{'token': '  '}),
-        ('not a string', const <String, Object?>{'token': 42}),
-      ]) {
-        test('returns invalid when the token is $description', () async {
-          expect(await put(body), const Result<List<GenericAction>>.err(GenericActionInvalid()));
+      for (final field in ['token', 'dataSourceId']) {
+        for (final (description, value) in [('null', null), ('blank', '  '), ('not a string', 42)]) {
+          test('returns invalid when $field is $description', () async {
+            expect(await put({..._body, field: value}), const Result<List<GenericAction>>.err(GenericActionInvalid()));
+            verifyNever(() => storage.write(any(), any()));
+          });
+        }
+
+        test('returns invalid when $field is missing', () async {
+          expect(await put({..._body}..remove(field)), const Result<List<GenericAction>>.err(GenericActionInvalid()));
           verifyNever(() => storage.write(any(), any()));
         });
       }
@@ -58,7 +67,7 @@ void main() {
       test('returns server error when storage fails', () async {
         when(() => storage.write(any(), any())).thenThrow(PlatformException(code: 'error'));
 
-        expect(await put({'token': 'secret'}), const Result<List<GenericAction>>.err(GenericActionServerError()));
+        expect(await put(_body), const Result<List<GenericAction>>.err(GenericActionServerError()));
       });
     });
 
@@ -85,7 +94,7 @@ void main() {
       test('reads the token from storage', () async {
         await patch({'done': true});
 
-        verify(() => storage.read(GenericNotionActionRepositoryImpl.tokenKey)).called(1);
+        verify(() => storage.read(SecureStorageService.notionTokenKey)).called(1);
       });
 
       for (final (description, body) in [
@@ -131,8 +140,8 @@ void main() {
     });
 
     for (final (method, endpoint) in [
-      (RequestMethod.post, '/notion/token'),
-      (RequestMethod.put, '/notion/other'),
+      (RequestMethod.post, GenericNotionActionRepositoryImpl.connectionEndpoint),
+      (RequestMethod.put, '/notion/token'),
       (RequestMethod.get, '/anything'),
       (RequestMethod.put, '/my-day/tasks/page-1'),
       (RequestMethod.patch, '/my-day/tasks/'),
@@ -140,7 +149,7 @@ void main() {
     ]) {
       test('returns not found for ${method.name.toUpperCase()} $endpoint', () async {
         expect(
-          await repository.perform(method: method, endpoint: endpoint, body: const {'token': 'secret', 'done': true}),
+          await repository.perform(method: method, endpoint: endpoint, body: const {..._body, 'done': true}),
           const Result<List<GenericAction>>.err(GenericActionNotFound()),
         );
         verifyNever(() => storage.write(any(), any()));

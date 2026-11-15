@@ -1,9 +1,13 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insaeng/app.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/data/repositories/generic_notion_page_repository_impl.dart';
+import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
+import 'package:insaeng/data/services/secure_storage_service.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
@@ -13,6 +17,7 @@ import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/routing/router.dart';
 import 'package:insaeng/routing/routes.dart';
 import 'package:insaeng/ui/generic/widgets/generic_screen.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockGenericActionRepository extends Mock implements GenericActionRepository;
@@ -21,24 +26,31 @@ class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 
 void main() {
   group(router, () {
-    group('with the dev fixtures', () {
-      setUp(() => configureDependencies(Flavor.dev));
+    group('with the app dependencies', () {
+      setUp(() {
+        FlutterSecureStorage.setMockInitialValues({});
+        configureDependencies(Flavor.dev);
+      });
 
       tearDown(getIt.reset);
 
-      testWidgets('opens the home page and runs its counter', (tester) async {
-        await tester.runAsync(() => tester.pumpWidget(App(router: getIt<GoRouter>())));
-        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 100)));
+      testWidgets('opens on the Notion connect page and reloads after connecting', (tester) async {
+        await tester.pumpWidget(App(router: getIt<GoRouter>()));
         await tester.pumpAndSettle();
 
         expect(find.byType(GenericScreen), findsOneWidget);
-        expect(find.text('Insaeng'), findsOneWidget);
-        expect(find.text('0'), findsOneWidget);
+        expect(find.text(GenericNotionPageRepositoryImpl.connectTitle), findsOneWidget);
 
-        await tester.tap(find.text('Add'));
-        await tester.pump();
+        await tester.enterText(find.byType(TextField).first, '  secret  ');
+        await tester.enterText(find.byType(TextField).last, ' agenda ');
+        await tester.tap(find.text(GenericNotionPageRepositoryImpl.connectLabel));
+        await tester.pumpAndSettle();
 
-        expect(find.text('1'), findsOneWidget);
+        expect(find.text(GenericNotionPageRepositoryImpl.connectTitle), findsNothing);
+        expect(find.text(MyDayPageMapper.emptyText), findsOneWidget);
+        final storage = getIt<SecureStorageService>();
+        expect(await storage.read(SecureStorageService.notionTokenKey), 'secret');
+        expect(await storage.read(SecureStorageService.notionDataSourceIdKey), 'agenda');
       });
     });
 
@@ -69,7 +81,7 @@ void main() {
         await tester.pumpWidget(App(router: subject));
         await tester.pumpAndSettle();
 
-        expect(find.text('page home'), findsOneWidget);
+        expect(find.text('page ${Routes.homePageId}'), findsOneWidget);
         verify(() => repository.fetch(Routes.homePageId, const {})).called(1);
       });
 
