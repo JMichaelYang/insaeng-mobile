@@ -24,6 +24,26 @@ void main() {
       expect(controller(tester).text, 'Ada');
     });
 
+    testWidgets('shows plain text with autocorrect and suggestions by default', (tester) async {
+      await pumpField(tester, const AppTextField(value: 'Ada'));
+
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.obscureText, isFalse);
+      expect(field.autocorrect, isTrue);
+      expect(field.enableSuggestions, isTrue);
+      expect(find.text('Ada'), findsOneWidget);
+    });
+
+    testWidgets('obscures text and turns off autocorrect and suggestions when secure', (tester) async {
+      await pumpField(tester, const AppTextField(value: 'secret', secure: true));
+
+      final field = tester.widget<TextField>(find.byType(TextField));
+      expect(field.obscureText, isTrue);
+      expect(field.autocorrect, isFalse);
+      expect(field.enableSuggestions, isFalse);
+      expect(controller(tester).text, 'secret');
+    });
+
     testWidgets('shows the hint while empty and focused', (tester) async {
       await pumpField(tester, const AppTextField(label: 'Name', hint: 'Enter your name'));
 

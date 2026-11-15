@@ -1,11 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 
 class AppTextField extends StatefulWidget {
-  const new({this.value, this.label, this.hint, this.onChanged, this.onSubmitted, super.key});
+  const new({this.value, this.label, this.hint, this.secure = false, this.onChanged, this.onSubmitted, super.key});
 
   final String? value;
   final String? label;
   final String? hint;
+  final bool secure;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
 
@@ -39,6 +40,9 @@ class _AppTextFieldState extends State<AppTextField> {
     return TextField(
       controller: _controller,
       decoration: InputDecoration(labelText: widget.label, hintText: widget.hint),
+      obscureText: widget.secure,
+      autocorrect: !widget.secure,
+      enableSuggestions: !widget.secure,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
     );

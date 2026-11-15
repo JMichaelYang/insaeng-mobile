@@ -29,6 +29,13 @@ void main() {
       );
     });
 
+    test('decodes a secure field', () {
+      expect(
+        _decode({'type': 'textField', 'id': 'token', 'bind': 'form.token', 'secure': true}),
+        const TextFieldNode(id: 'token', bind: 'form.token', secure: true),
+      );
+    });
+
     test('decodes bound label and hint', () {
       expect(
         _decode({

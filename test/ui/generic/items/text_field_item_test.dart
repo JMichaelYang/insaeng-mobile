@@ -71,6 +71,18 @@ void main() {
         expect(field(tester).value, '');
         expect(field(tester).label, isNull);
         expect(field(tester).hint, isNull);
+        expect(field(tester).secure, isFalse);
+      });
+
+      testWidgets('passes the secure flag to the field', (tester) async {
+        await pump(
+          tester,
+          const TextFieldNode(id: 'token', bind: 'token', secure: true),
+          values: {'token': 'secret'},
+        );
+
+        expect(field(tester).secure, isTrue);
+        expect(tester.widget<TextField>(find.byType(TextField)).obscureText, isTrue);
       });
 
       testWidgets('shows a bound number as text', (tester) async {
