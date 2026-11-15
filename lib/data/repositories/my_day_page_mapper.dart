@@ -48,7 +48,15 @@ abstract final class MyDayPageMapper {
                       alignment: Literal(AlignmentToken.center),
                       child: TextNode(id: 'emptyText', text: Literal(emptyText)),
                     )
-                  : ColumnNode(id: 'tasks', children: [for (final task in tasks) _tile(task)]),
+                  : ColumnNode(
+                      id: 'tasks',
+                      children: [
+                        for (final (index, task) in tasks.indexed) ...[
+                          if (index > 0) DividerNode(id: 'divider-${tasks[index - 1].id}'),
+                          _tile(task),
+                        ],
+                      ],
+                    ),
             ),
           ),
         ],
@@ -133,15 +141,19 @@ abstract final class MyDayPageMapper {
   static bool _isChecked(_Task task) => task.status == _doneStatus || task.status == _skippedStatus;
 
   static String? _subtitle(_Task task) {
-    final parts = [
-      if (!task.allDay) [task.start, ?task.end].map(_time).join('–'),
-      if (task.status == _skippedStatus) skippedText,
-    ];
+    final parts = [if (!task.allDay) _timeRange(task.start, task.end), if (task.status == _skippedStatus) skippedText];
     return parts.isEmpty ? null : parts.join(' · ');
   }
 
-  static String _time(DateTime time) =>
-      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+  static String _timeRange(DateTime start, DateTime? end) => switch (end) {
+    null => '${_clock(start)} ${_period(start)}',
+    _ when _period(start) == _period(end) => '${_clock(start)} – ${_clock(end)} ${_period(end)}',
+    _ => '${_clock(start)} ${_period(start)} – ${_clock(end)} ${_period(end)}',
+  };
+
+  static String _clock(DateTime time) => '${(time.hour + 11) % 12 + 1}:${time.minute.toString().padLeft(2, '0')}';
+
+  static String _period(DateTime time) => time.hour < 12 ? 'AM' : 'PM';
 
   static int _compare(_Task a, _Task b) => switch ((a.allDay, b.allDay)) {
     (true, false) => -1,
