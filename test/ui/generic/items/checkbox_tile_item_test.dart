@@ -7,6 +7,7 @@ import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
+import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/ui/generic/items/checkbox_tile_item.dart';
@@ -17,6 +18,8 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/pump_app.dart';
 
 class _MockGenericCubit extends MockCubit<GenericState> implements GenericCubit;
+
+class _MockGenericActionRepository extends Mock implements GenericActionRepository;
 
 class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 
@@ -159,7 +162,7 @@ void main() {
             ),
           ),
         );
-        cubit = GenericCubit(repository, pageId: 'todos');
+        cubit = GenericCubit(repository, _MockGenericActionRepository(), pageId: 'todos');
         await cubit.load();
       });
 

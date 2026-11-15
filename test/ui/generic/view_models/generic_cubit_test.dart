@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
@@ -342,6 +344,10 @@ void main() {
     });
 
     group('dispatch request', () {
+      late Completer<Result<List<GenericAction>>> response;
+
+      setUp(() => response = Completer());
+
       void stubPerform(Result<List<GenericAction>> result) => when(
         () => actions.perform(
           method: any(named: 'method'),
@@ -462,6 +468,85 @@ void main() {
           await cubit.close();
           await effects;
         },
+        expect: () => const <GenericState>[],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'sets loadingPath while a successful request is in flight, then runs the returned actions',
+        setUp: () => stubPerform(const Result.ok([UpdateStateAction(path: 'saved', value: Literal(true))])),
+        build: build,
+        seed: () => loaded(const {
+          'task': {'busy': false},
+        }),
+        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), loadingPath: 'task.busy')]),
+        expect: () => [
+          loaded(const {
+            'task': {'busy': true},
+          }),
+          loaded(const {
+            'task': {'busy': false},
+          }),
+          loaded(const {
+            'task': {'busy': false},
+            'saved': true,
+          }),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'clears loadingPath when the request fails',
+        setUp: () => stubPerform(const Result.err(GenericActionOffline())),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(endpoint: Literal('/save'), loadingPath: 'busy'),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => [
+          loaded(const {'count': 0, 'busy': true}),
+          loaded(const {'count': 0, 'busy': false}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'keeps state that changed while the request was in flight',
+        setUp: () => when(
+          () => actions.perform(
+            method: any(named: 'method'),
+            endpoint: any(named: 'endpoint'),
+            body: any(named: 'body'),
+          ),
+        ).thenAnswer((_) => response.future),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) async {
+          final request = cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), loadingPath: 'busy')]);
+          await cubit.dispatch(const [UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]);
+          response.complete(const Result.ok([]));
+          await request;
+        },
+        expect: () => [
+          loaded(const {'count': 0, 'busy': true}),
+          loaded(const {'count': 1, 'busy': true}),
+          loaded(const {'count': 1, 'busy': false}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'skips loadingPath when it cannot be written',
+        setUp: () => stubPerform(const Result.ok([])),
+        build: build,
+        seed: () => loaded(const {'name': 'Ana'}),
+        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Literal('/save'), loadingPath: 'name.busy')]),
+        expect: () => const <GenericState>[],
+        verify: (_) => verify(() => actions.perform(method: RequestMethod.post, endpoint: '/save')).called(1),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'leaves loadingPath untouched when the endpoint is unresolved',
+        build: build,
+        seed: () => loaded(const {}),
+        act: (cubit) => cubit.dispatch(const [RequestAction(endpoint: Binding('missing'), loadingPath: 'busy')]),
         expect: () => const <GenericState>[],
       );
 
