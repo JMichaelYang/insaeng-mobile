@@ -12,11 +12,10 @@ class TextFieldItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String? watch(Bindable<String>? bindable) => bindable == null ? null : context.watchBindable(bindable);
     return AppTextField(
       value: context.watchBindable(Binding<String>(node.bind)) ?? '',
-      label: watch(node.label),
-      hint: watch(node.hint),
+      label: context.watchBindable(node.label),
+      hint: context.watchBindable(node.hint),
       onChanged: (text) =>
           context.dispatch([UpdateStateAction(path: node.bind, value: Literal(text)), ...node.onChanged]),
       onSubmitted: (_) => context.dispatch(node.onSubmit),
