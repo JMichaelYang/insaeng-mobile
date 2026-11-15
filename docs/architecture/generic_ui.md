@@ -29,7 +29,6 @@ Every request the app makes, including `request` actions, sends:
 - Structural fields are never bindable:
   - `type` and `id`;
   - node slots: `child`, `children`, and `fallback`;
-  - layout weights: `flex`;
   - action lists: `on<Event>`;
   - state paths: `bind`, `path`, and `loadingPath`.
 - The `fallback` applies when the path is missing or holds the wrong type. Without a `fallback`, the property's default applies. The only conversion is a number or bool bound to a string property, which is shown as text.

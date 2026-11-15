@@ -114,7 +114,7 @@ void main() {
           id: 'row',
           children: [
             ExpandedNode(id: 'one'),
-            ExpandedNode(id: 'three', flex: 3),
+            ExpandedNode(id: 'three', flex: Literal(3)),
           ],
         ),
       );

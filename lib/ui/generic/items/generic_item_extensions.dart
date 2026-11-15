@@ -12,6 +12,11 @@ extension GenericItemContext on BuildContext {
     final bindable => select<GenericCubit, T?>((cubit) => bindable.resolve(cubit.state.values)),
   };
 
+  int watchFlex(GenericNode node) => switch (node) {
+    ExpandedNode(:final flex) => watchBindable(flex) ?? 1,
+    _ => 0,
+  };
+
   Future<void> dispatch(List<GenericAction> actions) => read<GenericCubit>().dispatch(actions);
 }
 

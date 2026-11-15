@@ -12,7 +12,7 @@ void main() {
     });
 
     test('decodes flex', () {
-      expect(_decode({'type': 'expanded', 'id': 'gap', 'flex': 2}), const ExpandedNode(id: 'gap', flex: 2));
+      expect(_decode({'type': 'expanded', 'id': 'gap', 'flex': 2}), const ExpandedNode(id: 'gap', flex: Literal(2)));
     });
 
     test('decodes its child', () {
@@ -36,15 +36,19 @@ void main() {
       );
     });
 
-    test('fails with a bound flex', () {
+    test('decodes a bound flex', () {
       expect(
-        () => _decode({
+        _decode({
           'type': 'expanded',
           'id': 'gap',
-          'flex': {r'$bind': 'weight'},
+          'flex': {r'$bind': 'weight', 'fallback': 2},
         }),
-        throwsA(isA<MapperException>()),
+        const ExpandedNode(id: 'gap', flex: Binding('weight', fallback: 2)),
       );
+    });
+
+    test('fails with a flex that is not an integer', () {
+      expect(() => _decode({'type': 'expanded', 'id': 'gap', 'flex': 'wide'}), throwsA(isA<MapperException>()));
     });
   });
 }

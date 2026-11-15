@@ -136,7 +136,7 @@ void main() {
           id: 'column',
           children: [
             ExpandedNode(id: 'one'),
-            ExpandedNode(id: 'three', flex: 3),
+            ExpandedNode(id: 'three', flex: Literal(3)),
           ],
         ),
       );
@@ -150,12 +150,78 @@ void main() {
         tester,
         const ColumnNode(
           id: 'column',
-          children: [ExpandedNode(id: 'gap', flex: 0)],
+          children: [ExpandedNode(id: 'gap', flex: Literal(0))],
         ),
       );
 
       expect(find.byType(Expanded), findsNothing);
       expect(tester.getSize(find.byKey(const ValueKey('gap'))).height, 0);
+    });
+
+    testWidgets('resolves a bound flex from the values', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            ExpandedNode(id: 'one'),
+            ExpandedNode(id: 'three', flex: Binding('layout.weight')),
+          ],
+        ),
+        values: GenericValues(const {
+          'layout': {'weight': 3},
+        }),
+      );
+
+      expect(tester.getSize(find.byKey(const ValueKey('three'))).height, screenHeight(tester) * 3 / 4);
+    });
+
+    testWidgets('defaults a bound flex to one when the path is missing', (tester) async {
+      await pumpItem(
+        tester,
+        const ColumnNode(
+          id: 'column',
+          children: [
+            ExpandedNode(id: 'one'),
+            ExpandedNode(id: 'other', flex: Binding('layout.weight')),
+          ],
+        ),
+      );
+
+      expect(tester.getSize(find.byKey(const ValueKey('other'))).height, screenHeight(tester) / 2);
+    });
+
+    testWidgets('keeps the child element when a bound flex changes', (tester) async {
+      GenericState stateWith(int weight) =>
+          GenericState(status: GenericStatus.success, values: GenericValues({'weight': weight}));
+      whenListen(cubit, Stream.value(stateWith(3)), initialState: stateWith(1));
+      await tester.pumpApp(
+        BlocProvider.value(
+          value: cubit,
+          child: const Scaffold(
+            body: ColumnItem(
+              node: ColumnNode(
+                id: 'column',
+                children: [
+                  ExpandedNode(id: 'one'),
+                  ExpandedNode(
+                    id: 'bound',
+                    flex: Binding('weight'),
+                    child: ScrollNode(id: 'boundScroll'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+      final element = tester.element(find.byKey(const ValueKey('boundScroll')));
+      expect(tester.getSize(find.byKey(const ValueKey('bound'))).height, screenHeight(tester) / 2);
+
+      await tester.pump();
+
+      expect(tester.getSize(find.byKey(const ValueKey('bound'))).height, screenHeight(tester) * 3 / 4);
+      expect(tester.element(find.byKey(const ValueKey('boundScroll'))), same(element));
     });
 
     testWidgets('does not grow a scroll that is not wrapped in an expanded', (tester) async {
