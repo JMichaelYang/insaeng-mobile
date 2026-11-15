@@ -3,6 +3,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SecureStorageService {
   const new(this._storage);
 
+  static const notionTokenKey = 'notion_token';
+
   final FlutterSecureStorage _storage;
 
   Future<String?> read(String key) => _storage.read(key: key);

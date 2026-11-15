@@ -34,13 +34,13 @@ void main() {
 
       test('saves the token and reloads', () async {
         expect(await put({'token': 'secret'}), const Result<List<GenericAction>>.ok([ReloadAction()]));
-        verify(() => storage.write(GenericNotionActionRepositoryImpl.tokenKey, 'secret')).called(1);
+        verify(() => storage.write(SecureStorageService.notionTokenKey, 'secret')).called(1);
       });
 
       test('trims whitespace around the token', () async {
         await put({'token': '  secret\n'});
 
-        verify(() => storage.write(GenericNotionActionRepositoryImpl.tokenKey, 'secret')).called(1);
+        verify(() => storage.write(SecureStorageService.notionTokenKey, 'secret')).called(1);
       });
 
       for (final (description, body) in [
@@ -85,7 +85,7 @@ void main() {
       test('reads the token from storage', () async {
         await patch({'done': true});
 
-        verify(() => storage.read(GenericNotionActionRepositoryImpl.tokenKey)).called(1);
+        verify(() => storage.read(SecureStorageService.notionTokenKey)).called(1);
       });
 
       for (final (description, body) in [

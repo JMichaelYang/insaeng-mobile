@@ -8,7 +8,6 @@ import 'package:insaeng/domain/result.dart';
 final class GenericNotionActionRepositoryImpl implements GenericActionRepository {
   const new(this._storage, this._notion);
 
-  static const tokenKey = 'notion_token';
   static const doneStatus = 'Done';
   static const todoStatus = 'To do';
 
@@ -33,7 +32,7 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
     };
     if (token.isEmpty) return const Result.err(GenericActionInvalid());
     try {
-      await _storage.write(tokenKey, token);
+      await _storage.write(SecureStorageService.notionTokenKey, token);
       return const Result.ok([ReloadAction()]);
     } on PlatformException {
       return const Result.err(GenericActionServerError());
@@ -48,7 +47,7 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
     };
     if (status == null) return const Result.err(GenericActionInvalid());
     try {
-      final token = await _storage.read(tokenKey);
+      final token = await _storage.read(SecureStorageService.notionTokenKey);
       if (token == null || token.isEmpty) return const Result.err(GenericActionUnauthorized());
       await _notion.updatePage(token, id, {
         'Status': {
