@@ -9,7 +9,20 @@ GenericNode _decode(Map<String, Object?> json) => GenericNodeMapper.fromMap(json
 void main() {
   group(GenericNode, () {
     test('fails without an id', () {
-      for (final type in ['column', 'appBar', 'text', 'button', 'textField', 'carousel']) {
+      for (final type in [
+        'column',
+        'row',
+        'container',
+        'expanded',
+        'scroll',
+        'appBar',
+        'text',
+        'button',
+        'textField',
+        'spacer',
+        'divider',
+        'carousel',
+      ]) {
         expect(
           () => _decode({'type': type, 'text': 'a', 'label': 'a', 'bind': 'a'}),
           throwsA(isA<MapperException>()),
@@ -31,6 +44,23 @@ void main() {
       expect(const ColumnNode(id: 'root', children: children).childNodes, children);
     });
 
+    test('childNodes lists the children of a row', () {
+      const children = [TextNode(id: 'a', text: Literal('a')), SpacerNode(id: 'gap')];
+
+      expect(const RowNode(id: 'row', children: children).childNodes, children);
+    });
+
+    test('childNodes lists the child of a container, scroll, or expanded', () {
+      const child = TextNode(id: 'a', text: Literal('a'));
+
+      expect(const ContainerNode(id: 'content', child: child).childNodes, [child]);
+      expect(const ContainerNode(id: 'content').childNodes, isEmpty);
+      expect(const ScrollNode(id: 'scroll', child: child).childNodes, [child]);
+      expect(const ScrollNode(id: 'scroll').childNodes, isEmpty);
+      expect(const ExpandedNode(id: 'body', child: child).childNodes, [child]);
+      expect(const ExpandedNode(id: 'gap').childNodes, isEmpty);
+    });
+
     test('childNodes lists the fallback of an unknown node', () {
       const fallback = TextNode(id: 'heroFallback', text: Literal('Featured'));
 
@@ -42,6 +72,8 @@ void main() {
       expect(const TextNode(id: 'a', text: Literal('a')).childNodes, isEmpty);
       expect(const ButtonNode(id: 'add', label: Literal('Add')).childNodes, isEmpty);
       expect(const AppBarNode(id: 'appBar').childNodes, isEmpty);
+      expect(const SpacerNode(id: 'gap').childNodes, isEmpty);
+      expect(const DividerNode(id: 'divider').childNodes, isEmpty);
     });
 
     test('actions lists the onTap actions of a button', () {
@@ -52,6 +84,12 @@ void main() {
 
     test('actions is empty for nodes without events', () {
       expect(const ColumnNode(id: 'root').actions, isEmpty);
+      expect(const RowNode(id: 'row').actions, isEmpty);
+      expect(const ContainerNode(id: 'content').actions, isEmpty);
+      expect(const ScrollNode(id: 'scroll').actions, isEmpty);
+      expect(const ExpandedNode(id: 'gap').actions, isEmpty);
+      expect(const SpacerNode(id: 'gap').actions, isEmpty);
+      expect(const DividerNode(id: 'divider').actions, isEmpty);
       expect(const TextNode(id: 'a', text: Literal('a')).actions, isEmpty);
       expect(const AppBarNode(id: 'appBar').actions, isEmpty);
       expect(const UnknownNode(id: 'hero').actions, isEmpty);

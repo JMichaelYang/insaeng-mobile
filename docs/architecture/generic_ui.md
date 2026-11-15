@@ -56,7 +56,8 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
   - Child slots are `child` for one node and `children` for a list.
   - Events are `on<Event>` action lists.
   - Inputs write to state through a `bind` path.
-- A typical page's `root` is a `column` whose first child is an `appBar` and whose second is a `scroll`, so the bar stays pinned.
+- An `expanded` node grows its `child` into the leftover space, shared by `flex`, only when it is a direct child of a `row` or `column` with room to fill. Anywhere else it renders its `child` as is. With no `child`, it is a flexible gap.
+- A typical page's `root` is a `column` whose first child is an `appBar` and whose second is an `expanded` wrapping a `scroll`, so the bar stays pinned.
 
 This doc does not list the node catalogue, which grows with every release. The models in `lib/domain/models/generic_ui/nodes/` are the source of truth: each model's `type` and fields are its JSON.
 
@@ -143,22 +144,25 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
     "children": [
       { "type": "appBar", "id": "appBar", "title": "Log in", "leading": "close" },
       {
-        "type": "scroll", "id": "scroll",
+        "type": "expanded", "id": "body",
         "child": {
-          "type": "container", "id": "content", "padding": "lg",
+          "type": "scroll", "id": "scroll",
           "child": {
-            "type": "column", "id": "form", "spacing": "md",
-            "children": [
-              { "type": "textField", "id": "email", "bind": "form.email", "label": "Email", "keyboard": "email" },
-              { "type": "textField", "id": "password", "bind": "form.password", "label": "Password", "obscure": true },
-              {
-                "type": "button", "id": "submit", "label": "Log in", "loading": { "$bind": "submitting" },
-                "onTap": [{
-                  "type": "request", "endpoint": "/auth/login", "loadingPath": "submitting",
-                  "body": { "email": { "$bind": "form.email" }, "password": { "$bind": "form.password" } }
-                }]
-              }
-            ]
+            "type": "container", "id": "content", "padding": "lg",
+            "child": {
+              "type": "column", "id": "form", "spacing": "md",
+              "children": [
+                { "type": "textField", "id": "email", "bind": "form.email", "label": "Email", "keyboard": "email" },
+                { "type": "textField", "id": "password", "bind": "form.password", "label": "Password", "obscure": true },
+                {
+                  "type": "button", "id": "submit", "label": "Log in", "loading": { "$bind": "submitting" },
+                  "onTap": [{
+                    "type": "request", "endpoint": "/auth/login", "loadingPath": "submitting",
+                    "body": { "email": { "$bind": "form.email" }, "password": { "$bind": "form.password" } }
+                  }]
+                }
+              ]
+            }
           }
         }
       }

@@ -12,6 +12,11 @@ extension GenericItemContext on BuildContext {
     final bindable => select<GenericCubit, T?>((cubit) => bindable.resolve(cubit.state.values)),
   };
 
+  int watchFlex(GenericNode node) => switch (node) {
+    ExpandedNode(:final flex) => watchBindable(flex) ?? 1,
+    _ => 0,
+  };
+
   Future<void> dispatch(List<GenericAction> actions) => read<GenericCubit>().dispatch(actions);
 }
 
@@ -52,5 +57,14 @@ extension AlignmentTokenCrossAxis on AlignmentToken {
     AlignmentToken.center => CrossAxisAlignment.center,
     AlignmentToken.end => CrossAxisAlignment.end,
     AlignmentToken.stretch => CrossAxisAlignment.stretch,
+  };
+}
+
+extension AlignmentTokenHorizontal on AlignmentToken {
+  AlignmentGeometry? get horizontal => switch (this) {
+    AlignmentToken.start => AlignmentDirectional.topStart,
+    AlignmentToken.center => Alignment.topCenter,
+    AlignmentToken.end => AlignmentDirectional.topEnd,
+    AlignmentToken.stretch => null,
   };
 }

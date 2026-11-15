@@ -7,26 +7,58 @@
     "children": [
       { "type": "appBar", "id": "appBar", "title": "Insaeng" },
       {
-        "type": "column",
-        "id": "counter",
-        "spacing": "md",
-        "alignment": "center",
-        "children": [
-          { "type": "text", "id": "count", "text": { "$bind": "count" }, "style": "displayMedium" },
-          {
-            "type": "button",
-            "id": "add",
-            "label": "Add",
-            "onTap": [{ "type": "updateState", "path": "count", "op": "increment" }]
-          },
-          {
-            "type": "button",
-            "id": "openForm",
-            "label": "Form",
-            "variant": "text",
-            "onTap": [{ "type": "navigate", "pageId": "form" }]
+        "type": "expanded",
+        "id": "body",
+        "child": {
+          "type": "scroll",
+          "id": "scroll",
+          "child": {
+            "type": "container",
+            "id": "content",
+            "padding": "md",
+            "alignment": "center",
+            "child": {
+              "type": "column",
+              "id": "counter",
+              "spacing": "md",
+              "alignment": "center",
+              "children": [
+                { "type": "text", "id": "count", "text": { "$bind": "count" }, "style": "displayMedium" },
+                { "type": "divider", "id": "divider" },
+                {
+                  "type": "row",
+                  "id": "controls",
+                  "spacing": "sm",
+                  "alignment": "center",
+                  "children": [
+                    {
+                      "type": "button",
+                      "id": "reset",
+                      "label": "Reset",
+                      "variant": "secondary",
+                      "onTap": [{ "type": "updateState", "path": "count", "op": "set", "value": 0 }]
+                    },
+                    { "type": "expanded", "id": "controlsGap" },
+                    {
+                      "type": "button",
+                      "id": "add",
+                      "label": "Add",
+                      "onTap": [{ "type": "updateState", "path": "count", "op": "increment" }]
+                    }
+                  ]
+                },
+                { "type": "spacer", "id": "formGap", "size": "lg" },
+                {
+                  "type": "button",
+                  "id": "openForm",
+                  "label": "Form",
+                  "variant": "text",
+                  "onTap": [{ "type": "navigate", "pageId": "form" }]
+                }
+              ]
+            }
           }
-        ]
+        }
       }
     ]
   }
