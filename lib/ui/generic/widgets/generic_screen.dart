@@ -78,16 +78,10 @@ class _GenericEffectListenerState extends State<_GenericEffectListener> {
       case BackEffect():
         if (context.canGoBack) context.back();
       case ShowMessageEffect(:final text):
-        _showMessage(text);
-      case RequestFailedEffect():
-        _showMessage(context.strings.genericRequestError);
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(text)));
     }
-  }
-
-  void _showMessage(String text) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override

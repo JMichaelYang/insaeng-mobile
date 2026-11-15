@@ -2,6 +2,5 @@
   "@@locale": "ko",
   "appTitle": "인생",
   "genericPageError": "페이지를 불러오지 못했어요.",
-  "genericRequestError": "문제가 생겼어요. 다시 시도해 주세요.",
   "retry": "다시 시도"
 }

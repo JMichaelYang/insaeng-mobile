@@ -27,8 +27,3 @@ final class ShowMessageEffect extends GenericEffect with ShowMessageEffectMappab
 
   final String text;
 }
-
-@MappableClass()
-final class RequestFailedEffect extends GenericEffect with RequestFailedEffectMappable {
-  const new();
-}

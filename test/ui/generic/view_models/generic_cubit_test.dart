@@ -447,16 +447,18 @@ void main() {
       );
 
       blocTest<GenericCubit, GenericState>(
-        'a failure emits the generic error and skips the rest of the list',
+        'a failure emits no effect and skips the rest of the list',
         setUp: () => stubPerform(const Result.err(GenericActionOffline())),
         build: build,
         seed: () => loaded(const {'count': 0}),
         act: (cubit) async {
-          final effects = expectLater(cubit.effects, emits(const RequestFailedEffect()));
+          final effects = expectLater(cubit.effects, emitsDone);
           await cubit.dispatch(const [
             RequestAction(endpoint: Literal('/save')),
+            BackAction(),
             UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
           ]);
+          await cubit.close();
           await effects;
         },
         expect: () => const <GenericState>[],

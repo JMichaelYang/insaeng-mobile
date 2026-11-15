@@ -70,13 +70,10 @@ class GenericCubit extends Cubit<GenericState> {
       body: values.resolveBindings(action.body?.resolve(values) ?? const {}),
     );
     if (isClosed) return false;
-    switch (result) {
-      case Ok(value: final actions):
-        return await _runAll(actions);
-      case Err():
-        _emitEffect(const RequestFailedEffect());
-        return false;
-    }
+    return switch (result) {
+      Ok(value: final actions) => await _runAll(actions),
+      Err() => false,
+    };
   }
 
   Future<bool> _reload() async {
