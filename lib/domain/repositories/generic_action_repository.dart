@@ -21,6 +21,10 @@ final class GenericActionInvalid extends GenericActionFailure {
   const new();
 }
 
+final class GenericActionUnauthorized extends GenericActionFailure {
+  const new();
+}
+
 abstract interface class GenericActionRepository {
   Future<Result<List<GenericAction>>> perform({
     required RequestMethod method,
