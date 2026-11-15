@@ -466,6 +466,60 @@ void main() {
       );
 
       blocTest<GenericCubit, GenericState>(
+        'a failure runs onError, then skips the rest of the list',
+        setUp: () => stubPerform(const Result.err(GenericActionOffline())),
+        build: build,
+        seed: () => loaded(const {'done': false, 'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          UpdateStateAction(path: 'done', op: Literal(UpdateOp.toggle)),
+          RequestAction(
+            endpoint: Literal('/todos/7'),
+            onError: [UpdateStateAction(path: 'done', op: Literal(UpdateOp.toggle))],
+          ),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => [
+          loaded(const {'done': true, 'count': 0}),
+          loaded(const {'done': false, 'count': 0}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'a failed onError action skips the rest of onError',
+        setUp: () => stubPerform(const Result.err(GenericActionOffline())),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            endpoint: Literal('/save'),
+            onError: [
+              UpdateStateAction(path: 'missing', op: Literal(UpdateOp.removeAt), value: Literal(0)),
+              UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+            ],
+          ),
+        ]),
+        expect: () => const <GenericState>[],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'a success skips onError',
+        setUp: () => stubPerform(const Result.ok([UpdateStateAction(path: 'saved', value: Literal(true))])),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          RequestAction(
+            endpoint: Literal('/save'),
+            onError: [UpdateStateAction(path: 'failed', value: Literal(true))],
+          ),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => [
+          loaded(const {'count': 0, 'saved': true}),
+          loaded(const {'count': 1, 'saved': true}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
         'unresolved bindings fall back to their fallback, POST, or null',
         setUp: () => stubPerform(const Result.ok([])),
         build: build,

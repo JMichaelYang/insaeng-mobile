@@ -72,10 +72,13 @@ class GenericCubit extends Cubit<GenericState> {
       },
     );
     if (isClosed) return false;
-    return switch (result) {
-      Ok(value: final actions) => await _runAll(actions),
-      Err() => false,
-    };
+    switch (result) {
+      case Ok(value: final actions):
+        return await _runAll(actions);
+      case Err():
+        await _runAll(action.onError);
+        return false;
+    }
   }
 
   Future<bool> _reload() async {

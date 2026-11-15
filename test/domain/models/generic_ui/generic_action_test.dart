@@ -196,6 +196,37 @@ void main() {
         );
       });
 
+      test('decodes onError actions', () {
+        expect(
+          _decode({
+            'type': 'request',
+            'endpoint': '/todos/7',
+            'onError': [
+              {'type': 'updateState', 'path': 'done', 'op': 'toggle'},
+              {'type': 'confetti'},
+            ],
+          }),
+          const RequestAction(
+            endpoint: Literal('/todos/7'),
+            onError: [
+              UpdateStateAction(path: 'done', op: Literal(UpdateOp.toggle)),
+              UnknownAction(),
+            ],
+          ),
+        );
+      });
+
+      test('fails with onError that is not a list', () {
+        expect(
+          () => _decode({
+            'type': 'request',
+            'endpoint': '/x',
+            'onError': {'type': 'back'},
+          }),
+          throwsA(isA<MapperException>()),
+        );
+      });
+
       test('fails on a malformed binding nested in the body', () {
         expect(
           () => _decode({
@@ -276,6 +307,9 @@ void main() {
             'title': {r'$bind': 'draft'},
           },
           'loadingPath': 'saving',
+          'onError': [
+            {'type': 'back'},
+          ],
         },
       ];
 

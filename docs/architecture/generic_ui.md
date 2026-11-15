@@ -1,4 +1,4 @@
-# Generic UI contract (v1)
+# Generic UI contract (v2)
 
 Every page is server-driven. The backend sends a **page**: a tree of typed **nodes**, starting local **state**, and **action** lists on node events. The app renders the nodes with design-system items and runs the actions.
 
@@ -97,7 +97,8 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 - `loadingPath` is a state path that is `true` while the request is in flight and `false` once it ends.
 - A `2xx` response body is `{ "actions": [...] }`. Those actions run in place of the `request`, and then the rest of the list continues.
 - Report expected outcomes, such as a wrong password, as a `2xx` response whose actions say what to show.
-- On a non-`2xx` response or a network error, the list stops. The app shows nothing on its own, so a page that should tell the user must say so itself.
+- `onError` is an action list that runs on a non-`2xx` response or a network error. Then the list stops, even if every `onError` action succeeds.
+- The app shows nothing on its own when a request fails, so `onError` is the only way a page reacts. Use it to tell the user, or to undo an optimistic update, as in `{ "type": "request", "endpoint": "/todos/7", "onError": [{ "type": "updateState", "path": "todo.done", "op": "toggle" }] }` after a `toggle` of `todo.done`.
 
 ## Versioning
 

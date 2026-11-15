@@ -60,7 +60,13 @@ final class ShowMessageAction extends GenericAction with ShowMessageActionMappab
 
 @MappableClass(discriminatorValue: 'request')
 final class RequestAction extends GenericAction with RequestActionMappable {
-  const new({required this.endpoint, this.method = const Literal(RequestMethod.post), this.body, this.loadingPath});
+  const new({
+    required this.endpoint,
+    this.method = const Literal(RequestMethod.post),
+    this.body,
+    this.loadingPath,
+    this.onError = const [],
+  });
 
   @MappableField(hook: BindableHook<RequestMethod>())
   final Bindable<RequestMethod> method;
@@ -72,6 +78,8 @@ final class RequestAction extends GenericAction with RequestActionMappable {
   final BindableJson? body;
 
   final String? loadingPath;
+
+  final List<GenericAction> onError;
 }
 
 @MappableClass(discriminatorValue: MappableClass.useAsDefault)
