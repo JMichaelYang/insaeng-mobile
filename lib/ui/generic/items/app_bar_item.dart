@@ -10,10 +10,7 @@ class AppBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = switch (node.title) {
-      final title? => context.watchBindable(title),
-      null => null,
-    };
+    final title = context.watchBindable(node.title);
     final leading = context.watchBindable(node.leading) ?? AppBarLeading.none;
     void back() => context.dispatch(const [BackAction()]);
     return AppBar(

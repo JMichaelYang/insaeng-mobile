@@ -1,0 +1,24 @@
+{
+  "id": "form",
+  "state": { "name": "", "edits": 0 },
+  "root": {
+    "type": "column",
+    "id": "root",
+    "spacing": "md",
+    "alignment": "stretch",
+    "children": [
+      { "type": "appBar", "id": "appBar", "title": "Form", "leading": "back" },
+      {
+        "type": "textField",
+        "id": "name",
+        "bind": "name",
+        "label": "Name",
+        "hint": "Enter your name",
+        "onChanged": [{ "type": "updateState", "path": "edits", "op": "increment" }],
+        "onSubmit": [{ "type": "showMessage", "text": { "$bind": "name" } }]
+      },
+      { "type": "text", "id": "nameEcho", "text": { "$bind": "name" }, "style": "titleMedium" },
+      { "type": "text", "id": "edits", "text": { "$bind": "edits" }, "style": "bodySmall" }
+    ]
+  }
+}

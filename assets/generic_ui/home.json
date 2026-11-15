@@ -18,6 +18,13 @@
             "id": "add",
             "label": "Add",
             "onTap": [{ "type": "updateState", "path": "count", "op": "increment" }]
+          },
+          {
+            "type": "button",
+            "id": "openForm",
+            "label": "Form",
+            "variant": "text",
+            "onTap": [{ "type": "navigate", "pageId": "form" }]
           }
         ]
       }

@@ -7,6 +7,7 @@ import 'package:insaeng/ui/generic/items/app_bar_item.dart';
 import 'package:insaeng/ui/generic/items/button_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/node_view.dart';
+import 'package:insaeng/ui/generic/items/text_field_item.dart';
 import 'package:insaeng/ui/generic/items/text_item.dart';
 import 'package:insaeng/ui/generic/items/unknown_item.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
@@ -38,6 +39,7 @@ void main() {
       const AppBarNode(id: 'appBar'): AppBarItem,
       const TextNode(id: 'text', text: Literal('Hi')): TextItem,
       const ButtonNode(id: 'button', label: Literal('Add')): ButtonItem,
+      const TextFieldNode(id: 'textField', bind: 'name'): TextFieldItem,
       const UnknownNode(id: 'unknown'): UnknownItem,
     };
 

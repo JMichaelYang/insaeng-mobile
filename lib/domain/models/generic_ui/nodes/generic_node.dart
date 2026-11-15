@@ -6,6 +6,7 @@ import 'package:insaeng/domain/models/generic_ui/nodes/node_tokens.dart';
 export 'package:insaeng/domain/models/generic_ui/nodes/node_tokens.dart';
 
 part 'atoms/button_node.dart';
+part 'atoms/text_field_node.dart';
 part 'atoms/text_node.dart';
 part 'generic_node.mapper.dart';
 part 'layout/column_node.dart';
