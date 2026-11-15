@@ -2,6 +2,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
+import 'package:http/http.dart';
+import 'package:http/testing.dart';
 import 'package:insaeng/app.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
@@ -27,9 +29,11 @@ class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 void main() {
   group(router, () {
     group('with the app dependencies', () {
-      setUp(() {
+      setUp(() async {
         FlutterSecureStorage.setMockInitialValues({});
         configureDependencies(Flavor.dev);
+        await getIt.unregister<Client>();
+        getIt.registerSingleton<Client>(MockClient((_) async => Response('{"results": [], "has_more": false}', 200)));
       });
 
       tearDown(getIt.reset);
