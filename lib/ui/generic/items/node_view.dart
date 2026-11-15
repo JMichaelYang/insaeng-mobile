@@ -1,6 +1,7 @@
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/app_bar_item.dart';
 import 'package:insaeng/ui/generic/items/button_item.dart';
+import 'package:insaeng/ui/generic/items/checkbox_tile_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
@@ -29,6 +30,7 @@ class NodeView extends StatelessWidget {
     final TextNode node => TextItem(node: node),
     final ButtonNode node => ButtonItem(node: node),
     final TextFieldNode node => TextFieldItem(node: node),
+    final CheckboxTileNode node => CheckboxTileItem(node: node),
     final SpacerNode node => SpacerItem(node: node),
     final DividerNode node => DividerItem(node: node),
     final UnknownNode node => UnknownItem(node: node),

@@ -19,12 +19,13 @@ void main() {
         'text',
         'button',
         'textField',
+        'checkboxTile',
         'spacer',
         'divider',
         'carousel',
       ]) {
         expect(
-          () => _decode({'type': type, 'text': 'a', 'label': 'a', 'bind': 'a'}),
+          () => _decode({'type': type, 'text': 'a', 'label': 'a', 'title': 'a', 'bind': 'a'}),
           throwsA(isA<MapperException>()),
           reason: type,
         );

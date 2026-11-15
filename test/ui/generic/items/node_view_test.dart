@@ -5,6 +5,7 @@ import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/app_bar_item.dart';
 import 'package:insaeng/ui/generic/items/button_item.dart';
+import 'package:insaeng/ui/generic/items/checkbox_tile_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
@@ -50,6 +51,7 @@ void main() {
       const TextNode(id: 'text', text: Literal('Hi')): TextItem,
       const ButtonNode(id: 'button', label: Literal('Add')): ButtonItem,
       const TextFieldNode(id: 'textField', bind: 'name'): TextFieldItem,
+      const CheckboxTileNode(id: 'checkboxTile', bind: 'done', title: Literal('Done')): CheckboxTileItem,
       const SpacerNode(id: 'spacer'): SpacerItem,
       const DividerNode(id: 'divider'): DividerItem,
       const UnknownNode(id: 'unknown'): UnknownItem,
