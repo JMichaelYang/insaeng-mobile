@@ -12,6 +12,7 @@ void main() {
       'label': const AppTextField(label: 'Name', hint: 'Enter your name'),
       'filled': const AppTextField(label: 'Name', value: 'Ada Lovelace'),
       'hint': const AppTextField(hint: 'Enter your name'),
+      'secure': const AppTextField(label: 'API token', value: 'secret_token', secure: true),
     },
   );
 }

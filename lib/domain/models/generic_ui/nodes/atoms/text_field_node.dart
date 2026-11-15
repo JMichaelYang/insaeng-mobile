@@ -7,6 +7,7 @@ final class TextFieldNode extends GenericNode with TextFieldNodeMappable {
     required this.bind,
     this.label,
     this.hint,
+    this.secure = const Literal(false),
     this.onChanged = const [],
     this.onSubmit = const [],
   });
@@ -18,6 +19,9 @@ final class TextFieldNode extends GenericNode with TextFieldNodeMappable {
 
   @MappableField(hook: BindableHook<String>())
   final Bindable<String>? hint;
+
+  @MappableField(hook: BindableHook<bool>())
+  final Bindable<bool> secure;
 
   final List<GenericAction> onChanged;
 

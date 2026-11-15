@@ -153,7 +153,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
               "type": "column", "id": "form", "spacing": "md",
               "children": [
                 { "type": "textField", "id": "email", "bind": "form.email", "label": "Email", "keyboard": "email" },
-                { "type": "textField", "id": "password", "bind": "form.password", "label": "Password", "obscure": true },
+                { "type": "textField", "id": "password", "bind": "form.password", "label": "Password", "secure": true },
                 {
                   "type": "button", "id": "submit", "label": "Log in", "loading": { "$bind": "submitting" },
                   "onTap": [{
