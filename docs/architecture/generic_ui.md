@@ -177,6 +177,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`) hold action lists.
 
 - The models live in `lib/domain/models/generic_ui/`. `GenericNode` and `GenericAction` are sealed dart_mappable families keyed by `type`, and `UnknownNode` and `UnknownAction` are their `useAsDefault` subclasses.
 - `GenericCubit` holds the page and its state and runs the actions. `navigate`, `back`, and `showMessage` go out on its `effects` stream, and `GenericScreen` handles them.
+- `request` resolves its bindings and calls `GenericActionRepository.perform`, which returns the actions to run in its place. A failure goes out as a `RequestFailedEffect`, which `GenericScreen` shows as the generic error.
 - `NodeView` in `lib/ui/generic/items/` is the item registry: an exhaustive `switch` over `GenericNode` that builds `design_system/` atoms.
 - **To add a node:** add the model, any atom it needs, and the item widget with its `NodeView` case.
   - Each node model is its own `part` file of `nodes/generic_node.dart`, so the sealed family stays one library. Put it in `atoms/`, `molecules/`, or `organisms/` to match the design-system level of the component it renders, or in `layout/` if it arranges child nodes, as `column` and `row` do.

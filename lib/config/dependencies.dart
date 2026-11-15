@@ -3,9 +3,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/data/repositories/generic_action_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_page_repository_impl.dart';
 import 'package:insaeng/data/services/generic_page_fixture_service.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
+import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/routing/router.dart';
 
@@ -18,6 +20,7 @@ void configureDependencies(Flavor flavor) {
     ..registerLazySingleton(() => const FlutterSecureStorage())
     ..registerLazySingleton(() => GenericPageFixtureService(getIt()))
     ..registerLazySingleton(() => SecureStorageService(getIt()))
+    ..registerLazySingleton<GenericActionRepository>(GenericActionRepositoryImpl.new)
     ..registerLazySingleton<GenericPageRepository>(() => GenericPageRepositoryImpl(getIt()))
     ..registerLazySingleton<GoRouter>(() => router(getIt));
 }

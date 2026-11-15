@@ -7,12 +7,15 @@ import 'package:insaeng/config/flavor.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
+import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/routing/router.dart';
 import 'package:insaeng/routing/routes.dart';
 import 'package:insaeng/ui/generic/widgets/generic_screen.dart';
 import 'package:mocktail/mocktail.dart';
+
+class _MockGenericActionRepository extends Mock implements GenericActionRepository;
 
 class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 
@@ -46,7 +49,9 @@ void main() {
 
       setUp(() {
         repository = _MockGenericPageRepository();
-        locator = GetIt.asNewInstance()..registerSingleton<GenericPageRepository>(repository);
+        locator = GetIt.asNewInstance()
+          ..registerSingleton<GenericActionRepository>(_MockGenericActionRepository())
+          ..registerSingleton<GenericPageRepository>(repository);
         when(() => repository.fetch(any(), any())).thenAnswer(
           (invocation) async => Result.ok(
             GenericPage(

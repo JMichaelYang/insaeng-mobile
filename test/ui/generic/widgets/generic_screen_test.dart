@@ -86,6 +86,16 @@ void main() {
       expect(find.widgetWithText(SnackBar, 'Saved'), findsOneWidget);
     });
 
+    testWidgets('shows a localized snackbar for a failed request', (tester) async {
+      when(() => cubit.state).thenReturn(const GenericState(status: GenericStatus.success, page: _page));
+      await tester.pumpApp(buildSubject());
+
+      effects.add(const RequestFailedEffect());
+      await tester.pump();
+
+      expect(find.widgetWithText(SnackBar, 'Something went wrong. Please try again.'), findsOneWidget);
+    });
+
     group('navigation effects', () {
       late GoRouter router;
 

@@ -2,5 +2,6 @@
   "@@locale": "en",
   "appTitle": "Insaeng",
   "genericPageError": "Something went wrong loading this page.",
+  "genericRequestError": "Something went wrong. Please try again.",
   "retry": "Try again"
 }
