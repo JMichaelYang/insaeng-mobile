@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
+import 'package:insaeng/data/services/notion_service.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable_json.dart';
@@ -11,7 +12,7 @@ import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/result.dart';
 
 final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
-  const new(this._storage);
+  const new(this._storage, this._notion, {this._now = DateTime.now});
 
   static const connectTitle = 'Connect Notion';
   static const connectDescription = 'Paste a Notion integration token and the ID of your agenda data source.';
@@ -73,7 +74,12 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
     ),
   );
 
+  static const dateProperty = 'Date';
+  static const pageSize = 100;
+
   final SecureStorageService _storage;
+  final NotionService _notion;
+  final DateTime Function() _now;
 
   @override
   Future<Result<GenericPage>> fetch(String id, Map<String, String> params) => switch (id) {
@@ -93,6 +99,54 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
     if (token == null || token.isEmpty || dataSourceId == null || dataSourceId.isEmpty) {
       return Result.ok(connectPage);
     }
-    return Result.ok(MyDayPageMapper.fromRows(const [], now: DateTime.now()));
+    final now = _now();
+    try {
+      final rows = await _agendaRows(token, dataSourceId, now);
+      return Result.ok(MyDayPageMapper.fromRows(rows, now: now));
+    } on NotionUnauthorizedException {
+      return Result.ok(connectPage);
+    } on NotionNetworkException {
+      return const Result.err(GenericPageOffline());
+    } on NotionException {
+      return const Result.err(GenericPageServerError());
+    } on FormatException {
+      return const Result.err(GenericPageServerError());
+    }
   }
+
+  Future<List<Map<String, Object?>>> _agendaRows(String token, String dataSourceId, DateTime now) async {
+    final filter = {
+      'and': [
+        {
+          'property': dateProperty,
+          'date': {'on_or_after': _date(DateTime(now.year, now.month, now.day - 1))},
+        },
+        {
+          'property': dateProperty,
+          'date': {'on_or_before': _date(DateTime(now.year, now.month, now.day + 1))},
+        },
+      ],
+    };
+    final rows = <Map<String, Object?>>[];
+    String? cursor;
+    do {
+      final response = await _notion.queryDataSource(token, dataSourceId, {
+        'filter': filter,
+        'page_size': pageSize,
+        'start_cursor': ?cursor,
+      });
+      rows.addAll(switch (response['results']) {
+        final List<Object?> results => results.whereType<Map<String, Object?>>(),
+        _ => throw FormatException('Expected a results list', response),
+      });
+      cursor = switch (response) {
+        {'has_more': true, 'next_cursor': final String next} => next,
+        _ => null,
+      };
+    } while (cursor != null);
+    return rows;
+  }
+
+  static String _date(DateTime day) =>
+      '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
 }
