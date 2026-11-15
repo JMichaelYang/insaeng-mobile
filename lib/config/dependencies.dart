@@ -21,6 +21,6 @@ void configureDependencies(Flavor flavor) {
     ..registerLazySingleton(() => NotionService(getIt()))
     ..registerLazySingleton(() => SecureStorageService(getIt()))
     ..registerLazySingleton<GenericActionRepository>(() => GenericNotionActionRepositoryImpl(getIt(), getIt()))
-    ..registerLazySingleton<GenericPageRepository>(() => GenericNotionPageRepositoryImpl(getIt()))
+    ..registerLazySingleton<GenericPageRepository>(() => GenericNotionPageRepositoryImpl(getIt(), getIt()))
     ..registerLazySingleton<GoRouter>(() => router(getIt));
 }
