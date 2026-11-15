@@ -1,0 +1,33 @@
+import 'package:alchemist/alchemist.dart';
+import 'package:insaeng/design_system/molecules/app_checkbox_tile.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../../helpers/golden.dart';
+
+void main() {
+  goldenVariantsTest(
+    'AppCheckboxTile',
+    fileName: 'app_checkbox_tile',
+    columns: 2,
+    constraints: const BoxConstraints.tightFor(width: 320),
+    pumpBeforeTest: pumpNTimes(1, const Duration(milliseconds: 500)),
+    variants: {
+      for (final checked in [false, true]) ...{
+        for (final subtitle in [null, '10 minutes'])
+          '${checked ? 'checked' : 'unchecked'}${subtitle == null ? '' : ' with subtitle'}': AppCheckboxTile(
+            title: 'Stretch',
+            subtitle: subtitle,
+            checked: checked,
+            onChanged: (_) {},
+          ),
+        '${checked ? 'checked' : 'unchecked'} busy': AppCheckboxTile(
+          title: 'Stretch',
+          subtitle: '10 minutes',
+          checked: checked,
+          busy: true,
+          onChanged: (_) {},
+        ),
+      },
+    },
+  );
+}
