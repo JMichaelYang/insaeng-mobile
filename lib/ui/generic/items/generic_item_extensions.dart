@@ -7,8 +7,10 @@ import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:material_ui/material_ui.dart';
 
 extension GenericItemContext on BuildContext {
-  T? watchBindable<T extends Object>(Bindable<T>? bindable) =>
-      select<GenericCubit, T?>((cubit) => bindable?.resolve(cubit.state.values));
+  T? watchBindable<T extends Object>(Bindable<T>? bindable) => switch (bindable) {
+    null => null,
+    final bindable => select<GenericCubit, T?>((cubit) => bindable.resolve(cubit.state.values)),
+  };
 
   Future<void> dispatch(List<GenericAction> actions) => read<GenericCubit>().dispatch(actions);
 }

@@ -158,6 +158,16 @@ void main() {
         expect(effects, [const ShowMessageEffect(text: 'Ada')]);
       });
 
+      testWidgets('follows a label that becomes bound after a rebuild', (tester) async {
+        await pumpItem(tester, cubit, const TextFieldNode(id: 'name', bind: 'name'));
+        await pumpItem(tester, cubit, const TextFieldNode(id: 'name', bind: 'name', label: Binding('label')));
+
+        await cubit.dispatch(const [UpdateStateAction(path: 'label', value: Literal('Name'))]);
+        await tester.pump();
+
+        expect(field(tester).label, 'Name');
+      });
+
       testWidgets('shows a value written to the bound path elsewhere', (tester) async {
         await pumpItem(tester, cubit, _node);
         await tester.enterText(find.byType(TextField), 'Ada');
