@@ -57,6 +57,11 @@ List<CheckboxTileNode> _tiles(GenericPage page) => page.nodes.whereType<Checkbox
 
 List<String> _ids(GenericPage page) => [for (final tile in _tiles(page)) tile.id];
 
+List<String> _rowIds(GenericPage page) => [
+  for (final node in page.nodes)
+    if (node is CheckboxTileNode || node is DividerNode) node.id,
+];
+
 Map<String, Bindable<String>?> _subtitles(GenericPage page) => {
   for (final tile in _tiles(page)) tile.id: tile.subtitle,
 };
@@ -133,7 +138,10 @@ void main() {
         _row('earlyTomorrow', start: _seoul(DateTime(2026, 11, 16))),
       ]);
 
-      expect(_subtitles(page), {'task-earlyToday': const Literal('00:30'), 'task-lateToday': const Literal('23:30')});
+      expect(_subtitles(page), {
+        'task-earlyToday': const Literal('12:30 AM'),
+        'task-lateToday': const Literal('11:30 PM'),
+      });
     });
 
     test('shows the local time range of timed rows', () {
@@ -141,7 +149,42 @@ void main() {
         _row('meeting', start: _seoul(DateTime(2026, 11, 15, 9)), end: _utc(DateTime(2026, 11, 15, 10, 30))),
       ]);
 
-      expect(_subtitles(page), {'task-meeting': const Literal('09:00–10:30')});
+      expect(_subtitles(page), {'task-meeting': const Literal('9:00 – 10:30 AM')});
+    });
+
+    test('formats times as 12-hour and repeats the period only when a range crosses it', () {
+      final page = _map([
+        _row('midnight', start: _utc(DateTime(2026, 11, 15)), end: _utc(DateTime(2026, 11, 15, 0, 45))),
+        _row('morning', start: _utc(DateTime(2026, 11, 15, 8, 10)), end: _utc(DateTime(2026, 11, 15, 8, 15))),
+        _row('crossNoon', start: _utc(DateTime(2026, 11, 15, 11, 30)), end: _utc(DateTime(2026, 11, 15, 13))),
+        _row('noon', start: _utc(DateTime(2026, 11, 15, 12)), end: _utc(DateTime(2026, 11, 15, 12, 30))),
+        _row('afternoon', start: _utc(DateTime(2026, 11, 15, 14)), end: _utc(DateTime(2026, 11, 15, 15, 30))),
+        _row('evening', start: _utc(DateTime(2026, 11, 15, 21, 5))),
+      ]);
+
+      expect(_subtitles(page), {
+        'task-midnight': const Literal('12:00 – 12:45 AM'),
+        'task-morning': const Literal('8:10 – 8:15 AM'),
+        'task-crossNoon': const Literal('11:30 AM – 1:00 PM'),
+        'task-noon': const Literal('12:00 – 12:30 PM'),
+        'task-afternoon': const Literal('2:00 – 3:30 PM'),
+        'task-evening': const Literal('9:05 PM'),
+      });
+    });
+
+    test('puts a divider between rows but not after the last one', () {
+      expect(_rowIds(_map(const [])), isEmpty);
+      expect(_rowIds(_map([_row('a', start: '2026-11-15')])), ['task-a']);
+      expect(
+        _rowIds(
+          _map([
+            _row('c', start: _utc(DateTime(2026, 11, 15, 10))),
+            _row('a', start: '2026-11-15'),
+            _row('b', start: _utc(DateTime(2026, 11, 15, 9))),
+          ]),
+        ),
+        ['task-a', 'divider-a', 'task-b', 'divider-b', 'task-c'],
+      );
     });
 
     test('puts all-day rows first, then sorts by start', () {
@@ -182,7 +225,7 @@ void main() {
         'task-skipped': const Literal(MyDayPageMapper.skippedText),
         'task-todo': null,
         'task-noStatus': null,
-        'task-skippedMeeting': const Literal('09:00 · ${MyDayPageMapper.skippedText}'),
+        'task-skippedMeeting': const Literal('9:00 AM · ${MyDayPageMapper.skippedText}'),
       });
     });
 
