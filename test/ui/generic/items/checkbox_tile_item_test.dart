@@ -19,9 +19,9 @@ import '../../../helpers/pump_app.dart';
 
 class _MockGenericCubit extends MockCubit<GenericState> implements GenericCubit;
 
-class _MockGenericActionRepository extends Mock implements GenericActionRepository;
-
 class _MockGenericPageRepository extends Mock implements GenericPageRepository;
+
+class _MockGenericActionRepository extends Mock implements GenericActionRepository;
 
 const _onChanged = [UpdateStateAction(path: 'changes', op: Literal(UpdateOp.increment))];
 
