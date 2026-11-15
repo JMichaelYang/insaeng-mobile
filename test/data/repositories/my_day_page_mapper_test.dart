@@ -36,7 +36,10 @@ List<GenericAction> _checkActions(String id) => [
     method: const Literal(RequestMethod.patch),
     endpoint: Literal('/my-day/tasks/$id'),
     body: JsonObject({'done': JsonBinding(Binding('tasks.$id.done'))}),
-    onError: [UpdateStateAction(path: 'tasks.$id.done', op: const Literal(UpdateOp.toggle))],
+    onError: [
+      UpdateStateAction(path: 'tasks.$id.done', op: const Literal(UpdateOp.toggle)),
+      const ShowMessageAction(text: Literal(MyDayPageMapper.saveErrorText)),
+    ],
     onComplete: [UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false))],
   ),
 ];
@@ -99,7 +102,7 @@ void main() {
       );
     });
 
-    test('marks each tile saving, patches its done value, and undoes the check on error', () {
+    test('marks each tile saving, patches its done value, and undoes the check with a message on error', () {
       final page = _map([
         _row('a', start: '2026-11-15'),
         _row('b', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),

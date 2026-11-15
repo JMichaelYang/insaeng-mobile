@@ -13,6 +13,7 @@ abstract final class MyDayPageMapper {
   static const title = 'My Day';
   static const emptyText = 'Nothing planned today';
   static const skippedText = 'Skipped';
+  static const saveErrorText = "Couldn't update the task. Try again.";
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
@@ -73,7 +74,10 @@ abstract final class MyDayPageMapper {
           method: const Literal(RequestMethod.patch),
           endpoint: Literal('/my-day/tasks/${task.id}'),
           body: JsonObject({'done': JsonBinding(Binding(donePath))}),
-          onError: [UpdateStateAction(path: donePath, op: const Literal(UpdateOp.toggle))],
+          onError: [
+            UpdateStateAction(path: donePath, op: const Literal(UpdateOp.toggle)),
+            const ShowMessageAction(text: Literal(saveErrorText)),
+          ],
           onComplete: [UpdateStateAction(path: savingPath, value: const Literal(false))],
         ),
       ],
