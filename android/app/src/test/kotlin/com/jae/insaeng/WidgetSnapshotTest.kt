@@ -4,8 +4,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.layout.Alignment
 import androidx.glance.text.FontWeight
+import com.jae.insaeng.views.itemId
+import com.jae.insaeng.views.scrollItems
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WidgetSnapshotTest {
@@ -29,6 +34,8 @@ class WidgetSnapshotTest {
         val title = root.children[0]
         assertEquals("title", title.id)
         assertEquals("My Day", title.string("label"))
+        assertEquals("text", title.string("variant"))
+        assertEquals(false, title.boolean("loading"))
         assertEquals(WidgetTap.OpenApp, title.tap)
         assertEquals(emptyList<WidgetNode>(), title.children)
 
@@ -49,9 +56,19 @@ class WidgetSnapshotTest {
             tasks.children.map { it.type },
         )
 
+        val gym = tasks.children[0]
+        assertEquals("Gym", gym.string("title"))
+        assertNull(gym.string("subtitle"))
+        assertEquals("✅", gym.string("emoji"))
+        assertEquals(false, gym.boolean("checked"))
+        assertEquals(false, gym.boolean("busy"))
+
         val meeting = tasks.children[2]
         assertEquals("Team meeting", meeting.string("title"))
         assertEquals("9:00 – 10:30 AM", meeting.string("subtitle"))
+        assertEquals("✅", meeting.string("emoji"))
+        assertEquals(true, meeting.boolean("checked"))
+        assertEquals(false, meeting.boolean("busy"))
         assertEquals(WidgetTap.Event(nodeId = "task-meeting", event = "onChanged"), meeting.tap)
 
         assertNull(tasks.children[1].tap)
@@ -78,6 +95,53 @@ class WidgetSnapshotTest {
         assertEquals("Hi", snapshot.root.children[0].string("text"))
         assertNull(snapshot.root.children[0].int("text"))
         assertNull(snapshot.root.children[2].tap)
+    }
+
+    @Test
+    fun readsTypedProps() {
+        val node =
+            WidgetNode.fromJson(
+                Json.parseToJsonElement(
+                    """{"type":"checkboxTile","id":"t","props":{"checked":true,"busy":"true","title":"T","flex":2}}""",
+                ),
+            )
+
+        assertEquals(true, node.boolean("checked"))
+        assertNull(node.boolean("busy"))
+        assertNull(node.boolean("title"))
+        assertNull(node.boolean("flex"))
+        assertNull(node.boolean("missing"))
+    }
+
+    @Test
+    fun flattensScrollColumnIntoStableItems() {
+        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children[1].children.single()
+        val items = scroll.scrollItems()
+
+        assertEquals(
+            listOf("task-gym", "divider-gym", "task-meeting", "divider-meeting", "task-lunch"),
+            items.map { it.id },
+        )
+        val ids = items.map { it.itemId }
+        assertEquals(ids.size, ids.toSet().size)
+        assertTrue(ids.all { it >= 0 })
+        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children[1].children.single()
+        assertEquals(ids, again.scrollItems().map { it.itemId })
+        assertNotEquals(WidgetNode(type = "text", id = "a").itemId, WidgetNode(type = "text", id = "b").itemId)
+    }
+
+    @Test
+    fun scrollsNonColumnChildAsSingleItem() {
+        fun node(type: String, id: String, vararg children: WidgetNode) =
+            WidgetNode(type = type, id = id, children = children.toList())
+
+        fun itemIds(child: WidgetNode?) =
+            (if (child == null) node("scroll", "s") else node("scroll", "s", child)).scrollItems().map { it.id }
+
+        assertEquals(listOf("empty"), itemIds(node("container", "empty", node("text", "emptyText"))))
+        assertEquals(emptyList<String>(), itemIds(null))
+        assertEquals(emptyList<String>(), itemIds(node("textField", "f")))
+        assertEquals(listOf("t"), itemIds(node("column", "c", node("appBar", "bar"), node("checkboxTile", "t"))))
     }
 
     @Test
@@ -117,5 +181,14 @@ class WidgetSnapshotTest {
         assertEquals(Alignment.Vertical.Bottom, WidgetAlignment.of("end").vertical)
         assertEquals(WidgetAlignment.STRETCH, WidgetAlignment.of("stretch"))
         assertEquals(WidgetAlignment.START, WidgetAlignment.of(null))
+    }
+
+    @Test
+    fun mapsButtonVariantTokens() {
+        assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of("primary"))
+        assertEquals(WidgetButtonVariant.SECONDARY, WidgetButtonVariant.of("secondary"))
+        assertEquals(WidgetButtonVariant.TEXT, WidgetButtonVariant.of("text"))
+        assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of(null))
+        assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of("unknown"))
     }
 }

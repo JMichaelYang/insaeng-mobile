@@ -5,6 +5,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -32,6 +33,8 @@ data class WidgetNode(
     fun string(key: String): String? = (props[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
 
     fun int(key: String): Int? = (props[key] as? JsonPrimitive)?.takeUnless { it.isString }?.intOrNull
+
+    fun boolean(key: String): Boolean? = (props[key] as? JsonPrimitive)?.takeUnless { it.isString }?.booleanOrNull
 
     companion object {
         fun fromJson(element: JsonElement): WidgetNode {
