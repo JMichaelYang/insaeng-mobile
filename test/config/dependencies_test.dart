@@ -10,6 +10,7 @@ import 'package:insaeng/data/services/secure_storage_service.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
+import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 
 void main() {
   group(configureDependencies, () {
@@ -56,6 +57,12 @@ void main() {
         configureDependencies(flavor);
 
         expect(getIt<WidgetSnapshotRepository>(), isA<WidgetSnapshotRepositoryImpl>());
+      });
+
+      test('registers the refresh home widget use case for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<RefreshHomeWidgetUseCase>(), isA<RefreshHomeWidgetUseCase>());
       });
     }
   });
