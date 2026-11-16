@@ -1,16 +1,21 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/data/repositories/background_task_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_notion_action_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_notion_page_repository_impl.dart';
 import 'package:insaeng/data/repositories/widget_snapshot_repository_impl.dart';
+import 'package:insaeng/data/services/background_task_service.dart';
 import 'package:insaeng/data/services/home_widget_service.dart';
 import 'package:insaeng/data/services/notion_service.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
+import 'package:insaeng/domain/repositories/background_task_repository.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
+import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() {
   group(configureDependencies, () {
@@ -63,6 +68,30 @@ void main() {
         configureDependencies(flavor);
 
         expect(getIt<RefreshHomeWidgetUseCase>(), isA<RefreshHomeWidgetUseCase>());
+      });
+
+      test('registers workmanager for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<Workmanager>(), same(Workmanager()));
+      });
+
+      test('registers the background task service for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<BackgroundTaskService>(), isA<BackgroundTaskService>());
+      });
+
+      test('registers the background task repository for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<BackgroundTaskRepository>(), isA<BackgroundTaskRepositoryImpl>());
+      });
+
+      test('registers the schedule home widget refresh use case for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<ScheduleHomeWidgetRefreshUseCase>(), isA<ScheduleHomeWidgetRefreshUseCase>());
       });
     }
   });
