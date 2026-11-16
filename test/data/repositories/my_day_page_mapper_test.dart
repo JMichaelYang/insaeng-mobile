@@ -81,7 +81,21 @@ const _widgetNodeTypes = {
   ButtonNode,
   CheckboxTileNode,
   ScrollNode,
+  ProgressBarNode,
 };
+
+ProgressBarNode _progress(int max) => ProgressBarNode(
+  id: 'progress',
+  value: const Binding(MyDayPageMapper.progressDonePath, fallback: 0),
+  max: Literal(max),
+);
+
+ContainerNode _progressBar(int max) => ContainerNode(
+  id: 'progressBar',
+  padding: const Literal(SpacingToken.md),
+  alignment: const Literal(AlignmentToken.stretch),
+  child: _progress(max),
+);
 
 const _openMyDay = [NavigateAction(pageId: Literal(MyDayPageMapper.pageId))];
 
@@ -102,7 +116,7 @@ Map<String, Bindable<String>?> _subtitles(GenericPage page) => {
 
 void main() {
   group(MyDayPageMapper, () {
-    test('builds an app bar and a refreshable scroll with a tile per row', () {
+    test('builds an app bar, a progress bar, and a refreshable scroll with a tile per row', () {
       expect(
         _map([
           _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
@@ -113,11 +127,13 @@ void main() {
             'tasks': {
               'a': {'done': false, 'saving': false},
             },
+            'progress': {'done': 0},
           }),
           root: ColumnNode(
             id: 'root',
             children: [
               const AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
+              _progressBar(1),
               ExpandedNode(
                 id: 'body',
                 child: ScrollNode(
@@ -288,6 +304,7 @@ void main() {
             'noStatus': {'done': false, 'saving': false},
             'skippedMeeting': {'done': true, 'saving': false},
           },
+          'progress': {'done': 3},
         }),
       );
       expect(_subtitles(page), {
@@ -325,12 +342,16 @@ void main() {
     test('shows nothing planned today for an empty day', () {
       final empty = GenericPage(
         id: MyDayPageMapper.pageId,
-        state: GenericValues(const {'tasks': <String, Object?>{}}),
-        root: const ColumnNode(
+        state: GenericValues(const {
+          'tasks': <String, Object?>{},
+          'progress': {'done': 0},
+        }),
+        root: ColumnNode(
           id: 'root',
           children: [
-            AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
-            ExpandedNode(
+            const AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
+            _progressBar(0),
+            const ExpandedNode(
               id: 'body',
               child: ScrollNode(
                 id: 'scroll',
@@ -353,7 +374,7 @@ void main() {
   });
 
   group('$MyDayPageMapper.widgetFromRows', () {
-    test('builds a title that opens My Day and a scroll of the same tiles without refresh', () {
+    test('builds a progress bar and a scroll of the same tiles without refresh', () {
       final rows = [
         _row('b', title: 'Meeting', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
         _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
@@ -369,7 +390,9 @@ void main() {
           state: _map(rows).state,
           root: ColumnNode(
             id: 'root',
+            spacing: const Literal(SpacingToken.sm),
             children: [
+              _progress(2),
               ExpandedNode(
                 id: 'body',
                 child: ScrollNode(
@@ -389,6 +412,7 @@ void main() {
             'a': {'done': false, 'saving': false},
             'b': {'done': true, 'saving': false},
           },
+          'progress': {'done': 1},
         }),
       );
       _expectWidgetSafe(page);
@@ -397,11 +421,16 @@ void main() {
     test('shows nothing planned today for an empty day', () {
       final empty = GenericPage(
         id: MyDayPageMapper.widgetPageId,
-        state: GenericValues(const {'tasks': <String, Object?>{}}),
-        root: const ColumnNode(
+        state: GenericValues(const {
+          'tasks': <String, Object?>{},
+          'progress': {'done': 0},
+        }),
+        root: ColumnNode(
           id: 'root',
+          spacing: const Literal(SpacingToken.sm),
           children: [
-            ExpandedNode(
+            _progress(0),
+            const ExpandedNode(
               id: 'body',
               child: ScrollNode(
                 id: 'scroll',

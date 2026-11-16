@@ -8,6 +8,9 @@ abstract final class Dimens {
   static const double radiusSm = 8;
   static const double radiusMd = 12;
   static const double radiusLg = 16;
+  static const double radiusFull = 999;
 
   static const double strokeSm = 2;
+
+  static const double progressHeight = 8;
 }

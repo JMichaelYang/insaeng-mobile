@@ -180,6 +180,24 @@ void main() {
       );
     });
 
+    test('resolves a progress bar with a bound value and literal max', () {
+      expect(
+        _resolveNode(
+          const ProgressBarNode(id: 'progress', value: Binding('progress.done', fallback: 0), max: Literal(5)),
+          {
+            'progress': {'done': 2},
+          },
+        ),
+        const WidgetNode(type: 'progressBar', id: 'progress', props: {'value': 2, 'max': 5}),
+      );
+      expect(
+        _resolveNode(
+          const ProgressBarNode(id: 'progress', value: Binding('progress.done', fallback: 0), max: Literal(0)),
+        ),
+        const WidgetNode(type: 'progressBar', id: 'progress', props: {'value': 0, 'max': 0}),
+      );
+    });
+
     test('resolves a checkbox tile with checked from its bind path', () {
       const tile = CheckboxTileNode(
         id: 'task',

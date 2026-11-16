@@ -2,9 +2,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:insaeng/data/repositories/generic_notion_action_repository_impl.dart';
+import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/data/services/notion_service.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:mocktail/mocktail.dart';
@@ -81,13 +84,21 @@ void main() {
         },
       };
 
-      test('sets the status to Done when done is true', () async {
-        expect(await patch({'done': true}), const Result<List<GenericAction>>.ok([]));
+      Matcher progressBy(int step) => isA<Ok<List<GenericAction>>>().having((result) => result.value, 'value', [
+        UpdateStateAction(
+          path: MyDayPageMapper.progressDonePath,
+          op: const Literal(UpdateOp.increment),
+          value: Literal(step),
+        ),
+      ]);
+
+      test('sets the status to Done and counts the task toward progress when done is true', () async {
+        expect(await patch({'done': true}), progressBy(1));
         verify(() => notion.updatePage('secret', 'page-1', statusProperties('Done'))).called(1);
       });
 
-      test('sets the status to To do when done is false', () async {
-        expect(await patch({'done': false}), const Result<List<GenericAction>>.ok([]));
+      test('sets the status to To do and removes the task from progress when done is false', () async {
+        expect(await patch({'done': false}), progressBy(-1));
         verify(() => notion.updatePage('secret', 'page-1', statusProperties('To do'))).called(1);
       });
 

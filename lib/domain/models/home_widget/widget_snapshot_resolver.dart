@@ -45,6 +45,11 @@ final class WidgetSnapshotResolver {
     ScrollNode(:final id, :final child) => _node('scroll', id, children: [?child]),
     SpacerNode(:final id, :final size) => _node('spacer', id, props: {'size': size}),
     DividerNode(:final id) => _node('divider', id),
+    ProgressBarNode(:final id, :final value, :final max) => _node(
+      'progressBar',
+      id,
+      props: {'value': value, 'max': max},
+    ),
     TextNode(:final id, :final text, :final style) => _node('text', id, props: {'text': text, 'style': style}),
     ButtonNode(:final id, :final label, :final variant, :final loading, :final onTap) => _node(
       'button',
