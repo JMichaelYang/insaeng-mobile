@@ -10,8 +10,10 @@ import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/data/services/background_task_service.dart';
+import 'package:insaeng/data/services/home_widget_service.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
+import 'package:insaeng/ui/home_widget/home_widget_event_handler.dart';
 import 'package:workmanager/workmanager.dart';
 
 Future<void> bootstrap(Flavor flavor) async {
@@ -28,7 +30,7 @@ Future<void> bootstrap(Flavor flavor) async {
 
   _refreshHomeWidget();
   AppLifecycleListener(onPause: _refreshHomeWidget);
-  unawaited(_scheduleHomeWidgetRefresh());
+  unawaited(_setUpHomeWidgetBackground());
 
   runApp(App(router: getIt<GoRouter>()));
 }
@@ -52,10 +54,17 @@ Future<bool> runBackgroundTask(String task, Map<String, dynamic>? inputData) asy
   return true;
 }
 
+@pragma('vm:entry-point')
+Future<void> homeWidgetEventDispatcher(Uri? uri) async {
+  bootstrapBackground(Flavor.values.asNameMap()[uri?.queryParameters[backgroundFlavorKey]] ?? Flavor.prod);
+  await getIt<HomeWidgetEventHandler>().handle(uri);
+}
+
 void _refreshHomeWidget() => unawaited(getIt<RefreshHomeWidgetUseCase>()(MyDayPageMapper.widgetPageId));
 
-Future<void> _scheduleHomeWidgetRefresh() async {
+Future<void> _setUpHomeWidgetBackground() async {
   if (defaultTargetPlatform != TargetPlatform.android) return;
+  await getIt<HomeWidgetService>().registerInteractivityCallback(homeWidgetEventDispatcher);
   await getIt<BackgroundTaskService>().initialize(backgroundTaskDispatcher);
   await getIt<ScheduleHomeWidgetRefreshUseCase>()(replace: true);
 }

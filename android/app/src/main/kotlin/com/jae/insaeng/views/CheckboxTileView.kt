@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.action.Action
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.layout.Alignment
@@ -20,12 +19,11 @@ import androidx.glance.unit.ColorProvider
 import com.jae.insaeng.WidgetNode
 import com.jae.insaeng.WidgetSpacing
 import com.jae.insaeng.WidgetTextStyle
+import com.jae.insaeng.eventAction
 
 private val trailingSize = 48.dp
 
 private val spinnerSize = 20.dp
-
-private val noAction: Action? = null
 
 @Composable
 internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
@@ -56,7 +54,7 @@ internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
                     color = GlanceTheme.colors.primary,
                 )
             } else {
-                CheckBox(checked = node.boolean("checked") ?: false, onCheckedChange = noAction)
+                CheckBox(checked = node.boolean("checked") ?: false, onCheckedChange = node.eventAction())
             }
         }
     }

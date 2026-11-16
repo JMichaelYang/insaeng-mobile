@@ -11,6 +11,7 @@ android {
     ndkVersion = flutter.ndkVersion
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 

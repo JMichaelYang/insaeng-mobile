@@ -2,6 +2,7 @@ package com.jae.insaeng
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceId
@@ -38,8 +39,10 @@ class GenericGlanceWidget : GlanceAppWidget() {
 
     @Composable
     private fun Content(snapshot: WidgetSnapshot) {
-        Box(modifier = frameModifier()) {
-            WidgetNodeView(snapshot.root, GlanceModifier.fillMaxSize())
+        CompositionLocalProvider(LocalWidgetPageId provides snapshot.pageId) {
+            Box(modifier = frameModifier()) {
+                WidgetNodeView(snapshot.root, GlanceModifier.fillMaxSize())
+            }
         }
     }
 

@@ -18,6 +18,7 @@ import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
 import 'package:insaeng/routing/router.dart';
+import 'package:insaeng/ui/home_widget/home_widget_event_handler.dart';
 import 'package:workmanager/workmanager.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -42,5 +43,6 @@ void configureDependencies(Flavor flavor) {
     ..registerLazySingleton<WidgetSnapshotRepository>(() => WidgetSnapshotRepositoryImpl(getIt()))
     ..registerLazySingleton(() => RefreshHomeWidgetUseCase(getIt(), getIt()))
     ..registerLazySingleton(() => ScheduleHomeWidgetRefreshUseCase(getIt()))
+    ..registerLazySingleton(() => HomeWidgetEventHandler(getIt(), getIt(), getIt()))
     ..registerLazySingleton<GoRouter>(() => router(getIt));
 }
