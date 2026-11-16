@@ -6,11 +6,14 @@ import 'package:insaeng/domain/repositories/background_task_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
+import 'package:insaeng/ui/home_widget/home_widget_event_handler.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockRefreshHomeWidgetUseCase extends Mock implements RefreshHomeWidgetUseCase;
 
 class _MockScheduleHomeWidgetRefreshUseCase extends Mock implements ScheduleHomeWidgetRefreshUseCase;
+
+class _MockHomeWidgetEventHandler extends Mock implements HomeWidgetEventHandler;
 
 void main() {
   tearDown(getIt.reset);
@@ -81,6 +84,40 @@ void main() {
       await runBackgroundTask(ScheduleHomeWidgetRefreshUseCase.midnightTask, {backgroundFlavorKey: 'prod'});
 
       expect(getIt<Flavor>(), Flavor.dev);
+    });
+  });
+
+  group(homeWidgetEventDispatcher, () {
+    late HomeWidgetEventHandler handler;
+
+    setUp(() {
+      handler = _MockHomeWidgetEventHandler();
+      when(() => handler.handle(any())).thenAnswer((_) async {});
+    });
+
+    test('forwards the URI to the event handler', () async {
+      getIt
+        ..registerSingleton(Flavor.dev)
+        ..registerSingleton(handler);
+      final uri = Uri.parse('insaeng://widget/event?flavor=dev&page=myDayWidget&node=task-a&event=onChanged');
+
+      await homeWidgetEventDispatcher(uri);
+
+      verify(() => handler.handle(uri)).called(1);
+    });
+
+    for (final flavor in Flavor.values) {
+      test('configures dependencies for the ${flavor.name} flavor in the URI', () async {
+        await homeWidgetEventDispatcher(Uri.parse('insaeng://widget/event?flavor=${flavor.name}'));
+
+        expect(getIt<Flavor>(), flavor);
+      });
+    }
+
+    test('falls back to prod without a flavor', () async {
+      await homeWidgetEventDispatcher(null);
+
+      expect(getIt<Flavor>(), Flavor.prod);
     });
   });
 }

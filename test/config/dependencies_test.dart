@@ -15,6 +15,7 @@ import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
+import 'package:insaeng/ui/home_widget/home_widget_event_handler.dart';
 import 'package:workmanager/workmanager.dart';
 
 void main() {
@@ -92,6 +93,12 @@ void main() {
         configureDependencies(flavor);
 
         expect(getIt<ScheduleHomeWidgetRefreshUseCase>(), isA<ScheduleHomeWidgetRefreshUseCase>());
+      });
+
+      test('registers one home widget event handler for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<HomeWidgetEventHandler>(), same(getIt<HomeWidgetEventHandler>()));
       });
     }
   });

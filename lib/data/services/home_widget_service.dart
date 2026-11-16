@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:home_widget/home_widget.dart';
 
 class HomeWidgetService {
@@ -10,4 +12,7 @@ class HomeWidgetService {
   Future<String?> read(String key) => HomeWidget.getWidgetData<String>(key);
 
   Future<bool?> update() => HomeWidget.updateWidget(qualifiedAndroidName: androidReceiver);
+
+  Future<bool?> registerInteractivityCallback(FutureOr<void> Function(Uri?) callback) =>
+      HomeWidget.registerInteractivityCallback(callback);
 }
