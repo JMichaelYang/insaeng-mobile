@@ -64,6 +64,10 @@ jobs:
       - name: Build dev APK
         run: flutter build apk --debug --flavor dev -t lib/main_dev.dart
 
+      - name: Test Android unit tests
+        working-directory: android
+        run: ./gradlew :app:testDevDebugUnitTest
+
   ios:
     runs-on: macos-latest
     timeout-minutes: 45

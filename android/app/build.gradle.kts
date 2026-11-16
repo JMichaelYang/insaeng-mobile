@@ -46,6 +46,12 @@ android {
         }
     }
 
+    sourceSets {
+        getByName("test") {
+            resources.srcDir("../../test/fixtures")
+        }
+    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
@@ -67,4 +73,6 @@ flutter {
 
 dependencies {
     implementation("androidx.glance:glance-appwidget:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
+    testImplementation("junit:junit:4.13.2")
 }
