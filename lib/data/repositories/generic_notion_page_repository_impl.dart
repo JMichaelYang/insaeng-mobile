@@ -83,11 +83,12 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
 
   @override
   Future<Result<GenericPage>> fetch(String id, Map<String, String> params) => switch (id) {
-    MyDayPageMapper.pageId => _myDay(),
+    MyDayPageMapper.pageId => _myDay(MyDayPageMapper.fromRows, connectPage),
+    MyDayPageMapper.widgetPageId => _myDay(MyDayPageMapper.widgetFromRows, MyDayPageMapper.widgetConnectPage),
     _ => Future.value(const Result.err(GenericPageNotFound())),
   };
 
-  Future<Result<GenericPage>> _myDay() async {
+  Future<Result<GenericPage>> _myDay(MyDayRowsMapper map, GenericPage connect) async {
     final String? token;
     final String? dataSourceId;
     try {
@@ -97,14 +98,14 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
       return const Result.err(GenericPageServerError());
     }
     if (token == null || token.isEmpty || dataSourceId == null || dataSourceId.isEmpty) {
-      return Result.ok(connectPage);
+      return Result.ok(connect);
     }
     final now = _now();
     try {
       final rows = await _agendaRows(token, dataSourceId, now);
-      return Result.ok(MyDayPageMapper.fromRows(rows, now: now));
+      return Result.ok(map(rows, now: now));
     } on NotionUnauthorizedException {
-      return Result.ok(connectPage);
+      return Result.ok(connect);
     } on NotionNetworkException {
       return const Result.err(GenericPageOffline());
     } on NotionException {

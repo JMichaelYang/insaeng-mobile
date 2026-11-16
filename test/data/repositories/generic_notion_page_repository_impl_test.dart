@@ -200,6 +200,99 @@ void main() {
       });
     });
 
+    group(MyDayPageMapper.widgetPageId, () {
+      Future<Result<GenericPage>> fetch() => repository.fetch(MyDayPageMapper.widgetPageId, const {});
+
+      void stub({String? token = 'secret', String? dataSourceId = 'agenda'}) {
+        when(() => storage.read(SecureStorageService.notionTokenKey)).thenAnswer((_) async => token);
+        when(() => storage.read(SecureStorageService.notionDataSourceIdKey)).thenAnswer((_) async => dataSourceId);
+      }
+
+      void stubQuery(Future<Map<String, Object?>> Function(Invocation invocation) answer) =>
+          when(() => notion.queryDataSource(any(), any(), any())).thenAnswer(answer);
+
+      test('maps the same agenda query to the widget page', () async {
+        stub();
+        final first = _row('first', '2026-03-01');
+        final second = _row('second', '2026-03-02');
+        stubQuery(
+          (invocation) async => switch ((invocation.positionalArguments[2] as Map<String, Object?>)['start_cursor']) {
+            null => _response([first], nextCursor: 'cursor-2'),
+            _ => _response([second]),
+          },
+        );
+
+        expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.widgetFromRows([first, second], now: _now)));
+        verify(
+          () => notion.queryDataSource('secret', 'agenda', {
+            'filter': {
+              'and': [
+                {
+                  'property': GenericNotionPageRepositoryImpl.dateProperty,
+                  'date': {'on_or_after': '2026-02-28'},
+                },
+                {
+                  'property': GenericNotionPageRepositoryImpl.dateProperty,
+                  'date': {'on_or_before': '2026-03-02'},
+                },
+              ],
+            },
+            'page_size': GenericNotionPageRepositoryImpl.pageSize,
+          }),
+        ).called(1);
+        verify(() => notion.queryDataSource('secret', 'agenda', any(that: containsPair('start_cursor', 'cursor-2'))))
+            .called(1);
+      });
+
+      test('returns the empty widget page when no rows match', () async {
+        stub();
+        stubQuery((_) async => _response(const []));
+
+        final page = _page(await fetch());
+
+        expect(page, MyDayPageMapper.widgetFromRows(const [], now: _now));
+        expect(page.nodes.whereType<TextNode>().single.text, const Literal(MyDayPageMapper.emptyText));
+      });
+
+      for (final (description, token, dataSourceId) in [
+        ('the token is missing', null, 'agenda'),
+        ('the data source id is empty', 'secret', ''),
+      ]) {
+        test('returns the widget connect page when $description', () async {
+          stub(token: token, dataSourceId: dataSourceId);
+
+          expect(await fetch(), const Result<GenericPage>.ok(MyDayPageMapper.widgetConnectPage));
+          verifyZeroInteractions(notion);
+        });
+      }
+
+      test('returns the widget connect page when Notion rejects the token', () async {
+        stub();
+        stubQuery((_) async => throw const NotionUnauthorizedException());
+
+        expect(await fetch(), const Result<GenericPage>.ok(MyDayPageMapper.widgetConnectPage));
+      });
+
+      for (final (description, exception, failure) in [
+        ('the network fails', NotionNetworkException(ClientException('offline')), const GenericPageOffline()),
+        ('Notion returns an HTTP error', const NotionHttpException(500, 'error'), const GenericPageServerError()),
+        ('Notion returns malformed JSON', const FormatException('bad'), const GenericPageServerError()),
+      ]) {
+        test('returns $failure when $description', () async {
+          stub();
+          stubQuery((_) async => throw exception);
+
+          expect(await fetch(), Result<GenericPage>.err(failure));
+        });
+      }
+
+      test('returns server error when storage fails', () async {
+        when(() => storage.read(any())).thenThrow(PlatformException(code: 'error'));
+
+        expect(await fetch(), const Result<GenericPage>.err(GenericPageServerError()));
+      });
+    });
+
     test('returns not found for other pages', () async {
       expect(await repository.fetch('home', const {}), const Result<GenericPage>.err(GenericPageNotFound()));
       verifyNever(() => storage.read(any()));
