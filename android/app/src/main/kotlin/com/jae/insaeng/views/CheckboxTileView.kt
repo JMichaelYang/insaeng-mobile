@@ -32,7 +32,7 @@ internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
     val emoji = node.string("emoji")
     val subtitle = node.string("subtitle")
     Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = WidgetSpacing.SM.size),
+        modifier = modifier.fillMaxWidth().padding(vertical = WidgetSpacing.XS.size),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (emoji != null) {

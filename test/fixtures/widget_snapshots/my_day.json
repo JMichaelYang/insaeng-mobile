@@ -26,12 +26,6 @@
                   },
                   {
                     "children": [],
-                    "id": "divider-gym",
-                    "props": {},
-                    "type": "divider"
-                  },
-                  {
-                    "children": [],
                     "id": "task-meeting",
                     "props": {
                       "busy": false,
@@ -46,12 +40,6 @@
                       "type": "event"
                     },
                     "type": "checkboxTile"
-                  },
-                  {
-                    "children": [],
-                    "id": "divider-meeting",
-                    "props": {},
-                    "type": "divider"
                   },
                   {
                     "children": [],
