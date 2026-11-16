@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:insaeng/app.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/config/widget_refresh_scheduler.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 
@@ -25,6 +26,7 @@ Future<void> bootstrap(Flavor flavor) async {
 
   _refreshHomeWidget();
   AppLifecycleListener(onPause: _refreshHomeWidget);
+  if (defaultTargetPlatform == TargetPlatform.android) unawaited(getIt<WidgetRefreshScheduler>().start());
 
   runApp(App(router: getIt<GoRouter>()));
 }

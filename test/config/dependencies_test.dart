@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/config/widget_refresh_scheduler.dart';
 import 'package:insaeng/data/repositories/generic_notion_action_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_notion_page_repository_impl.dart';
 import 'package:insaeng/data/repositories/widget_snapshot_repository_impl.dart';
@@ -11,6 +12,7 @@ import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() {
   group(configureDependencies, () {
@@ -63,6 +65,18 @@ void main() {
         configureDependencies(flavor);
 
         expect(getIt<RefreshHomeWidgetUseCase>(), isA<RefreshHomeWidgetUseCase>());
+      });
+
+      test('registers workmanager for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<Workmanager>(), same(Workmanager()));
+      });
+
+      test('registers the widget refresh scheduler for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<WidgetRefreshScheduler>(), isA<WidgetRefreshScheduler>());
       });
     }
   });

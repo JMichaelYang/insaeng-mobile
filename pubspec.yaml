@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.20.3
   material_ui: ^1.1.0
   meta: ^1.19.0
+  workmanager: ^0.10.10
 
 dev_dependencies:
   alchemist: ^0.14.1
