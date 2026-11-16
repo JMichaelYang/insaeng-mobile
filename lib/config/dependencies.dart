@@ -12,6 +12,7 @@ import 'package:insaeng/data/services/secure_storage_service.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
+import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 import 'package:insaeng/routing/router.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -27,5 +28,6 @@ void configureDependencies(Flavor flavor) {
     ..registerLazySingleton<GenericActionRepository>(() => GenericNotionActionRepositoryImpl(getIt(), getIt()))
     ..registerLazySingleton<GenericPageRepository>(() => GenericNotionPageRepositoryImpl(getIt(), getIt()))
     ..registerLazySingleton<WidgetSnapshotRepository>(() => WidgetSnapshotRepositoryImpl(getIt()))
+    ..registerLazySingleton(() => RefreshHomeWidgetUseCase(getIt(), getIt()))
     ..registerLazySingleton<GoRouter>(() => router(getIt));
 }
