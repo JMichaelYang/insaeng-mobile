@@ -10,9 +10,11 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
+import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
@@ -47,15 +49,15 @@ internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
                 TileText(subtitle, WidgetTextStyle.BODY_MEDIUM, GlanceTheme.colors.onSurfaceVariant)
             }
         }
+        if (node.boolean("busy") == true) {
+            CircularProgressIndicator(
+                modifier = GlanceModifier.size(spinnerSize),
+                color = GlanceTheme.colors.primary,
+            )
+            Spacer(modifier = GlanceModifier.width(WidgetSpacing.SM.size))
+        }
         Box(modifier = GlanceModifier.size(trailingSize), contentAlignment = Alignment.Center) {
-            if (node.boolean("busy") == true) {
-                CircularProgressIndicator(
-                    modifier = GlanceModifier.size(spinnerSize),
-                    color = GlanceTheme.colors.primary,
-                )
-            } else {
-                CheckBox(checked = node.boolean("checked") ?: false, onCheckedChange = node.eventAction())
-            }
+            CheckBox(checked = node.boolean("checked") ?: false, onCheckedChange = node.eventAction())
         }
     }
 }

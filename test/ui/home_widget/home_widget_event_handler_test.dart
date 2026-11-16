@@ -211,6 +211,49 @@ void main() {
       expect(savedValues().last, valuesWith({'done': true, 'saving': false}, {'done': false, 'saving': false}));
     });
 
+    test('ignores a second tap on a task that is still saving', () async {
+      final request = Completer<void>();
+      when(
+        () => actions.perform(
+          method: any(named: 'method'),
+          endpoint: any(named: 'endpoint'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((_) async {
+        await request.future;
+        return const Result.ok([]);
+      });
+
+      final first = handler.handle(_uri(node: 'task-a'));
+      await pumpEventQueue();
+      await handler.handle(_uri(node: 'task-a'));
+      request.complete();
+      await first;
+
+      verify(
+        () => actions.perform(
+          method: any(named: 'method'),
+          endpoint: any(named: 'endpoint'),
+          body: any(named: 'body'),
+        ),
+      ).called(1);
+      expect(savedValues().last, valuesWith({'done': true, 'saving': false}, {'done': true, 'saving': false}));
+    });
+
+    test('accepts a tap on a task stored as saving when nothing is in flight', () async {
+      when(() => snapshots.load(_pageId)).thenAnswer(
+        (_) async => Result.ok((
+          page: _page,
+          values: valuesWith({'done': false, 'saving': true}, {'done': true, 'saving': false}),
+        )),
+      );
+
+      await handler.handle(_uri(node: 'task-a'));
+
+      verify(() => actions.perform(method: RequestMethod.patch, endpoint: '/my-day/tasks/a', body: {'done': true}))
+          .called(1);
+    });
+
     test('loads the stored page again once earlier taps have finished', () async {
       await handler.handle(_uri(node: 'task-a'));
       await handler.handle(_uri(node: 'task-a'));

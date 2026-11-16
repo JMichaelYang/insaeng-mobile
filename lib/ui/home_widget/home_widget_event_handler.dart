@@ -57,11 +57,17 @@ final class _PageSession {
   final WidgetSnapshotRepository _snapshots;
   late final StreamSubscription<GenericState> _subscription;
   Future<void> _rendered = Future.value();
+  var _running = 0;
 
   Future<void> run(String nodeId, String event) async {
     final actions = _actionsFor(nodeId, event);
     if (actions == null) return;
-    await _cubit.dispatch(actions);
+    _running++;
+    try {
+      await _cubit.dispatch(actions);
+    } finally {
+      _running--;
+    }
     await _rendered;
   }
 
@@ -75,6 +81,7 @@ final class _PageSession {
     final GenericState(:page, :values) = _cubit.state;
     final node = page?.nodes.where((node) => node.id == nodeId).firstOrNull;
     return switch ((node, event)) {
+      (CheckboxTileNode(:final busy), 'onChanged') when _running > 0 && (busy.resolve(values) ?? false) => null,
       (CheckboxTileNode(:final bind, :final onChanged), 'onChanged') => [
         UpdateStateAction(path: bind, value: Literal(!(Binding<bool>(bind).resolve(values) ?? false))),
         ...onChanged,
