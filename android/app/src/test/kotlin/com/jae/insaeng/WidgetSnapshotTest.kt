@@ -40,11 +40,11 @@ class WidgetSnapshotTest {
         val tasks = scroll.children.single()
         assertEquals("column", tasks.type)
         assertEquals(
-            listOf("task-gym", "divider-gym", "task-meeting", "divider-meeting", "task-lunch"),
+            listOf("task-gym", "task-meeting", "task-lunch"),
             tasks.children.map { it.id },
         )
         assertEquals(
-            listOf("checkboxTile", "divider", "checkboxTile", "divider", "checkboxTile"),
+            listOf("checkboxTile", "checkboxTile", "checkboxTile"),
             tasks.children.map { it.type },
         )
 
@@ -55,16 +55,13 @@ class WidgetSnapshotTest {
         assertEquals(false, gym.boolean("checked"))
         assertEquals(false, gym.boolean("busy"))
 
-        val meeting = tasks.children[2]
+        val meeting = tasks.children[1]
         assertEquals("Team meeting", meeting.string("title"))
         assertEquals("9:00 – 10:30 AM", meeting.string("subtitle"))
         assertEquals("✅", meeting.string("emoji"))
         assertEquals(true, meeting.boolean("checked"))
         assertEquals(false, meeting.boolean("busy"))
         assertEquals(WidgetTap.Event(nodeId = "task-meeting", event = "onChanged"), meeting.tap)
-
-        assertNull(tasks.children[1].tap)
-        assertEquals(0, tasks.children[1].props.size)
     }
 
     @Test
@@ -129,7 +126,7 @@ class WidgetSnapshotTest {
         val items = scroll.scrollItems()
 
         assertEquals(
-            listOf("task-gym", "divider-gym", "task-meeting", "divider-meeting", "task-lunch"),
+            listOf("task-gym", "task-meeting", "task-lunch"),
             items.map { it.id },
         )
         val ids = items.map { it.itemId }

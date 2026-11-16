@@ -374,14 +374,7 @@ void main() {
                 id: 'body',
                 child: ScrollNode(
                   id: 'scroll',
-                  child: ColumnNode(
-                    id: 'tasks',
-                    children: [
-                      appTiles[0],
-                      const DividerNode(id: 'divider-a'),
-                      appTiles[1],
-                    ],
-                  ),
+                  child: ColumnNode(id: 'tasks', children: [appTiles[0], appTiles[1]]),
                 ),
               ),
             ],

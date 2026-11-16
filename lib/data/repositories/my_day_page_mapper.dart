@@ -76,7 +76,7 @@ abstract final class MyDayPageMapper {
         children: [
           ExpandedNode(
             id: 'body',
-            child: ScrollNode(id: 'scroll', child: _taskList(tasks)),
+            child: ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),
           ),
         ],
       ),
@@ -98,7 +98,7 @@ abstract final class MyDayPageMapper {
     },
   });
 
-  static GenericNode _taskList(List<_Task> tasks) => tasks.isEmpty
+  static GenericNode _taskList(List<_Task> tasks, {bool dividers = true}) => tasks.isEmpty
       ? const ContainerNode(
           id: 'empty',
           padding: Literal(SpacingToken.md),
@@ -109,7 +109,7 @@ abstract final class MyDayPageMapper {
           id: 'tasks',
           children: [
             for (final (index, task) in tasks.indexed) ...[
-              if (index > 0) DividerNode(id: 'divider-${tasks[index - 1].id}'),
+              if (dividers && index > 0) DividerNode(id: 'divider-${tasks[index - 1].id}'),
               _tile(task),
             ],
           ],
