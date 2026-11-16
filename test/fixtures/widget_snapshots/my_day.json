@@ -3,19 +3,6 @@
   "root": {
     "children": [
       {
-        "children": [],
-        "id": "title",
-        "props": {
-          "label": "My Day",
-          "loading": false,
-          "variant": "text"
-        },
-        "tap": {
-          "type": "openApp"
-        },
-        "type": "button"
-      },
-      {
         "children": [
           {
             "children": [

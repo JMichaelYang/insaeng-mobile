@@ -60,3 +60,15 @@ enum class WidgetAlignment(
             entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: START
     }
 }
+
+enum class WidgetButtonVariant {
+    PRIMARY,
+    SECONDARY,
+    TEXT,
+    ;
+
+    companion object {
+        fun of(name: String?): WidgetButtonVariant =
+            entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: PRIMARY
+    }
+}

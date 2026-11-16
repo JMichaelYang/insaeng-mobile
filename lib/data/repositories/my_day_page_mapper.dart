@@ -28,7 +28,6 @@ abstract final class MyDayPageMapper {
     root: ColumnNode(
       id: 'root',
       children: [
-        _widgetTitle,
         ExpandedNode(
           id: 'body',
           child: ContainerNode(
@@ -48,13 +47,6 @@ abstract final class MyDayPageMapper {
   );
 
   static const _openMyDay = [NavigateAction(pageId: Literal(pageId))];
-
-  static const _widgetTitle = ButtonNode(
-    id: 'title',
-    label: Literal(title),
-    variant: Literal(ButtonVariant.text),
-    onTap: _openMyDay,
-  );
 
   static GenericPage fromRows(Iterable<Map<String, Object?>> rows, {required DateTime now}) {
     final tasks = _todayTasks(rows, now);
@@ -82,7 +74,6 @@ abstract final class MyDayPageMapper {
       root: ColumnNode(
         id: 'root',
         children: [
-          _widgetTitle,
           ExpandedNode(
             id: 'body',
             child: ScrollNode(id: 'scroll', child: _taskList(tasks)),

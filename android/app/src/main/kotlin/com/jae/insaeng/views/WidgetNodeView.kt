@@ -4,7 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.glance.GlanceModifier
 import com.jae.insaeng.WidgetNode
 
-private val renderedTypes = setOf("column", "row", "container", "expanded", "spacer", "divider", "text")
+private val renderedTypes =
+    setOf("column", "row", "container", "expanded", "spacer", "divider", "text", "button", "checkboxTile", "scroll")
 
 @Composable
 fun WidgetNodeView(node: WidgetNode, modifier: GlanceModifier = GlanceModifier) {
@@ -16,6 +17,9 @@ fun WidgetNodeView(node: WidgetNode, modifier: GlanceModifier = GlanceModifier) 
         "spacer" -> SpacerView(node, modifier)
         "divider" -> DividerView(modifier)
         "text" -> TextView(node, modifier)
+        "button" -> ButtonView(node, modifier)
+        "checkboxTile" -> CheckboxTileView(node, modifier)
+        "scroll" -> ScrollView(node, modifier)
     }
 }
 

@@ -85,13 +85,6 @@ const _widgetNodeTypes = {
 
 const _openMyDay = [NavigateAction(pageId: Literal(MyDayPageMapper.pageId))];
 
-const _widgetTitle = ButtonNode(
-  id: 'title',
-  label: Literal(MyDayPageMapper.title),
-  variant: Literal(ButtonVariant.text),
-  onTap: _openMyDay,
-);
-
 GenericPage _mapWidget(List<Map<String, Object?>> rows) => MyDayPageMapper.widgetFromRows(rows, now: _now);
 
 void _expectWidgetSafe(GenericPage page) {
@@ -377,7 +370,6 @@ void main() {
           root: ColumnNode(
             id: 'root',
             children: [
-              _widgetTitle,
               ExpandedNode(
                 id: 'body',
                 child: ScrollNode(
@@ -416,7 +408,6 @@ void main() {
         root: const ColumnNode(
           id: 'root',
           children: [
-            _widgetTitle,
             ExpandedNode(
               id: 'body',
               child: ScrollNode(
@@ -450,7 +441,6 @@ void main() {
           root: ColumnNode(
             id: 'root',
             children: [
-              _widgetTitle,
               ExpandedNode(
                 id: 'body',
                 child: ContainerNode(
