@@ -8,7 +8,16 @@ import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 
 typedef MyDayRowsMapper = GenericPage Function(Iterable<Map<String, Object?>> rows, {required DateTime now});
 
-typedef _Task = ({String id, String emoji, String title, String? status, bool allDay, DateTime start, DateTime? end});
+typedef _Task = ({
+  String id,
+  String emoji,
+  String title,
+  String? status,
+  bool allDay,
+  DateTime start,
+  DateTime? end,
+  DateTime? editedAt,
+});
 
 abstract final class MyDayPageMapper {
   static const pageId = 'myDay';
@@ -173,6 +182,10 @@ abstract final class MyDayPageMapper {
             final String end => DateTime.tryParse(end)?.toLocal(),
             _ => null,
           },
+          editedAt: switch (row['last_edited_time']) {
+            final String edited => DateTime.tryParse(edited),
+            _ => null,
+          },
         );
       }
     }
@@ -226,7 +239,24 @@ abstract final class MyDayPageMapper {
 
   static String _period(DateTime time) => time.hour < 12 ? 'AM' : 'PM';
 
-  static int _compare(_Task a, _Task b) => switch ((a.allDay, b.allDay)) {
+  static int _compare(_Task a, _Task b) => switch ((_isChecked(a), _isChecked(b))) {
+    (false, true) => -1,
+    (true, false) => 1,
+    (true, true) => switch (_compareCompletion(a, b)) {
+      0 => _compareSchedule(a, b),
+      final order => order,
+    },
+    (false, false) => _compareSchedule(a, b),
+  };
+
+  static int _compareCompletion(_Task a, _Task b) => switch ((a.editedAt, b.editedAt)) {
+    (final aAt?, final bAt?) => bAt.compareTo(aAt),
+    (_?, null) => -1,
+    (null, _?) => 1,
+    (null, null) => 0,
+  };
+
+  static int _compareSchedule(_Task a, _Task b) => switch ((a.allDay, b.allDay)) {
     (true, false) => -1,
     (false, true) => 1,
     _ => a.start.compareTo(b.start),

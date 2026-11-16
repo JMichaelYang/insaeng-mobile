@@ -15,11 +15,13 @@ Map<String, Object?> _row(
   String? start,
   String? end,
   String? status,
+  String? edited,
   Map<String, Object?>? icon,
 }) => {
   'object': 'page',
   'id': id,
   'icon': icon,
+  'last_edited_time': ?edited,
   'properties': {
     'Name': {
       'type': 'title',
@@ -285,6 +287,50 @@ void main() {
       expect(_ids(page), ['task-allDayFirst', 'task-allDaySecond', 'task-morning', 'task-noon', 'task-afternoon']);
     });
 
+    test('puts completed rows last, most recently completed first', () {
+      final page = _map([
+        _row('doneEarly', start: '2026-11-15', status: 'Done', edited: _utc(DateTime(2026, 11, 15, 8))),
+        _row('afternoon', start: _utc(DateTime(2026, 11, 15, 14)), status: 'To do'),
+        _row(
+          'skippedLate',
+          start: _utc(DateTime(2026, 11, 15, 9)),
+          status: 'Skipped',
+          edited: _utc(DateTime(2026, 11, 15, 11)),
+        ),
+        _row('allDay', start: '2026-11-15'),
+        _row('doneUnknown', start: '2026-11-15', status: 'Done'),
+        _row(
+          'doneMid',
+          start: _utc(DateTime(2026, 11, 15, 7)),
+          status: 'Done',
+          edited: _utc(DateTime(2026, 11, 15, 10)),
+        ),
+        _row(
+          'doneTieLater',
+          start: _utc(DateTime(2026, 11, 15, 10)),
+          status: 'Done',
+          edited: _utc(DateTime(2026, 11, 15, 9)),
+        ),
+        _row(
+          'doneTieEarlier',
+          start: _utc(DateTime(2026, 11, 15, 6)),
+          status: 'Done',
+          edited: _utc(DateTime(2026, 11, 15, 9)),
+        ),
+      ]);
+
+      expect(_ids(page), [
+        'task-allDay',
+        'task-afternoon',
+        'task-skippedLate',
+        'task-doneMid',
+        'task-doneTieEarlier',
+        'task-doneTieLater',
+        'task-doneEarly',
+        'task-doneUnknown',
+      ]);
+    });
+
     test('checks done and skipped rows and labels skipped ones', () {
       final page = _map([
         _row('done', start: '2026-11-15', status: 'Done'),
@@ -374,6 +420,22 @@ void main() {
   });
 
   group('$MyDayPageMapper.widgetFromRows', () {
+    test('orders tiles like the app, with completed rows last and most recent first', () {
+      final rows = [
+        _row('doneEarly', start: '2026-11-15', status: 'Done', edited: _utc(DateTime(2026, 11, 15, 8))),
+        _row('open', start: _utc(DateTime(2026, 11, 15, 14))),
+        _row(
+          'doneLate',
+          start: _utc(DateTime(2026, 11, 15, 9)),
+          status: 'Done',
+          edited: _utc(DateTime(2026, 11, 15, 11)),
+        ),
+      ];
+
+      expect(_ids(_mapWidget(rows)), ['task-open', 'task-doneLate', 'task-doneEarly']);
+      expect(_ids(_mapWidget(rows)), _ids(_map(rows)));
+    });
+
     test('builds a progress bar and a scroll of the same tiles without refresh', () {
       final rows = [
         _row('b', title: 'Meeting', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
