@@ -6,6 +6,7 @@ import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
 import 'package:insaeng/ui/generic/items/expanded_item.dart';
+import 'package:insaeng/ui/generic/items/progress_bar_item.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
 import 'package:insaeng/ui/generic/items/scroll_item.dart';
 import 'package:insaeng/ui/generic/items/spacer_item.dart';
@@ -33,6 +34,7 @@ class NodeView extends StatelessWidget {
     final CheckboxTileNode node => CheckboxTileItem(node: node),
     final SpacerNode node => SpacerItem(node: node),
     final DividerNode node => DividerItem(node: node),
+    final ProgressBarNode node => ProgressBarItem(node: node),
     final UnknownNode node => UnknownItem(node: node),
   };
 }

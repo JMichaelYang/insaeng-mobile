@@ -11,6 +11,7 @@ import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
 import 'package:insaeng/ui/generic/items/expanded_item.dart';
 import 'package:insaeng/ui/generic/items/node_view.dart';
+import 'package:insaeng/ui/generic/items/progress_bar_item.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
 import 'package:insaeng/ui/generic/items/scroll_item.dart';
 import 'package:insaeng/ui/generic/items/spacer_item.dart';
@@ -54,6 +55,7 @@ void main() {
       const CheckboxTileNode(id: 'checkboxTile', bind: 'done', title: Literal('Done')): CheckboxTileItem,
       const SpacerNode(id: 'spacer'): SpacerItem,
       const DividerNode(id: 'divider'): DividerItem,
+      const ProgressBarNode(id: 'progress', value: Literal(1), max: Literal(2)): ProgressBarItem,
       const UnknownNode(id: 'unknown'): UnknownItem,
     };
 

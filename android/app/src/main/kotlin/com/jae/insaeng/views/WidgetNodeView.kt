@@ -5,7 +5,7 @@ import androidx.glance.GlanceModifier
 import com.jae.insaeng.WidgetNode
 
 private val renderedTypes =
-    setOf("column", "row", "container", "expanded", "spacer", "divider", "text", "button", "checkboxTile", "scroll")
+    setOf("column", "row", "container", "expanded", "spacer", "divider", "text", "button", "checkboxTile", "scroll", "progressBar")
 
 @Composable
 fun WidgetNodeView(node: WidgetNode, modifier: GlanceModifier = GlanceModifier) {
@@ -20,6 +20,7 @@ fun WidgetNodeView(node: WidgetNode, modifier: GlanceModifier = GlanceModifier) 
         "button" -> ButtonView(node, modifier)
         "checkboxTile" -> CheckboxTileView(node, modifier)
         "scroll" -> ScrollView(node, modifier)
+        "progressBar" -> ProgressBarView(node, modifier)
     }
 }
 

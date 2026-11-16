@@ -5,9 +5,12 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.layout.Alignment
 import androidx.glance.text.FontWeight
 import com.jae.insaeng.views.itemId
+import com.jae.insaeng.views.progress
 import com.jae.insaeng.views.scrollItems
 import com.jae.insaeng.views.toAction
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
@@ -29,11 +32,17 @@ class WidgetSnapshotTest {
         assertEquals("column", root.type)
         assertEquals("root", root.id)
         assertEquals("start", root.string("alignment"))
-        assertEquals("none", root.string("spacing"))
+        assertEquals("sm", root.string("spacing"))
         assertNull(root.tap)
-        assertEquals(listOf("expanded"), root.children.map { it.type })
+        assertEquals(listOf("progressBar", "expanded"), root.children.map { it.type })
 
-        val body = root.children.single()
+        val progress = root.children[0]
+        assertEquals("progress", progress.id)
+        assertEquals(2, progress.int("value"))
+        assertEquals(3, progress.int("max"))
+        assertEquals(2f / 3f, progress.progress)
+
+        val body = root.children[1]
         assertEquals("body", body.id)
         assertEquals(1, body.int("flex"))
 
@@ -124,7 +133,7 @@ class WidgetSnapshotTest {
 
     @Test
     fun flattensScrollColumnIntoStableItems() {
-        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.single().children.single()
+        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.last().children.single()
         val items = scroll.scrollItems()
 
         assertEquals(
@@ -134,7 +143,7 @@ class WidgetSnapshotTest {
         val ids = items.map { it.itemId }
         assertEquals(ids.size, ids.toSet().size)
         assertTrue(ids.all { it >= 0 })
-        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.single().children.single()
+        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.last().children.single()
         assertEquals(ids, again.scrollItems().map { it.itemId })
         assertNotEquals(WidgetNode(type = "text", id = "a").itemId, WidgetNode(type = "text", id = "b").itemId)
     }
@@ -151,6 +160,29 @@ class WidgetSnapshotTest {
         assertEquals(emptyList<String>(), itemIds(null))
         assertEquals(emptyList<String>(), itemIds(node("textField", "f")))
         assertEquals(listOf("t"), itemIds(node("column", "c", node("appBar", "bar"), node("checkboxTile", "t"))))
+    }
+
+    @Test
+    fun clampsProgressToFraction() {
+        fun bar(value: Int?, max: Int?) =
+            WidgetNode(
+                type = "progressBar",
+                id = "p",
+                props =
+                    JsonObject(
+                        buildMap {
+                            value?.let { put("value", JsonPrimitive(it)) }
+                            max?.let { put("max", JsonPrimitive(it)) }
+                        },
+                    ),
+            ).progress
+
+        assertEquals(0.25f, bar(1, 4))
+        assertEquals(1f, bar(5, 4))
+        assertEquals(0f, bar(-1, 4))
+        assertEquals(0f, bar(2, 0))
+        assertEquals(0f, bar(null, 4))
+        assertEquals(0f, bar(2, null))
     }
 
     @Test

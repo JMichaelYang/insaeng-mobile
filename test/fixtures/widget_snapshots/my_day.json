@@ -3,6 +3,15 @@
   "root": {
     "children": [
       {
+        "children": [],
+        "id": "progress",
+        "props": {
+          "max": 3,
+          "value": 2
+        },
+        "type": "progressBar"
+      },
+      {
         "children": [
           {
             "children": [
@@ -82,7 +91,7 @@
     "id": "root",
     "props": {
       "alignment": "start",
-      "spacing": "none"
+      "spacing": "sm"
     },
     "type": "column"
   }

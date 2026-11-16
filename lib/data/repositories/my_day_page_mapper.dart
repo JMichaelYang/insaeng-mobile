@@ -19,6 +19,7 @@ abstract final class MyDayPageMapper {
   static const skippedText = 'Skipped';
   static const saveErrorText = "Couldn't update the task. Try again.";
   static const fallbackEmoji = '📝';
+  static const progressDonePath = 'progress.done';
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
@@ -57,6 +58,12 @@ abstract final class MyDayPageMapper {
         id: 'root',
         children: [
           const AppBarNode(id: 'appBar', title: Literal(title)),
+          ContainerNode(
+            id: 'progressBar',
+            padding: const Literal(SpacingToken.md),
+            alignment: const Literal(AlignmentToken.stretch),
+            child: _progress(tasks),
+          ),
           ExpandedNode(
             id: 'body',
             child: ScrollNode(id: 'scroll', onRefresh: const [ReloadAction()], child: _taskList(tasks)),
@@ -73,7 +80,9 @@ abstract final class MyDayPageMapper {
       state: _state(tasks),
       root: ColumnNode(
         id: 'root',
+        spacing: const Literal(SpacingToken.sm),
         children: [
+          _progress(tasks),
           ExpandedNode(
             id: 'body',
             child: ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),
@@ -96,7 +105,11 @@ abstract final class MyDayPageMapper {
     'tasks': {
       for (final task in tasks) task.id: {'done': _isChecked(task), 'saving': false},
     },
+    'progress': {'done': tasks.where(_isChecked).length},
   });
+
+  static ProgressBarNode _progress(List<_Task> tasks) =>
+      ProgressBarNode(id: 'progress', value: const Binding(progressDonePath, fallback: 0), max: Literal(tasks.length));
 
   static GenericNode _taskList(List<_Task> tasks, {bool dividers = true}) => tasks.isEmpty
       ? const ContainerNode(

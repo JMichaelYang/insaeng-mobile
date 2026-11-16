@@ -1,7 +1,10 @@
 import 'package:flutter/services.dart';
+import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/data/services/notion_service.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
+import 'package:insaeng/domain/models/generic_ui/bindable.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/result.dart';
 
@@ -41,12 +44,9 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
   }
 
   Future<Result<List<GenericAction>>> _updateTaskStatus(String id, Map<String, Object?> body) async {
-    final status = switch (body['done']) {
-      true => doneStatus,
-      false => todoStatus,
-      _ => null,
-    };
-    if (status == null) return const Result.err(GenericActionInvalid());
+    final done = body['done'];
+    if (done is! bool) return const Result.err(GenericActionInvalid());
+    final status = done ? doneStatus : todoStatus;
     try {
       final token = await _storage.read(SecureStorageService.notionTokenKey);
       if (token == null || token.isEmpty) return const Result.err(GenericActionUnauthorized());
@@ -55,7 +55,13 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
           'status': {'name': status},
         },
       });
-      return const Result.ok([]);
+      return Result.ok([
+        UpdateStateAction(
+          path: MyDayPageMapper.progressDonePath,
+          op: const Literal(UpdateOp.increment),
+          value: Literal(done ? 1 : -1),
+        ),
+      ]);
     } on PlatformException {
       return const Result.err(GenericActionServerError());
     } on NotionUnauthorizedException {
