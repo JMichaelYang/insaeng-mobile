@@ -70,6 +70,39 @@ List<String> _rowIds(GenericPage page) => [
     if (node is CheckboxTileNode || node is DividerNode) node.id,
 ];
 
+const _widgetNodeTypes = {
+  ColumnNode,
+  RowNode,
+  ContainerNode,
+  ExpandedNode,
+  SpacerNode,
+  DividerNode,
+  TextNode,
+  ButtonNode,
+  CheckboxTileNode,
+  ScrollNode,
+};
+
+const _openMyDay = [NavigateAction(pageId: Literal(MyDayPageMapper.pageId))];
+
+const _widgetTitle = ButtonNode(
+  id: 'title',
+  label: Literal(MyDayPageMapper.title),
+  variant: Literal(ButtonVariant.text),
+  onTap: _openMyDay,
+);
+
+GenericPage _mapWidget(List<Map<String, Object?>> rows) => MyDayPageMapper.widgetFromRows(rows, now: _now);
+
+void _expectWidgetSafe(GenericPage page) {
+  final ids = [for (final node in page.nodes) node.id];
+
+  expect(ids.toSet(), hasLength(ids.length));
+  expect({for (final node in page.nodes) node.runtimeType}.difference(_widgetNodeTypes), isEmpty);
+  expect(page.nodes.whereType<ScrollNode>().expand((scroll) => scroll.onRefresh), isEmpty);
+  expect(page.actions.whereType<NavigateAction>(), everyElement(_openMyDay.single));
+}
+
 Map<String, Bindable<String>?> _subtitles(GenericPage page) => {
   for (final tile in _tiles(page)) tile.id: tile.subtitle,
 };
@@ -323,6 +356,123 @@ void main() {
 
       expect(_map(const []), empty);
       expect(_map([_row('tomorrow', start: '2026-11-16')]), empty);
+    });
+  });
+
+  group('$MyDayPageMapper.widgetFromRows', () {
+    test('builds a title that opens My Day and a scroll of the same tiles without refresh', () {
+      final rows = [
+        _row('b', title: 'Meeting', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
+        _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
+        _row('tomorrow', start: '2026-11-16'),
+      ];
+      final page = _mapWidget(rows);
+      final appTiles = _tiles(_map(rows));
+
+      expect(
+        page,
+        GenericPage(
+          id: MyDayPageMapper.widgetPageId,
+          state: _map(rows).state,
+          root: ColumnNode(
+            id: 'root',
+            children: [
+              _widgetTitle,
+              ExpandedNode(
+                id: 'body',
+                child: ScrollNode(
+                  id: 'scroll',
+                  child: ColumnNode(
+                    id: 'tasks',
+                    children: [
+                      appTiles[0],
+                      const DividerNode(id: 'divider-a'),
+                      appTiles[1],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(_ids(page), ['task-a', 'task-b']);
+      expect(
+        page.initialState,
+        GenericValues(const {
+          'tasks': {
+            'a': {'done': false, 'saving': false},
+            'b': {'done': true, 'saving': false},
+          },
+        }),
+      );
+      _expectWidgetSafe(page);
+    });
+
+    test('shows nothing planned today for an empty day', () {
+      final empty = GenericPage(
+        id: MyDayPageMapper.widgetPageId,
+        state: GenericValues(const {'tasks': <String, Object?>{}}),
+        root: const ColumnNode(
+          id: 'root',
+          children: [
+            _widgetTitle,
+            ExpandedNode(
+              id: 'body',
+              child: ScrollNode(
+                id: 'scroll',
+                child: ContainerNode(
+                  id: 'empty',
+                  padding: Literal(SpacingToken.md),
+                  alignment: Literal(AlignmentToken.center),
+                  child: TextNode(id: 'emptyText', text: Literal(MyDayPageMapper.emptyText)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+      expect(_mapWidget(const []), empty);
+      expect(_mapWidget([_row('tomorrow', start: '2026-11-16')]), empty);
+      _expectWidgetSafe(empty);
+    });
+  });
+
+  group('$MyDayPageMapper.widgetConnectPage', () {
+    const page = MyDayPageMapper.widgetConnectPage;
+
+    test('asks to connect Notion in the app with a prompt that opens My Day', () {
+      expect(
+        page,
+        const GenericPage(
+          id: MyDayPageMapper.widgetPageId,
+          root: ColumnNode(
+            id: 'root',
+            children: [
+              _widgetTitle,
+              ExpandedNode(
+                id: 'body',
+                child: ContainerNode(
+                  id: 'connect',
+                  padding: Literal(SpacingToken.md),
+                  alignment: Literal(AlignmentToken.center),
+                  child: ButtonNode(
+                    id: 'connectPrompt',
+                    label: Literal(MyDayPageMapper.connectInAppText),
+                    variant: Literal(ButtonVariant.text),
+                    onTap: _openMyDay,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+
+    test('uses only widget nodes and actions', () {
+      _expectWidgetSafe(page);
     });
   });
 }

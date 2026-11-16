@@ -6,12 +6,16 @@ import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 
+typedef MyDayRowsMapper = GenericPage Function(Iterable<Map<String, Object?>> rows, {required DateTime now});
+
 typedef _Task = ({String id, String emoji, String title, String? status, bool allDay, DateTime start, DateTime? end});
 
 abstract final class MyDayPageMapper {
   static const pageId = 'myDay';
+  static const widgetPageId = 'myDayWidget';
   static const title = 'My Day';
   static const emptyText = 'Nothing planned today';
+  static const connectInAppText = 'Connect Notion in the app';
   static const skippedText = 'Skipped';
   static const saveErrorText = "Couldn't update the task. Try again.";
   static const fallbackEmoji = '📝';
@@ -19,51 +23,106 @@ abstract final class MyDayPageMapper {
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
 
+  static const GenericPage widgetConnectPage = GenericPage(
+    id: widgetPageId,
+    root: ColumnNode(
+      id: 'root',
+      children: [
+        _widgetTitle,
+        ExpandedNode(
+          id: 'body',
+          child: ContainerNode(
+            id: 'connect',
+            padding: Literal(SpacingToken.md),
+            alignment: Literal(AlignmentToken.center),
+            child: ButtonNode(
+              id: 'connectPrompt',
+              label: Literal(connectInAppText),
+              variant: Literal(ButtonVariant.text),
+              onTap: _openMyDay,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  static const _openMyDay = [NavigateAction(pageId: Literal(pageId))];
+
+  static const _widgetTitle = ButtonNode(
+    id: 'title',
+    label: Literal(title),
+    variant: Literal(ButtonVariant.text),
+    onTap: _openMyDay,
+  );
+
   static GenericPage fromRows(Iterable<Map<String, Object?>> rows, {required DateTime now}) {
-    final today = now.toLocal();
-    final tasks = rows
-        .map(_task)
-        .nonNulls
-        .where((task) => _isSameDay(task.start, today))
-        .sortedByCompare((task) => task, _compare);
+    final tasks = _todayTasks(rows, now);
     return GenericPage(
       id: pageId,
-      state: GenericValues({
-        'tasks': {
-          for (final task in tasks) task.id: {'done': _isChecked(task), 'saving': false},
-        },
-      }),
+      state: _state(tasks),
       root: ColumnNode(
         id: 'root',
         children: [
           const AppBarNode(id: 'appBar', title: Literal(title)),
           ExpandedNode(
             id: 'body',
-            child: ScrollNode(
-              id: 'scroll',
-              onRefresh: const [ReloadAction()],
-              child: tasks.isEmpty
-                  ? const ContainerNode(
-                      id: 'empty',
-                      padding: Literal(SpacingToken.md),
-                      alignment: Literal(AlignmentToken.center),
-                      child: TextNode(id: 'emptyText', text: Literal(emptyText)),
-                    )
-                  : ColumnNode(
-                      id: 'tasks',
-                      children: [
-                        for (final (index, task) in tasks.indexed) ...[
-                          if (index > 0) DividerNode(id: 'divider-${tasks[index - 1].id}'),
-                          _tile(task),
-                        ],
-                      ],
-                    ),
-            ),
+            child: ScrollNode(id: 'scroll', onRefresh: const [ReloadAction()], child: _taskList(tasks)),
           ),
         ],
       ),
     );
   }
+
+  static GenericPage widgetFromRows(Iterable<Map<String, Object?>> rows, {required DateTime now}) {
+    final tasks = _todayTasks(rows, now);
+    return GenericPage(
+      id: widgetPageId,
+      state: _state(tasks),
+      root: ColumnNode(
+        id: 'root',
+        children: [
+          _widgetTitle,
+          ExpandedNode(
+            id: 'body',
+            child: ScrollNode(id: 'scroll', child: _taskList(tasks)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static List<_Task> _todayTasks(Iterable<Map<String, Object?>> rows, DateTime now) {
+    final today = now.toLocal();
+    return rows
+        .map(_task)
+        .nonNulls
+        .where((task) => _isSameDay(task.start, today))
+        .sortedByCompare((task) => task, _compare);
+  }
+
+  static GenericValues _state(List<_Task> tasks) => GenericValues({
+    'tasks': {
+      for (final task in tasks) task.id: {'done': _isChecked(task), 'saving': false},
+    },
+  });
+
+  static GenericNode _taskList(List<_Task> tasks) => tasks.isEmpty
+      ? const ContainerNode(
+          id: 'empty',
+          padding: Literal(SpacingToken.md),
+          alignment: Literal(AlignmentToken.center),
+          child: TextNode(id: 'emptyText', text: Literal(emptyText)),
+        )
+      : ColumnNode(
+          id: 'tasks',
+          children: [
+            for (final (index, task) in tasks.indexed) ...[
+              if (index > 0) DividerNode(id: 'divider-${tasks[index - 1].id}'),
+              _tile(task),
+            ],
+          ],
+        );
 
   static CheckboxTileNode _tile(_Task task) {
     final donePath = 'tasks.${task.id}.done';
