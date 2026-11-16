@@ -5,10 +5,13 @@ import 'package:http/http.dart';
 import 'package:insaeng/config/flavor.dart';
 import 'package:insaeng/data/repositories/generic_notion_action_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_notion_page_repository_impl.dart';
+import 'package:insaeng/data/repositories/widget_snapshot_repository_impl.dart';
+import 'package:insaeng/data/services/home_widget_service.dart';
 import 'package:insaeng/data/services/notion_service.dart';
 import 'package:insaeng/data/services/secure_storage_service.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
+import 'package:insaeng/domain/repositories/widget_snapshot_repository.dart';
 import 'package:insaeng/routing/router.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -18,9 +21,11 @@ void configureDependencies(Flavor flavor) {
     ..registerSingleton<Flavor>(flavor)
     ..registerLazySingleton<Client>(Client.new)
     ..registerLazySingleton(() => const FlutterSecureStorage())
+    ..registerLazySingleton(() => const HomeWidgetService())
     ..registerLazySingleton(() => NotionService(getIt()))
     ..registerLazySingleton(() => SecureStorageService(getIt()))
     ..registerLazySingleton<GenericActionRepository>(() => GenericNotionActionRepositoryImpl(getIt(), getIt()))
     ..registerLazySingleton<GenericPageRepository>(() => GenericNotionPageRepositoryImpl(getIt(), getIt()))
+    ..registerLazySingleton<WidgetSnapshotRepository>(() => WidgetSnapshotRepositoryImpl(getIt()))
     ..registerLazySingleton<GoRouter>(() => router(getIt));
 }
