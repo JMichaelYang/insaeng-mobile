@@ -9,7 +9,8 @@ import 'package:material_ui/material_ui.dart';
 extension GenericItemContext on BuildContext {
   T? watchBindable<T extends Object>(Bindable<T>? bindable) => switch (bindable) {
     null => null,
-    final bindable => select<GenericCubit, T?>((cubit) => bindable.resolve(cubit.state.values)),
+    Literal(:final value) => value,
+    final Binding<T> binding => select<GenericCubit, T?>((cubit) => binding.resolve(cubit.state.values)),
   };
 
   int watchFlex(GenericNode node) => switch (node) {

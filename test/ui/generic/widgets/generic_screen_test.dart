@@ -5,10 +5,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
+import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
 import 'package:insaeng/l10n/l10n.dart';
+import 'package:insaeng/ui/generic/items/app_bar_item.dart';
+import 'package:insaeng/ui/generic/items/checkbox_tile_item.dart';
+import 'package:insaeng/ui/generic/items/column_item.dart';
+import 'package:insaeng/ui/generic/items/expanded_item.dart';
+import 'package:insaeng/ui/generic/items/scroll_item.dart';
+import 'package:insaeng/ui/generic/items/text_item.dart';
 import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:insaeng/ui/generic/widgets/generic_screen.dart';
 import 'package:material_ui/material_ui.dart';
@@ -17,6 +26,10 @@ import 'package:mocktail/mocktail.dart';
 import '../../../helpers/pump_app.dart';
 
 class _MockGenericCubit extends MockCubit<GenericState> implements GenericCubit;
+
+class _MockGenericPageRepository extends Mock implements GenericPageRepository;
+
+class _MockGenericActionRepository extends Mock implements GenericActionRepository;
 
 const _page = GenericPage(
   id: 'home',
@@ -152,5 +165,98 @@ void main() {
         expect(find.byKey(const ValueKey('root')), findsOneWidget);
       });
     });
+
+    group('on a state change', () {
+      const rows = 100;
+      late GenericCubit realCubit;
+
+      setUp(() {
+        realCubit = GenericCubit.widget(
+          _MockGenericPageRepository(),
+          _MockGenericActionRepository(),
+          pageId: 'list',
+          page: _listPage(rows),
+          values: GenericValues({
+            'todos': [
+              for (var i = 0; i < rows; i++) {'done': false},
+            ],
+            'counts': [for (var i = 0; i < rows; i++) i],
+          }),
+        );
+      });
+
+      tearDown(() => realCubit.close());
+
+      Future<List<String>> rebuiltItems(WidgetTester tester, UpdateStateAction action) async {
+        await tester.pumpApp(BlocProvider.value(value: realCubit, child: const GenericScreen()));
+        await tester.pumpAndSettle();
+        final rebuilt = <String>[];
+        debugOnRebuildDirtyWidget = (element, _) {
+          if (_itemId(element.widget) case final id?) rebuilt.add(id);
+        };
+        try {
+          await realCubit.dispatch([action]);
+          await tester.pump();
+        } finally {
+          debugOnRebuildDirtyWidget = null;
+        }
+        return rebuilt;
+      }
+
+      testWidgets('rebuilds only the text bound to the changed path', (tester) async {
+        final rebuilt = await rebuiltItems(tester, const UpdateStateAction(path: 'counts.5', value: Literal(999)));
+
+        expect(rebuilt, ['count5']);
+        expect(find.text('999'), findsOneWidget);
+      });
+
+      testWidgets('rebuilds only the checkbox tile bound to the changed path', (tester) async {
+        final rebuilt = await rebuiltItems(tester, const UpdateStateAction(path: 'todos.5.done', value: Literal(true)));
+
+        expect(rebuilt, ['todo5']);
+      });
+
+      testWidgets('rebuilds no items when an unbound path changes', (tester) async {
+        final rebuilt = await rebuiltItems(tester, const UpdateStateAction(path: 'unbound', value: Literal(1)));
+
+        expect(rebuilt, isEmpty);
+      });
+    });
   });
 }
+
+GenericPage _listPage(int rows) => GenericPage(
+  id: 'list',
+  root: ColumnNode(
+    id: 'root',
+    children: [
+      const AppBarNode(id: 'appBar', title: Literal('List')),
+      ExpandedNode(
+        id: 'body',
+        child: ScrollNode(
+          id: 'scroll',
+          child: ColumnNode(
+            id: 'rows',
+            children: [
+              for (var i = 0; i < rows; i++) ...[
+                TextNode(id: 'label$i', text: Literal('Row $i')),
+                CheckboxTileNode(id: 'todo$i', title: Literal('Todo $i'), bind: 'todos.$i.done'),
+                TextNode(id: 'count$i', text: Binding('counts.$i')),
+              ],
+            ],
+          ),
+        ),
+      ),
+    ],
+  ),
+);
+
+String? _itemId(Widget widget) => switch (widget) {
+  ColumnItem(:final node) => node.id,
+  ExpandedItem(:final node) => node.id,
+  ScrollItem(:final node) => node.id,
+  AppBarItem(:final node) => node.id,
+  TextItem(:final node) => node.id,
+  CheckboxTileItem(:final node) => node.id,
+  _ => null,
+};
