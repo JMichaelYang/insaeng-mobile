@@ -38,7 +38,7 @@ internal fun ButtonView(node: WidgetNode, modifier: GlanceModifier) {
     val style = WidgetTextStyle.LABEL_LARGE
     Box(
         modifier =
-            buttonBackground(modifier, variant)
+            buttonBackground(modifier.tappable(node), variant)
                 .padding(
                     horizontal =
                         if (variant == WidgetButtonVariant.TEXT) textButtonHorizontalPadding else buttonHorizontalPadding,
