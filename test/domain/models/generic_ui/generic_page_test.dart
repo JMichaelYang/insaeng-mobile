@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dart_mappable/dart_mappable.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
@@ -115,6 +117,56 @@ void main() {
       };
 
       expect(_decode(_decode(json).toMap()), _decode(json));
+    });
+
+    test('round-trips bindings, actions, and nested state through a JSON string', () {
+      final page = _decode({
+        'id': 'todos',
+        'state': {
+          'todos': [
+            {'title': 'a', 'done': false, 'tags': <Object?>[], 'meta': null},
+          ],
+          'ratio': 0.5,
+        },
+        'onLoad': [
+          {'type': 'reload'},
+        ],
+        'root': {
+          'type': 'column',
+          'id': 'root',
+          'spacing': 'md',
+          'children': [
+            {
+              'type': 'checkboxTile',
+              'id': 'todo',
+              'title': {r'$bind': 'todos.0.title'},
+              'bind': 'todos.0.done',
+              'onChanged': [
+                {
+                  'type': 'request',
+                  'method': 'PATCH',
+                  'endpoint': '/todos/0',
+                  'body': {
+                    'done': {r'$bind': 'todos.0.done'},
+                  },
+                  'onError': [
+                    {'type': 'updateState', 'path': 'todos.0.done', 'op': 'toggle'},
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      });
+
+      final decoded = GenericPageMapper.fromJson(page.toJson());
+
+      expect(decoded, page);
+      expect(decoded.initialState, page.initialState);
+      expect(
+        GenericValues(jsonDecode(jsonEncode(page.initialState.values)) as Map<String, Object?>),
+        page.initialState,
+      );
     });
 
     test('ignores unknown properties', () {
