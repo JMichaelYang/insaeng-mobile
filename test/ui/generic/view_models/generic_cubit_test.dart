@@ -134,7 +134,7 @@ void main() {
       );
     });
 
-    group('restore', () {
+    group('widget', () {
       final page = GenericPage(
         id: 'counter',
         root: _root,
@@ -146,42 +146,45 @@ void main() {
         root: ColumnNode(id: 'reloaded'),
       );
 
-      blocTest<GenericCubit, GenericState>(
-        'emits the given page and values, clears the failure, and does not fetch or run onLoad',
-        build: build,
-        seed: () => const GenericState(status: GenericStatus.failure, failure: GenericPageOffline()),
-        act: (cubit) => cubit.restore(page, GenericValues(const {'count': 4})),
-        expect: () => [
-          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
-        ],
-        verify: (_) => verifyNever(() => repository.fetch(any(), any())),
+      GenericCubit widget() => GenericCubit.widget(
+        repository,
+        actions,
+        pageId: 'counter',
+        params: _params,
+        page: page,
+        values: GenericValues(const {'count': 4}),
       );
 
       blocTest<GenericCubit, GenericState>(
-        'dispatch then runs against the restored values',
-        build: build,
-        act: (cubit) async {
-          cubit.restore(page, GenericValues(const {'count': 4}));
-          await cubit.dispatch(const [UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]);
+        'starts from the given page and values without fetching or running onLoad',
+        build: widget,
+        expect: () => const <GenericState>[],
+        verify: (cubit) {
+          expect(
+            cubit.state,
+            GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
+          );
+          verifyNever(() => repository.fetch(any(), any()));
         },
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'dispatch runs against the given values',
+        build: widget,
+        act: (cubit) => cubit.dispatch(const [UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]),
         expect: () => [
-          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
           GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 5})),
         ],
         verify: (_) => verifyNever(() => repository.fetch(any(), any())),
       );
 
       blocTest<GenericCubit, GenericState>(
-        'reload then fetches the page with the same params and keeps the restored values',
+        'reload fetches the page with the same params and keeps the given values',
         setUp: () =>
             when(() => repository.fetch('counter', _params)).thenAnswer((_) async => const Result.ok(reloaded)),
-        build: build,
-        act: (cubit) async {
-          cubit.restore(page, GenericValues(const {'count': 4}));
-          await cubit.dispatch(const [ReloadAction()]);
-        },
+        build: widget,
+        act: (cubit) => cubit.dispatch(const [ReloadAction()]),
         expect: () => [
-          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
           GenericState(status: GenericStatus.success, page: reloaded, values: GenericValues(const {'count': 4})),
         ],
         verify: (_) => verify(() => repository.fetch('counter', _params)).called(1),

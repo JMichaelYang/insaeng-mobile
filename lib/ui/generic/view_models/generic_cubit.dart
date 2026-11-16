@@ -16,6 +16,15 @@ export 'package:insaeng/ui/generic/view_models/generic_state.dart';
 class GenericCubit extends Cubit<GenericState> {
   new(this._pages, this._actions, {required this.pageId, this.params = const {}}) : super(const GenericState());
 
+  new widget(
+    this._pages,
+    this._actions, {
+    required this.pageId,
+    required GenericPage page,
+    required GenericValues values,
+    this.params = const {},
+  }) : super(GenericState(status: GenericStatus.success, page: page, values: values));
+
   final GenericPageRepository _pages;
   final GenericActionRepository _actions;
   final String pageId;
@@ -39,10 +48,6 @@ class GenericCubit extends Cubit<GenericState> {
   Future<void> retry() async {
     emit(state.copyWith(status: GenericStatus.loading, failure: null));
     await load();
-  }
-
-  void restore(GenericPage page, GenericValues values) {
-    emit(state.copyWith(status: GenericStatus.success, page: page, values: values, failure: null));
   }
 
   Future<void> dispatch(List<GenericAction> actions) => _runAll(actions);
