@@ -180,6 +180,30 @@ void main() {
       );
     });
 
+    test('resolves an icon button with its icon name, label, and an event tap', () {
+      expect(
+        _resolveNode(
+          const IconButtonNode(
+            id: 'reload',
+            icon: Literal(IconButtonIcon.refresh),
+            label: Binding('label'),
+            onTap: [ReloadAction()],
+          ),
+          {'label': 'Reload'},
+        ),
+        const WidgetNode(
+          type: 'iconButton',
+          id: 'reload',
+          props: {'icon': 'refresh', 'label': 'Reload'},
+          tap: EventTap(nodeId: 'reload', event: 'onTap'),
+        ),
+      );
+      expect(
+        _resolveNode(const IconButtonNode(id: 'idle', icon: Literal(IconButtonIcon.refresh))),
+        const WidgetNode(type: 'iconButton', id: 'idle', props: {'icon': 'refresh'}),
+      );
+    });
+
     test('resolves a progress bar with a bound value and literal max', () {
       expect(
         _resolveNode(

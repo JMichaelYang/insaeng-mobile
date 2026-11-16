@@ -81,6 +81,7 @@ const _widgetNodeTypes = {
   DividerNode,
   TextNode,
   ButtonNode,
+  IconButtonNode,
   CheckboxTileNode,
   ScrollNode,
   ProgressBarNode,
@@ -90,6 +91,21 @@ ProgressBarNode _progress(int max) => ProgressBarNode(
   id: 'progress',
   value: const Binding(MyDayPageMapper.progressDonePath, fallback: 0),
   max: Literal(max),
+);
+
+RowNode _widgetHeader(int max) => RowNode(
+  id: 'header',
+  spacing: const Literal(SpacingToken.sm),
+  alignment: const Literal(AlignmentToken.center),
+  children: [
+    ExpandedNode(id: 'progressSlot', child: _progress(max)),
+    const IconButtonNode(
+      id: 'reload',
+      icon: Literal(IconButtonIcon.refresh),
+      label: Literal(MyDayPageMapper.reloadLabel),
+      onTap: [ReloadAction()],
+    ),
+  ],
 );
 
 ContainerNode _progressBar(int max) => ContainerNode(
@@ -436,7 +452,7 @@ void main() {
       expect(_ids(_mapWidget(rows)), _ids(_map(rows)));
     });
 
-    test('builds a progress bar and a scroll of the same tiles without refresh', () {
+    test('builds a header with progress and reload, and a scroll of the same tiles without pull to refresh', () {
       final rows = [
         _row('b', title: 'Meeting', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
         _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
@@ -454,7 +470,7 @@ void main() {
             id: 'root',
             spacing: const Literal(SpacingToken.sm),
             children: [
-              _progress(2),
+              _widgetHeader(2),
               ExpandedNode(
                 id: 'body',
                 child: ScrollNode(
@@ -491,7 +507,7 @@ void main() {
           id: 'root',
           spacing: const Literal(SpacingToken.sm),
           children: [
-            _progress(0),
+            _widgetHeader(0),
             const ExpandedNode(
               id: 'body',
               child: ScrollNode(

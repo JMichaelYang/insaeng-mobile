@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.layout.Alignment
 import androidx.glance.text.FontWeight
+import com.jae.insaeng.views.flex
 import com.jae.insaeng.views.itemId
 import com.jae.insaeng.views.progress
 import com.jae.insaeng.views.scrollItems
@@ -34,13 +35,29 @@ class WidgetSnapshotTest {
         assertEquals("start", root.string("alignment"))
         assertEquals("sm", root.string("spacing"))
         assertNull(root.tap)
-        assertEquals(listOf("progressBar", "expanded"), root.children.map { it.type })
+        assertEquals(listOf("row", "expanded"), root.children.map { it.type })
 
-        val progress = root.children[0]
+        val header = root.children[0]
+        assertEquals("header", header.id)
+        assertEquals("center", header.string("alignment"))
+        assertEquals("sm", header.string("spacing"))
+        assertEquals(listOf("expanded", "iconButton"), header.children.map { it.type })
+
+        val progressSlot = header.children[0]
+        assertEquals("progressSlot", progressSlot.id)
+        assertEquals(1, progressSlot.flex)
+
+        val progress = progressSlot.children.single()
         assertEquals("progress", progress.id)
         assertEquals(2, progress.int("value"))
         assertEquals(3, progress.int("max"))
         assertEquals(2f / 3f, progress.progress)
+
+        val reload = header.children[1]
+        assertEquals("reload", reload.id)
+        assertEquals("refresh", reload.string("icon"))
+        assertEquals("Reload", reload.string("label"))
+        assertEquals(WidgetTap.Event(nodeId = "reload", event = "onTap"), reload.tap)
 
         val body = root.children[1]
         assertEquals("body", body.id)
@@ -231,6 +248,14 @@ class WidgetSnapshotTest {
         assertEquals(WidgetButtonVariant.TEXT, WidgetButtonVariant.of("text"))
         assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of(null))
         assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of("unknown"))
+    }
+
+    @Test
+    fun mapsIconTokens() {
+        assertEquals(WidgetIcon.REFRESH, WidgetIcon.of("refresh"))
+        assertEquals(R.drawable.widget_icon_refresh, WidgetIcon.of("refresh").drawable)
+        assertEquals(WidgetIcon.REFRESH, WidgetIcon.of(null))
+        assertEquals(WidgetIcon.REFRESH, WidgetIcon.of("unknown"))
     }
 
     @Test

@@ -53,6 +53,7 @@ final GenericPage _page = GenericPage(
         label: Literal('Save'),
         onTap: [UpdateStateAction(path: 'saved', value: Literal(true))],
       ),
+      const IconButtonNode(id: 'reload', icon: Literal(IconButtonIcon.refresh), onTap: [ReloadAction()]),
     ],
   ),
 );
@@ -267,6 +268,27 @@ void main() {
       expect(savedValues(), [
         valuesWith({'done': false, 'saving': false}, {'done': true, 'saving': false}, saved: true),
       ]);
+    });
+
+    test('reloads the page from an icon button and saves the fresh snapshot', () async {
+      final fresh = GenericPage(
+        id: _pageId,
+        state: GenericValues(const {'fresh': true}),
+        root: const ColumnNode(id: 'root'),
+      );
+      when(() => pages.fetch(_pageId, any())).thenAnswer((_) async => Result.ok(fresh));
+
+      await handler.handle(_uri(node: 'reload', event: 'onTap'));
+
+      verify(() => pages.fetch(_pageId, const {})).called(1);
+      verify(
+        () => snapshots.save(
+          WidgetSnapshotResolver.resolve(fresh, fresh.initialState),
+          page: fresh,
+          values: fresh.initialState,
+        ),
+      ).called(1);
+      verify(() => snapshots.update()).called(1);
     });
 
     test('does nothing for an unknown node', () async {
