@@ -1,5 +1,6 @@
 package com.jae.insaeng
 
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
@@ -70,5 +71,14 @@ enum class WidgetButtonVariant {
     companion object {
         fun of(name: String?): WidgetButtonVariant =
             entries.firstOrNull { it.name.equals(name, ignoreCase = true) } ?: PRIMARY
+    }
+}
+
+enum class WidgetIcon(val token: String, @DrawableRes val drawable: Int) {
+    REFRESH("refresh", R.drawable.widget_icon_refresh),
+    ;
+
+    companion object {
+        fun of(name: String?): WidgetIcon = entries.firstOrNull { it.token == name } ?: REFRESH
     }
 }

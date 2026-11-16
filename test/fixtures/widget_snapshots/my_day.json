@@ -3,13 +3,46 @@
   "root": {
     "children": [
       {
-        "children": [],
-        "id": "progress",
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "id": "progress",
+                "props": {
+                  "max": 3,
+                  "value": 2
+                },
+                "type": "progressBar"
+              }
+            ],
+            "id": "progressSlot",
+            "props": {
+              "flex": 1
+            },
+            "type": "expanded"
+          },
+          {
+            "children": [],
+            "id": "reload",
+            "props": {
+              "icon": "refresh",
+              "label": "Reload"
+            },
+            "tap": {
+              "event": "onTap",
+              "nodeId": "reload",
+              "type": "event"
+            },
+            "type": "iconButton"
+          }
+        ],
+        "id": "header",
         "props": {
-          "max": 3,
-          "value": 2
+          "alignment": "center",
+          "spacing": "sm"
         },
-        "type": "progressBar"
+        "type": "row"
       },
       {
         "children": [

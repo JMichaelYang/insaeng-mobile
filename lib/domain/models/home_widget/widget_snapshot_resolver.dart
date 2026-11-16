@@ -57,6 +57,12 @@ final class WidgetSnapshotResolver {
       props: {'label': label, 'variant': variant, 'loading': loading},
       tap: _tap(id, 'onTap', onTap),
     ),
+    IconButtonNode(:final id, :final icon, :final label, :final onTap) => _node(
+      'iconButton',
+      id,
+      props: {'icon': icon, 'label': label},
+      tap: _tap(id, 'onTap', onTap),
+    ),
     CheckboxTileNode(
       :final id,
       :final bind,

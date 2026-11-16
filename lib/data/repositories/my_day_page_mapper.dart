@@ -27,6 +27,7 @@ abstract final class MyDayPageMapper {
   static const connectInAppText = 'Connect Notion in the app';
   static const skippedText = 'Skipped';
   static const saveErrorText = "Couldn't update the task. Try again.";
+  static const reloadLabel = 'Reload';
   static const fallbackEmoji = '📝';
   static const progressDonePath = 'progress.done';
 
@@ -91,7 +92,20 @@ abstract final class MyDayPageMapper {
         id: 'root',
         spacing: const Literal(SpacingToken.sm),
         children: [
-          _progress(tasks),
+          RowNode(
+            id: 'header',
+            spacing: const Literal(SpacingToken.sm),
+            alignment: const Literal(AlignmentToken.center),
+            children: [
+              ExpandedNode(id: 'progressSlot', child: _progress(tasks)),
+              const IconButtonNode(
+                id: 'reload',
+                icon: Literal(IconButtonIcon.refresh),
+                label: Literal(reloadLabel),
+                onTap: [ReloadAction()],
+              ),
+            ],
+          ),
           ExpandedNode(
             id: 'body',
             child: ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),

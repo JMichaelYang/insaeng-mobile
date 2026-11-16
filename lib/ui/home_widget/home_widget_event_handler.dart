@@ -87,6 +87,7 @@ final class _PageSession {
         ...onChanged,
       ],
       (ButtonNode(:final onTap), 'onTap') => onTap,
+      (IconButtonNode(:final onTap), 'onTap') => onTap,
       _ => null,
     };
   }
