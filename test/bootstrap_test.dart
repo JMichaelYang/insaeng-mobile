@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:insaeng/config/background_tasks.dart';
+import 'package:insaeng/bootstrap.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
 import 'package:insaeng/domain/repositories/background_task_repository.dart';
@@ -13,6 +13,26 @@ class _MockRefreshHomeWidgetUseCase extends Mock implements RefreshHomeWidgetUse
 class _MockScheduleHomeWidgetRefreshUseCase extends Mock implements ScheduleHomeWidgetRefreshUseCase;
 
 void main() {
+  tearDown(getIt.reset);
+
+  group(bootstrapBackground, () {
+    for (final flavor in Flavor.values) {
+      test('configures dependencies for ${flavor.name}', () {
+        bootstrapBackground(flavor);
+
+        expect(getIt<Flavor>(), flavor);
+        expect(getIt<RefreshHomeWidgetUseCase>(), isA<RefreshHomeWidgetUseCase>());
+      });
+    }
+
+    test('keeps dependencies that are already configured', () {
+      bootstrapBackground(Flavor.dev);
+      bootstrapBackground(Flavor.prod);
+
+      expect(getIt<Flavor>(), Flavor.dev);
+    });
+  });
+
   group(runBackgroundTask, () {
     late RefreshHomeWidgetUseCase refresh;
     late ScheduleHomeWidgetRefreshUseCase schedule;
@@ -27,8 +47,6 @@ void main() {
         ..registerSingleton(refresh)
         ..registerSingleton(schedule);
     });
-
-    tearDown(getIt.reset);
 
     test('refreshes the widget and keeps the schedule for the periodic task', () async {
       expect(await runBackgroundTask(ScheduleHomeWidgetRefreshUseCase.periodicTask, null), isTrue);

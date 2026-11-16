@@ -2,7 +2,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart';
-import 'package:insaeng/config/background_tasks.dart';
 import 'package:insaeng/config/flavor.dart';
 import 'package:insaeng/data/repositories/background_task_repository_impl.dart';
 import 'package:insaeng/data/repositories/generic_notion_action_repository_impl.dart';
@@ -22,6 +21,8 @@ import 'package:insaeng/routing/router.dart';
 import 'package:workmanager/workmanager.dart';
 
 final GetIt getIt = GetIt.instance;
+
+const backgroundFlavorKey = 'flavor';
 
 void configureDependencies(Flavor flavor) {
   getIt
