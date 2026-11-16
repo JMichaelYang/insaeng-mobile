@@ -1,0 +1,114 @@
+{
+  "pageId": "myDayWidget",
+  "root": {
+    "children": [
+      {
+        "children": [],
+        "id": "title",
+        "props": {
+          "label": "My Day",
+          "loading": false,
+          "variant": "text"
+        },
+        "tap": {
+          "type": "openApp"
+        },
+        "type": "button"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "id": "task-gym",
+                    "props": {
+                      "busy": false,
+                      "checked": false,
+                      "emoji": "✅",
+                      "title": "Gym"
+                    },
+                    "tap": {
+                      "event": "onChanged",
+                      "nodeId": "task-gym",
+                      "type": "event"
+                    },
+                    "type": "checkboxTile"
+                  },
+                  {
+                    "children": [],
+                    "id": "divider-gym",
+                    "props": {},
+                    "type": "divider"
+                  },
+                  {
+                    "children": [],
+                    "id": "task-meeting",
+                    "props": {
+                      "busy": false,
+                      "checked": true,
+                      "emoji": "✅",
+                      "subtitle": "9:00 – 10:30 AM",
+                      "title": "Team meeting"
+                    },
+                    "tap": {
+                      "event": "onChanged",
+                      "nodeId": "task-meeting",
+                      "type": "event"
+                    },
+                    "type": "checkboxTile"
+                  },
+                  {
+                    "children": [],
+                    "id": "divider-meeting",
+                    "props": {},
+                    "type": "divider"
+                  },
+                  {
+                    "children": [],
+                    "id": "task-lunch",
+                    "props": {
+                      "busy": false,
+                      "checked": true,
+                      "emoji": "✅",
+                      "subtitle": "12:30 PM · Skipped",
+                      "title": "Lunch"
+                    },
+                    "tap": {
+                      "event": "onChanged",
+                      "nodeId": "task-lunch",
+                      "type": "event"
+                    },
+                    "type": "checkboxTile"
+                  }
+                ],
+                "id": "tasks",
+                "props": {
+                  "alignment": "start",
+                  "spacing": "none"
+                },
+                "type": "column"
+              }
+            ],
+            "id": "scroll",
+            "props": {},
+            "type": "scroll"
+          }
+        ],
+        "id": "body",
+        "props": {
+          "flex": 1
+        },
+        "type": "expanded"
+      }
+    ],
+    "id": "root",
+    "props": {
+      "alignment": "start",
+      "spacing": "none"
+    },
+    "type": "column"
+  }
+}
