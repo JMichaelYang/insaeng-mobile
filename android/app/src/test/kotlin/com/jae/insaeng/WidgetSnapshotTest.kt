@@ -6,9 +6,11 @@ import androidx.glance.layout.Alignment
 import androidx.glance.text.FontWeight
 import com.jae.insaeng.views.itemId
 import com.jae.insaeng.views.scrollItems
+import com.jae.insaeng.views.toAction
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -200,5 +202,12 @@ class WidgetSnapshotTest {
         assertEquals(WidgetButtonVariant.TEXT, WidgetButtonVariant.of("text"))
         assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of(null))
         assertEquals(WidgetButtonVariant.PRIMARY, WidgetButtonVariant.of("unknown"))
+    }
+
+    @Test
+    fun mapsOnlyOpenAppTapsToActions() {
+        assertNotNull(WidgetTap.OpenApp.toAction())
+        assertNull(WidgetTap.Event(nodeId = "task-gym", event = "onChanged").toAction())
+        assertNull(null.toAction())
     }
 }
