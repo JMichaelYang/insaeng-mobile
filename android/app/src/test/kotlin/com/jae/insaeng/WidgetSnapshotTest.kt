@@ -29,17 +29,9 @@ class WidgetSnapshotTest {
         assertEquals("start", root.string("alignment"))
         assertEquals("none", root.string("spacing"))
         assertNull(root.tap)
-        assertEquals(listOf("button", "expanded"), root.children.map { it.type })
+        assertEquals(listOf("expanded"), root.children.map { it.type })
 
-        val title = root.children[0]
-        assertEquals("title", title.id)
-        assertEquals("My Day", title.string("label"))
-        assertEquals("text", title.string("variant"))
-        assertEquals(false, title.boolean("loading"))
-        assertEquals(WidgetTap.OpenApp, title.tap)
-        assertEquals(emptyList<WidgetNode>(), title.children)
-
-        val body = root.children[1]
+        val body = root.children.single()
         assertEquals("body", body.id)
         assertEquals(1, body.int("flex"))
 
@@ -114,8 +106,26 @@ class WidgetSnapshotTest {
     }
 
     @Test
+    fun decodesButtonProps() {
+        val button =
+            WidgetNode.fromJson(
+                Json.parseToJsonElement(
+                    """
+                    {"type":"button","id":"connectPrompt","tap":{"type":"openApp"},
+                     "props":{"label":"Connect Notion in the app","variant":"secondary","loading":true}}
+                    """.trimIndent(),
+                ),
+            )
+
+        assertEquals("Connect Notion in the app", button.string("label"))
+        assertEquals(WidgetButtonVariant.SECONDARY, WidgetButtonVariant.of(button.string("variant")))
+        assertEquals(true, button.boolean("loading"))
+        assertEquals(WidgetTap.OpenApp, button.tap)
+    }
+
+    @Test
     fun flattensScrollColumnIntoStableItems() {
-        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children[1].children.single()
+        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.single().children.single()
         val items = scroll.scrollItems()
 
         assertEquals(
@@ -125,7 +135,7 @@ class WidgetSnapshotTest {
         val ids = items.map { it.itemId }
         assertEquals(ids.size, ids.toSet().size)
         assertTrue(ids.all { it >= 0 })
-        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children[1].children.single()
+        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.single().children.single()
         assertEquals(ids, again.scrollItems().map { it.itemId })
         assertNotEquals(WidgetNode(type = "text", id = "a").itemId, WidgetNode(type = "text", id = "b").itemId)
     }
