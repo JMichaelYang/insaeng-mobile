@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">insaeng dev</string>
+    <string name="my_day_widget_label">My Day</string>
+    <string name="my_day_widget_description">See and check off today\'s tasks.</string>
+    <string name="my_day_widget_loading">Open the app to load today\'s tasks.</string>
 </resources>
