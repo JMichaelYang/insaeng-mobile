@@ -6,11 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:insaeng/app.dart';
+import 'package:insaeng/config/background_tasks.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
-import 'package:insaeng/config/widget_refresh_scheduler.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
+import 'package:insaeng/data/services/background_task_service.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
+import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
 
 Future<void> bootstrap(Flavor flavor) async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,12 +28,18 @@ Future<void> bootstrap(Flavor flavor) async {
 
   _refreshHomeWidget();
   AppLifecycleListener(onPause: _refreshHomeWidget);
-  if (defaultTargetPlatform == TargetPlatform.android) unawaited(getIt<WidgetRefreshScheduler>().start());
+  unawaited(_scheduleHomeWidgetRefresh());
 
   runApp(App(router: getIt<GoRouter>()));
 }
 
 void _refreshHomeWidget() => unawaited(getIt<RefreshHomeWidgetUseCase>()(MyDayPageMapper.widgetPageId));
+
+Future<void> _scheduleHomeWidgetRefresh() async {
+  if (defaultTargetPlatform != TargetPlatform.android) return;
+  await getIt<BackgroundTaskService>().initialize(backgroundTaskDispatcher);
+  await getIt<ScheduleHomeWidgetRefreshUseCase>()(replace: true);
+}
 
 Stream<LicenseEntry> _fontLicenses() async* {
   final license = await rootBundle.loadString('assets/fonts/pretendard/LICENSE.txt');
