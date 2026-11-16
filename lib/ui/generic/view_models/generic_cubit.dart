@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
@@ -38,6 +39,10 @@ class GenericCubit extends Cubit<GenericState> {
   Future<void> retry() async {
     emit(state.copyWith(status: GenericStatus.loading, failure: null));
     await load();
+  }
+
+  void restore(GenericPage page, GenericValues values) {
+    emit(state.copyWith(status: GenericStatus.success, page: page, values: values, failure: null));
   }
 
   Future<void> dispatch(List<GenericAction> actions) => _runAll(actions);

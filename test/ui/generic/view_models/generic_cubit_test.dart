@@ -134,6 +134,60 @@ void main() {
       );
     });
 
+    group('restore', () {
+      final page = GenericPage(
+        id: 'counter',
+        root: _root,
+        state: GenericValues(const {'count': 0}),
+        onLoad: const [UpdateStateAction(path: 'loaded', value: Literal(true))],
+      );
+      const reloaded = GenericPage(
+        id: 'counter',
+        root: ColumnNode(id: 'reloaded'),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'emits the given page and values, clears the failure, and does not fetch or run onLoad',
+        build: build,
+        seed: () => const GenericState(status: GenericStatus.failure, failure: GenericPageOffline()),
+        act: (cubit) => cubit.restore(page, GenericValues(const {'count': 4})),
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
+        ],
+        verify: (_) => verifyNever(() => repository.fetch(any(), any())),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'dispatch then runs against the restored values',
+        build: build,
+        act: (cubit) async {
+          cubit.restore(page, GenericValues(const {'count': 4}));
+          await cubit.dispatch(const [UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]);
+        },
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
+          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 5})),
+        ],
+        verify: (_) => verifyNever(() => repository.fetch(any(), any())),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'reload then fetches the page with the same params and keeps the restored values',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params)).thenAnswer((_) async => const Result.ok(reloaded)),
+        build: build,
+        act: (cubit) async {
+          cubit.restore(page, GenericValues(const {'count': 4}));
+          await cubit.dispatch(const [ReloadAction()]);
+        },
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
+          GenericState(status: GenericStatus.success, page: reloaded, values: GenericValues(const {'count': 4})),
+        ],
+        verify: (_) => verify(() => repository.fetch('counter', _params)).called(1),
+      );
+    });
+
     group('dispatch reload', () {
       const reloaded = GenericPage(
         id: 'counter',
