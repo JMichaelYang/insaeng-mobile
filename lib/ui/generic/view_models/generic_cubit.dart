@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/repositories/generic_page_repository.dart';
@@ -14,6 +15,15 @@ export 'package:insaeng/ui/generic/view_models/generic_state.dart';
 
 class GenericCubit extends Cubit<GenericState> {
   new(this._pages, this._actions, {required this.pageId, this.params = const {}}) : super(const GenericState());
+
+  new widget(
+    this._pages,
+    this._actions, {
+    required this.pageId,
+    required GenericPage page,
+    required GenericValues values,
+    this.params = const {},
+  }) : super(GenericState(status: GenericStatus.success, page: page, values: values));
 
   final GenericPageRepository _pages;
   final GenericActionRepository _actions;

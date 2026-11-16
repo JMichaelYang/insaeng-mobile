@@ -134,6 +134,63 @@ void main() {
       );
     });
 
+    group('widget', () {
+      final page = GenericPage(
+        id: 'counter',
+        root: _root,
+        state: GenericValues(const {'count': 0}),
+        onLoad: const [UpdateStateAction(path: 'loaded', value: Literal(true))],
+      );
+      const reloaded = GenericPage(
+        id: 'counter',
+        root: ColumnNode(id: 'reloaded'),
+      );
+
+      GenericCubit widget() => GenericCubit.widget(
+        repository,
+        actions,
+        pageId: 'counter',
+        params: _params,
+        page: page,
+        values: GenericValues(const {'count': 4}),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'starts from the given page and values without fetching or running onLoad',
+        build: widget,
+        expect: () => const <GenericState>[],
+        verify: (cubit) {
+          expect(
+            cubit.state,
+            GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 4})),
+          );
+          verifyNever(() => repository.fetch(any(), any()));
+        },
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'dispatch runs against the given values',
+        build: widget,
+        act: (cubit) => cubit.dispatch(const [UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]),
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: page, values: GenericValues(const {'count': 5})),
+        ],
+        verify: (_) => verifyNever(() => repository.fetch(any(), any())),
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'reload fetches the page with the same params and keeps the given values',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params)).thenAnswer((_) async => const Result.ok(reloaded)),
+        build: widget,
+        act: (cubit) => cubit.dispatch(const [ReloadAction()]),
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: reloaded, values: GenericValues(const {'count': 4})),
+        ],
+        verify: (_) => verify(() => repository.fetch('counter', _params)).called(1),
+      );
+    });
+
     group('dispatch reload', () {
       const reloaded = GenericPage(
         id: 'counter',
