@@ -49,7 +49,14 @@ final class BackAction extends GenericAction with BackActionMappable {
 
 @MappableClass(discriminatorValue: 'reload')
 final class ReloadAction extends GenericAction with ReloadActionMappable {
-  const new();
+  const new({this.onError = const [], this.onComplete = const []});
+
+  final List<GenericAction> onError;
+
+  final List<GenericAction> onComplete;
+
+  @override
+  List<GenericAction> get childActions => [...onError, ...onComplete];
 }
 
 @MappableClass(discriminatorValue: 'showMessage')

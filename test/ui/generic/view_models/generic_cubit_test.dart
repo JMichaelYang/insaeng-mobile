@@ -253,6 +253,102 @@ void main() {
             cubit.dispatch(const [ReloadAction(), UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment))]),
         expect: () => const <GenericState>[],
       );
+
+      blocTest<GenericCubit, GenericState>(
+        'on success replaces the page, runs onComplete, then the rest of the list',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params)).thenAnswer((_) async => const Result.ok(reloaded)),
+        build: build,
+        seed: () => loaded(const {'log': <Object?>[]}),
+        act: (cubit) => cubit.dispatch(const [
+          ReloadAction(
+            onError: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('error'))],
+            onComplete: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('complete'))],
+          ),
+          UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('next')),
+        ]),
+        expect: () => [
+          GenericState(
+            status: GenericStatus.success,
+            page: reloaded,
+            values: GenericValues(const {'log': <Object?>[]}),
+          ),
+          GenericState(
+            status: GenericStatus.success,
+            page: reloaded,
+            values: GenericValues(const {
+              'log': ['complete'],
+            }),
+          ),
+          GenericState(
+            status: GenericStatus.success,
+            page: reloaded,
+            values: GenericValues(const {
+              'log': ['complete', 'next'],
+            }),
+          ),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'on failure runs onError, then onComplete, and skips the rest of the list',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params))
+                .thenAnswer((_) async => const Result.err(GenericPageOffline())),
+        build: build,
+        seed: () => loaded(const {'log': <Object?>[]}),
+        act: (cubit) => cubit.dispatch(const [
+          ReloadAction(
+            onError: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('error'))],
+            onComplete: [UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('complete'))],
+          ),
+          UpdateStateAction(path: 'log', op: Literal(UpdateOp.append), value: Literal('next')),
+        ]),
+        expect: () => [
+          loaded(const {
+            'log': ['error'],
+          }),
+          loaded(const {
+            'log': ['error', 'complete'],
+          }),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'clears a refreshing flag set before the reload when it fails',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params))
+                .thenAnswer((_) async => const Result.err(GenericPageOffline())),
+        build: build,
+        seed: () => loaded(const {'refreshing': false}),
+        act: (cubit) => cubit.dispatch(const [
+          UpdateStateAction(path: 'refreshing', value: Literal(true)),
+          ReloadAction(
+            onComplete: [UpdateStateAction(path: 'refreshing', value: Literal(false))],
+          ),
+        ]),
+        expect: () => [
+          loaded(const {'refreshing': true}),
+          loaded(const {'refreshing': false}),
+        ],
+      );
+
+      blocTest<GenericCubit, GenericState>(
+        'a failed onComplete skips the rest of the list after a successful fetch',
+        setUp: () =>
+            when(() => repository.fetch('counter', _params)).thenAnswer((_) async => const Result.ok(reloaded)),
+        build: build,
+        seed: () => loaded(const {'count': 0}),
+        act: (cubit) => cubit.dispatch(const [
+          ReloadAction(
+            onComplete: [UpdateStateAction(path: 'missing', op: Literal(UpdateOp.removeAt), value: Literal(0))],
+          ),
+          UpdateStateAction(path: 'count', op: Literal(UpdateOp.increment)),
+        ]),
+        expect: () => [
+          GenericState(status: GenericStatus.success, page: reloaded, values: GenericValues(const {'count': 0})),
+        ],
+      );
     });
 
     group('dispatch updateState', () {

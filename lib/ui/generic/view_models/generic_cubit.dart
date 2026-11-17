@@ -61,7 +61,7 @@ class GenericCubit extends Cubit<GenericState> {
 
   Future<bool> _run(GenericAction action) async => switch (action) {
     final UpdateStateAction action => _updateState(action),
-    ReloadAction() => await _reload(),
+    final ReloadAction action => await _reload(action),
     final NavigateAction action => _navigate(action),
     BackAction() => _emitEffect(const BackEffect()),
     final ShowMessageAction action => _showMessage(action),
@@ -93,16 +93,19 @@ class GenericCubit extends Cubit<GenericState> {
     return succeeded && completed;
   }
 
-  Future<bool> _reload() async {
+  Future<bool> _reload(ReloadAction action) async {
     final result = await _pages.fetch(pageId, params);
     if (isClosed) return false;
+    var succeeded = false;
     switch (result) {
       case Ok(value: final page):
         emit(state.copyWith(page: page, values: page.state ?? state.values));
-        return true;
+        succeeded = true;
       case Err():
-        return false;
+        await _runAll(action.onError);
     }
+    final completed = await _runAll(action.onComplete);
+    return succeeded && completed;
   }
 
   bool _navigate(NavigateAction action) {
