@@ -169,6 +169,16 @@ class WidgetSnapshotTest {
     }
 
     @Test
+    fun decodesOpenUrlTap() {
+        fun tap(json: String) = WidgetNode.fromJson(Json.parseToJsonElement(json)).tap
+
+        assertEquals(
+            WidgetTap.OpenUrl(url = "https://claude.ai/new"),
+            tap("""{"type":"button","id":"claude","tap":{"type":"openUrl","url":"https://claude.ai/new"}}"""),
+        )
+    }
+
+    @Test
     fun flattensScrollColumnIntoStableItems() {
         val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.last().children.single()
         val items = scroll.scrollItems()

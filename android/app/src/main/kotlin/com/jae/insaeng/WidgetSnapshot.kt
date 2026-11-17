@@ -55,12 +55,15 @@ sealed interface WidgetTap {
 
     data class Event(val nodeId: String, val event: String) : WidgetTap
 
+    data class OpenUrl(val url: String) : WidgetTap
+
     companion object {
         fun fromJson(element: JsonElement): WidgetTap? {
             val obj = element as? JsonObject ?: return null
             return when (obj.optString("type")) {
                 "openApp" -> OpenApp
                 "event" -> Event(nodeId = obj.requireString("nodeId"), event = obj.requireString("event"))
+                "openUrl" -> OpenUrl(url = obj.requireString("url"))
                 else -> null
             }
         }

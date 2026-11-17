@@ -107,9 +107,13 @@ final class WidgetSnapshotResolver {
     _ => value,
   };
 
-  static WidgetTap? _tap(String nodeId, String event, List<GenericAction> actions) => switch (actions) {
+  WidgetTap? _tap(String nodeId, String event, List<GenericAction> actions) => switch (actions) {
     [] => null,
     [NavigateAction()] => const OpenAppTap(),
+    [OpenUrlAction(:final url)] => switch (url.resolve(_values)) {
+      null => null,
+      final resolved => OpenUrlTap(url: resolved),
+    },
     _ => EventTap(nodeId: nodeId, event: event),
   };
 }

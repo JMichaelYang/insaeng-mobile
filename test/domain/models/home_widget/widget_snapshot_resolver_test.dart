@@ -315,6 +315,62 @@ void main() {
       );
     });
 
+    test('turns an open-url-only action list into an open-url tap with its resolved url', () {
+      expect(
+        _resolveNode(
+          const ButtonNode(
+            id: 'claude',
+            label: Literal('Ask Claude'),
+            onTap: [OpenUrlAction(url: Literal('https://claude.ai/new'))],
+          ),
+        ).tap,
+        const OpenUrlTap(url: 'https://claude.ai/new'),
+      );
+      expect(
+        _resolveNode(
+          const IconButtonNode(
+            id: 'link',
+            icon: Literal(IconToken.edit),
+            label: Literal('Open link'),
+            onTap: [OpenUrlAction(url: Binding('link.url'))],
+          ),
+          {
+            'link': {'url': 'https://example.com'},
+          },
+        ).tap,
+        const OpenUrlTap(url: 'https://example.com'),
+      );
+    });
+
+    test('gives an open-url action whose url resolves to null no tap', () {
+      expect(
+        _resolveNode(
+          const ButtonNode(
+            id: 'link',
+            label: Literal('Link'),
+            onTap: [OpenUrlAction(url: Binding('missing'))],
+          ),
+        ).tap,
+        isNull,
+      );
+    });
+
+    test('turns an open-url action alongside other actions into an event tap', () {
+      expect(
+        _resolveNode(
+          const ButtonNode(
+            id: 'link',
+            label: Literal('Link'),
+            onTap: [
+              UpdateStateAction(path: 'opened', value: Literal(true)),
+              OpenUrlAction(url: Literal('https://claude.ai')),
+            ],
+          ),
+        ).tap,
+        const EventTap(nodeId: 'link', event: 'onTap'),
+      );
+    });
+
     test('turns any other action list into an event tap named after its field', () {
       expect(
         _resolveNode(
