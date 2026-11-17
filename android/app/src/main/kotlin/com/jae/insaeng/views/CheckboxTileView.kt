@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.CheckBox
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.layout.Alignment
@@ -31,8 +32,11 @@ private val spinnerSize = 20.dp
 internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
     val emoji = node.string("emoji")
     val subtitle = node.string("subtitle")
+    val busy = node.boolean("busy") ?: false
+    val action = node.eventAction()
+    val rowModifier = if (busy || action == null) modifier else modifier.clickable(action)
     Row(
-        modifier = modifier.fillMaxWidth().padding(vertical = WidgetSpacing.XS.size),
+        modifier = rowModifier.fillMaxWidth().padding(vertical = WidgetSpacing.XS.size),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (emoji != null) {
@@ -49,7 +53,7 @@ internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
                 TileText(subtitle, WidgetTextStyle.BODY_MEDIUM, GlanceTheme.colors.onSurfaceVariant)
             }
         }
-        if (node.boolean("busy") == true) {
+        if (busy) {
             CircularProgressIndicator(
                 modifier = GlanceModifier.size(spinnerSize),
                 color = GlanceTheme.colors.primary,
@@ -57,7 +61,7 @@ internal fun CheckboxTileView(node: WidgetNode, modifier: GlanceModifier) {
             Spacer(modifier = GlanceModifier.width(WidgetSpacing.SM.size))
         }
         Box(modifier = GlanceModifier.size(trailingSize), contentAlignment = Alignment.Center) {
-            CheckBox(checked = node.boolean("checked") ?: false, onCheckedChange = node.eventAction())
+            CheckBox(checked = node.boolean("checked") ?: false, onCheckedChange = action)
         }
     }
 }
