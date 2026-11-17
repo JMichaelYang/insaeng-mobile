@@ -20,3 +20,10 @@ final class EventTap extends WidgetTap with EventTapMappable {
 
   final String event;
 }
+
+@MappableClass(discriminatorValue: 'openUrl')
+final class OpenUrlTap extends WidgetTap with OpenUrlTapMappable {
+  const new({required this.url});
+
+  final String url;
+}
