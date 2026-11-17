@@ -65,6 +65,17 @@ final GenericValues _values = GenericValues(const {
   },
 });
 
+final GenericPage _sortedPage = GenericPage(
+  id: _pageId,
+  root: ColumnNode(id: 'root', children: [_tile('b'), _tile('a')]),
+  state: GenericValues(const {
+    'tasks': {
+      'b': {'done': false, 'saving': false},
+      'a': {'done': true, 'saving': false},
+    },
+  }),
+);
+
 Uri _uri({required String node, String page = _pageId, String event = 'onChanged'}) => Uri(
   scheme: 'insaeng',
   host: 'widget',
@@ -114,7 +125,19 @@ void main() {
           body: any(named: 'body'),
         ),
       ).thenAnswer((_) async => const Result.ok([]));
+      when(() => pages.fetch(any(), any())).thenAnswer((_) async => const Result.err(GenericPageOffline()));
     });
+
+    (GenericPage, GenericValues) lastSaved() {
+      final [..., page, values] = verify(
+        () => snapshots.save(
+          any(),
+          page: captureAny(named: 'page'),
+          values: captureAny(named: 'values'),
+        ),
+      ).captured;
+      return (page as GenericPage, values as GenericValues);
+    }
 
     List<GenericValues> savedValues() => verify(
       () => snapshots.save(
@@ -211,6 +234,86 @@ void main() {
       expect(savedValues().last, valuesWith({'done': true, 'saving': false}, {'done': false, 'saving': false}));
     });
 
+    test('reloads the page once the tap finishes and saves the re-sorted page', () async {
+      when(() => pages.fetch(_pageId, const {})).thenAnswer((_) async => Result.ok(_sortedPage));
+
+      await handler.handle(_uri(node: 'task-a'));
+
+      verify(() => pages.fetch(_pageId, const {})).called(1);
+      expect(lastSaved(), (_sortedPage, _sortedPage.state));
+      verify(() => snapshots.update()).called(4);
+    });
+
+    test('keeps the tapped state when the reload fails', () async {
+      await handler.handle(_uri(node: 'task-a'));
+
+      verify(() => pages.fetch(_pageId, const {})).called(1);
+      expect(lastSaved(), (_page, valuesWith({'done': true, 'saving': false}, {'done': true, 'saving': false})));
+    });
+
+    test('reloads once after rapid taps on different tasks have all finished', () async {
+      final requests = {'/my-day/tasks/a': Completer<void>(), '/my-day/tasks/b': Completer<void>()};
+      when(
+        () => actions.perform(
+          method: any(named: 'method'),
+          endpoint: any(named: 'endpoint'),
+          body: any(named: 'body'),
+        ),
+      ).thenAnswer((invocation) async {
+        await requests[invocation.namedArguments[#endpoint]]!.future;
+        return const Result.ok([]);
+      });
+
+      final first = handler.handle(_uri(node: 'task-a'));
+      final second = handler.handle(_uri(node: 'task-b'));
+      await pumpEventQueue();
+      requests['/my-day/tasks/a']!.complete();
+      await pumpEventQueue();
+
+      verifyNever(() => pages.fetch(any(), any()));
+
+      requests['/my-day/tasks/b']!.complete();
+      await Future.wait([first, second]);
+
+      verify(() => pages.fetch(_pageId, const {})).called(1);
+    });
+
+    test('runs a tap that arrives during a reload against the reloaded page', () async {
+      final reload = Completer<Result<GenericPage>>();
+      when(() => pages.fetch(_pageId, const {})).thenAnswer((_) => reload.future);
+
+      final first = handler.handle(_uri(node: 'task-a'));
+      await pumpEventQueue();
+      final second = handler.handle(_uri(node: 'task-b'));
+      await pumpEventQueue();
+
+      verifyNever(
+        () => actions.perform(
+          method: RequestMethod.patch,
+          endpoint: '/my-day/tasks/b',
+          body: any(named: 'body'),
+        ),
+      );
+
+      when(() => pages.fetch(_pageId, const {})).thenAnswer((_) async => const Result.err(GenericPageOffline()));
+      reload.complete(Result.ok(_sortedPage));
+      await Future.wait([first, second]);
+
+      verify(() => actions.perform(method: RequestMethod.patch, endpoint: '/my-day/tasks/b', body: {'done': true}))
+          .called(1);
+      verify(() => snapshots.load(_pageId)).called(1);
+      verify(() => pages.fetch(_pageId, const {})).called(2);
+      expect(lastSaved(), (
+        _sortedPage,
+        GenericValues(const {
+          'tasks': {
+            'b': {'done': true, 'saving': false},
+            'a': {'done': true, 'saving': false},
+          },
+        }),
+      ));
+    });
+
     test('ignores a second tap on a task that is still saving', () async {
       final request = Completer<void>();
       when(
@@ -272,6 +375,7 @@ void main() {
     test('does nothing for an unknown node', () async {
       await handler.handle(_uri(node: 'missing'));
 
+      verifyNever(() => pages.fetch(any(), any()));
       verifyNever(
         () => snapshots.save(
           any(),

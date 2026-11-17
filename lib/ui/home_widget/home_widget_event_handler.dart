@@ -57,9 +57,13 @@ final class _PageSession {
   final WidgetSnapshotRepository _snapshots;
   late final StreamSubscription<GenericState> _subscription;
   Future<void> _rendered = Future.value();
+  Future<void>? _reloading;
   var _running = 0;
 
   Future<void> run(String nodeId, String event) async {
+    for (var reloading = _reloading; reloading != null; reloading = _reloading) {
+      await reloading;
+    }
     final actions = _actionsFor(nodeId, event);
     if (actions == null) return;
     _running++;
@@ -68,7 +72,17 @@ final class _PageSession {
     } finally {
       _running--;
     }
+    if (_running == 0) await _reload();
     await _rendered;
+  }
+
+  Future<void> _reload() async {
+    final reloading = _reloading = _cubit.dispatch(const [ReloadAction()]);
+    try {
+      await reloading;
+    } finally {
+      if (identical(_reloading, reloading)) _reloading = null;
+    }
   }
 
   Future<void> close() async {
