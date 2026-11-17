@@ -92,6 +92,14 @@ class WidgetSnapshotTest {
         val start = footer.children[0]
         assertEquals("footerStart", start.id)
         assertEquals(listOf("footerStartSlot"), start.children.map { it.id })
+        val refresh = start.children.single().children.single()
+        assertEquals("iconButton", refresh.type)
+        assertEquals("refresh", refresh.id)
+        assertEquals(WidgetIcon.REFRESH, WidgetIcon.of(refresh.string("icon")))
+        assertEquals(R.drawable.ic_refresh, WidgetIcon.REFRESH.drawable)
+        assertEquals("Refresh", refresh.string("label"))
+        assertFalse(refresh.loading)
+        assertEquals(WidgetTap.Event(nodeId = "refresh", event = "onTap"), refresh.tap)
         val openClaude = footer.children[1]
         assertEquals("openClaude", openClaude.id)
         assertEquals("edit", openClaude.string("icon"))
@@ -171,7 +179,7 @@ class WidgetSnapshotTest {
         assertTrue(button.loading)
         assertEquals(WidgetTap.Event(nodeId = "openClaude", event = "onTap"), button.tap)
 
-        val idle = iconButton("""{"icon":"refresh","label":"Refresh"}""")
+        val idle = iconButton("""{"icon":"unknown","label":"Unknown"}""")
         assertNull(WidgetIcon.of(idle.string("icon")))
         assertNull(WidgetIcon.of(null))
         assertFalse(idle.loading)

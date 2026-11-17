@@ -75,5 +75,6 @@ extension IconTokenData on IconToken {
     IconToken.edit => Icons.edit,
     IconToken.chevronLeft => Icons.chevron_left,
     IconToken.chevronRight => Icons.chevron_right,
+    IconToken.refresh => Icons.refresh,
   };
 }

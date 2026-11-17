@@ -42,6 +42,7 @@ void main() {
       IconToken.edit: Icons.edit,
       IconToken.chevronLeft: Icons.chevron_left,
       IconToken.chevronRight: Icons.chevron_right,
+      IconToken.refresh: Icons.refresh,
     };
 
     for (final MapEntry(key: token, value: icon) in icons.entries) {

@@ -129,7 +129,23 @@
           {
             "children": [
               {
-                "children": [],
+                "children": [
+                  {
+                    "children": [],
+                    "id": "refresh",
+                    "props": {
+                      "icon": "refresh",
+                      "label": "Refresh",
+                      "loading": false
+                    },
+                    "tap": {
+                      "event": "onTap",
+                      "nodeId": "refresh",
+                      "type": "event"
+                    },
+                    "type": "iconButton"
+                  }
+                ],
                 "id": "footerStartSlot",
                 "props": {
                   "alignment": "start",

@@ -40,6 +40,8 @@ abstract final class MyDayPageMapper {
   static const nextDayLabel = 'Next day';
   static const selectedDayEndpoint = '/my-day/selected-day';
   static const selectableDays = 7;
+  static const refreshLabel = 'Refresh';
+  static const refreshingPath = 'refreshing';
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
@@ -147,7 +149,21 @@ abstract final class MyDayPageMapper {
     children: [
       ExpandedNode(
         id: 'footerStart',
-        child: ContainerNode(id: 'footerStartSlot'),
+        child: ContainerNode(
+          id: 'footerStartSlot',
+          child: IconButtonNode(
+            id: 'refresh',
+            icon: Literal(IconToken.refresh),
+            label: Literal(refreshLabel),
+            loading: Binding(refreshingPath, fallback: false),
+            onTap: [
+              UpdateStateAction(path: refreshingPath, value: Literal(true)),
+              ReloadAction(
+                onComplete: [UpdateStateAction(path: refreshingPath, value: Literal(false))],
+              ),
+            ],
+          ),
+        ),
       ),
       IconButtonNode(
         id: 'openClaude',

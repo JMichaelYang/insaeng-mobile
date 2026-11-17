@@ -111,13 +111,26 @@ const _widgetNodeTypes = {
   DayPickerNode,
 };
 
+const _refresh = IconButtonNode(
+  id: 'refresh',
+  icon: Literal(IconToken.refresh),
+  label: Literal('Refresh'),
+  loading: Binding('refreshing', fallback: false),
+  onTap: [
+    UpdateStateAction(path: 'refreshing', value: Literal(true)),
+    ReloadAction(
+      onComplete: [UpdateStateAction(path: 'refreshing', value: Literal(false))],
+    ),
+  ],
+);
+
 const _footer = RowNode(
   id: 'footer',
   alignment: Literal(AlignmentToken.center),
   children: [
     ExpandedNode(
       id: 'footerStart',
-      child: ContainerNode(id: 'footerStartSlot'),
+      child: ContainerNode(id: 'footerStartSlot', child: _refresh),
     ),
     IconButtonNode(
       id: 'openClaude',
@@ -616,6 +629,26 @@ void main() {
         final root = _mapWidget(rows).root as ColumnNode;
 
         expect(root.children.last, _footer);
+      }
+    });
+
+    test('starts the footer with a refresh button that spins until the reload completes', () {
+      final root = _mapWidget([_row('gym', start: '2026-11-15')]).root as ColumnNode;
+      final footer = root.children.last as RowNode;
+      final start = footer.children.first as ExpandedNode;
+
+      expect(start.child, isA<ContainerNode>().having((slot) => slot.child, 'child', _refresh));
+    });
+
+    test('leaves refreshing out of the state so the refresh button starts idle', () {
+      for (final rows in [
+        const <Map<String, Object?>>[],
+        [_row('gym', start: '2026-11-15')],
+      ]) {
+        final page = _mapWidget(rows);
+
+        expect(page.state?.get(MyDayPageMapper.refreshingPath), isNull);
+        expect(_refresh.loading.resolve(page.state ?? GenericValues.empty), isFalse);
       }
     });
 
