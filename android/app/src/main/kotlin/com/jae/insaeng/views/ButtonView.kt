@@ -33,7 +33,7 @@ private val buttonSpinnerSize = 18.dp
 @Composable
 internal fun ButtonView(node: WidgetNode, modifier: GlanceModifier) {
     val variant = WidgetButtonVariant.of(node.string("variant"))
-    val loading = node.boolean("loading") ?: false
+    val loading = node.loading
     val content = buttonContentColor(variant)
     val style = WidgetTextStyle.LABEL_LARGE
     Box(
