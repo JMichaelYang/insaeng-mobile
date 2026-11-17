@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:insaeng/design_system/organisms/app_error_view.dart';
 import 'package:insaeng/routing/routes.dart';
@@ -8,6 +9,7 @@ import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:insaeng/utils/context_extensions.dart';
 import 'package:insaeng/utils/navigation_extensions.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class GenericScreen extends StatelessWidget {
   const new({super.key});
@@ -81,6 +83,18 @@ class _GenericEffectListenerState extends State<_GenericEffectListener> {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(SnackBar(content: Text(text)));
+      case OpenUrlEffect(:final url):
+        unawaited(_openUrl(url));
+    }
+  }
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } on PlatformException {
+      return;
     }
   }
 

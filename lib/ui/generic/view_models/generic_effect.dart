@@ -27,3 +27,10 @@ final class ShowMessageEffect extends GenericEffect with ShowMessageEffectMappab
 
   final String text;
 }
+
+@MappableClass()
+final class OpenUrlEffect extends GenericEffect with OpenUrlEffectMappable {
+  const new({required this.url});
+
+  final String url;
+}

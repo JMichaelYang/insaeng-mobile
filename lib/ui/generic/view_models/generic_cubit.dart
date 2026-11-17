@@ -65,6 +65,7 @@ class GenericCubit extends Cubit<GenericState> {
     final NavigateAction action => _navigate(action),
     BackAction() => _emitEffect(const BackEffect()),
     final ShowMessageAction action => _showMessage(action),
+    final OpenUrlAction action => _openUrl(action),
     final RequestAction action => await _request(action),
     UnknownAction() => true,
   };
@@ -125,6 +126,12 @@ class GenericCubit extends Cubit<GenericState> {
     final text = action.text.resolve(state.values);
     if (text == null) return true;
     return _emitEffect(ShowMessageEffect(text: text));
+  }
+
+  bool _openUrl(OpenUrlAction action) {
+    final url = action.url.resolve(state.values);
+    if (url == null) return true;
+    return _emitEffect(OpenUrlEffect(url: url));
   }
 
   bool _emitEffect(GenericEffect effect) {

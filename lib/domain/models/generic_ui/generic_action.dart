@@ -67,6 +67,14 @@ final class ShowMessageAction extends GenericAction with ShowMessageActionMappab
   final Bindable<String> text;
 }
 
+@MappableClass(discriminatorValue: 'openUrl')
+final class OpenUrlAction extends GenericAction with OpenUrlActionMappable {
+  const new({required this.url});
+
+  @MappableField(hook: BindableHook<String>())
+  final Bindable<String> url;
+}
+
 @MappableClass(discriminatorValue: 'request')
 final class RequestAction extends GenericAction with RequestActionMappable {
   const new({
