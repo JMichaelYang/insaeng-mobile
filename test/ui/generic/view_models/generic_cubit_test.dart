@@ -786,7 +786,12 @@ void main() {
     group('effects', () {
       late GenericCubit cubit;
 
-      setUp(() => cubit = build()..emit(loaded(const {'target': 'detail', 'id': '7', 'name': 'Ana', 'count': 0})));
+      setUp(
+        () => cubit = build()
+          ..emit(
+            loaded(const {'target': 'detail', 'id': '7', 'name': 'Ana', 'count': 0, 'link': 'https://claude.ai/new'}),
+          ),
+      );
 
       tearDown(() => cubit.close());
 
@@ -838,6 +843,24 @@ void main() {
       test('showMessage without resolved text emits nothing and continues', () async {
         final effects = expectLater(cubit.effects, emits(const BackEffect()));
         await cubit.dispatch(const [ShowMessageAction(text: Binding('missing')), BackAction()]);
+        await effects;
+      });
+
+      test('openUrl emits the resolved url', () async {
+        final effects = expectLater(
+          cubit.effects,
+          emitsInOrder(const [OpenUrlEffect(url: 'https://example.com'), OpenUrlEffect(url: 'https://claude.ai/new')]),
+        );
+        await cubit.dispatch(const [
+          OpenUrlAction(url: Literal('https://example.com')),
+          OpenUrlAction(url: Binding('link')),
+        ]);
+        await effects;
+      });
+
+      test('openUrl without a resolved url emits nothing and continues', () async {
+        final effects = expectLater(cubit.effects, emits(const BackEffect()));
+        await cubit.dispatch(const [OpenUrlAction(url: Binding('missing')), BackAction()]);
         await effects;
       });
 

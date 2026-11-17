@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +23,8 @@ import 'package:insaeng/ui/generic/view_models/generic_cubit.dart';
 import 'package:insaeng/ui/generic/widgets/generic_screen.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:url_launcher_platform_interface/url_launcher_platform_interface.dart';
 
 import '../../../helpers/pump_app.dart';
 
@@ -30,6 +33,8 @@ class _MockGenericCubit extends MockCubit<GenericState> implements GenericCubit;
 class _MockGenericPageRepository extends Mock implements GenericPageRepository;
 
 class _MockGenericActionRepository extends Mock implements GenericActionRepository;
+
+class _MockUrlLauncher extends Mock with MockPlatformInterfaceMixin implements UrlLauncherPlatform;
 
 const _page = GenericPage(
   id: 'home',
@@ -97,6 +102,55 @@ void main() {
       await tester.pump();
 
       expect(find.widgetWithText(SnackBar, 'Saved'), findsOneWidget);
+    });
+
+    group('open url effects', () {
+      late UrlLauncherPlatform launcher;
+      late UrlLauncherPlatform original;
+
+      setUpAll(() => registerFallbackValue(const LaunchOptions()));
+
+      setUp(() {
+        when(() => cubit.state).thenReturn(const GenericState(status: GenericStatus.success, page: _page));
+        original = UrlLauncherPlatform.instance;
+        launcher = _MockUrlLauncher();
+        UrlLauncherPlatform.instance = launcher;
+        when(() => launcher.launchUrl(any(), any())).thenAnswer((_) async => true);
+      });
+
+      tearDown(() => UrlLauncherPlatform.instance = original);
+
+      testWidgets('opens the url in an external application', (tester) async {
+        await tester.pumpApp(buildSubject());
+
+        effects.add(const OpenUrlEffect(url: 'https://claude.ai/new'));
+        await tester.pump();
+
+        final options =
+            verify(() => launcher.launchUrl('https://claude.ai/new', captureAny())).captured.single as LaunchOptions;
+        expect(options.mode, PreferredLaunchMode.externalApplication);
+      });
+
+      testWidgets('skips a url that does not parse', (tester) async {
+        await tester.pumpApp(buildSubject());
+
+        effects.add(const OpenUrlEffect(url: 'http://[::1'));
+        await tester.pump();
+
+        verifyNever(() => launcher.launchUrl(any(), any()));
+      });
+
+      testWidgets('ignores a url no app can open', (tester) async {
+        when(() => launcher.launchUrl(any(), any())).thenThrow(PlatformException(code: 'ACTIVITY_NOT_FOUND'));
+        await tester.pumpApp(buildSubject());
+
+        effects.add(const OpenUrlEffect(url: 'insaeng-unknown://x'));
+        await tester.pump();
+
+        verify(() => launcher.launchUrl('insaeng-unknown://x', any())).called(1);
+        expect(tester.takeException(), isNull);
+        expect(find.byKey(const ValueKey('root')), findsOneWidget);
+      });
     });
 
     group('navigation effects', () {

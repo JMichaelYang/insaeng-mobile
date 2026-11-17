@@ -176,6 +176,26 @@ void main() {
       });
     });
 
+    group(OpenUrlAction, () {
+      test('decodes literal and bound urls', () {
+        expect(
+          _decode({'type': 'openUrl', 'url': 'https://claude.ai/new'}),
+          const OpenUrlAction(url: Literal('https://claude.ai/new')),
+        );
+        expect(
+          _decode({
+            'type': 'openUrl',
+            'url': {r'$bind': 'link', 'fallback': 'https://claude.ai/new'},
+          }),
+          const OpenUrlAction(url: Binding('link', fallback: 'https://claude.ai/new')),
+        );
+      });
+
+      test('fails without a url', () {
+        expect(() => _decode({'type': 'openUrl'}), throwsA(isA<MapperException>()));
+      });
+    });
+
     group(RequestAction, () {
       test('decodes with defaults', () {
         expect(

@@ -24,6 +24,7 @@ dependencies:
   intl: ^0.20.3
   material_ui: ^1.1.0
   meta: ^1.19.0
+  url_launcher: ^6.3.3
   workmanager: ^0.10.10
 
 dev_dependencies:
@@ -36,6 +37,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   mocktail: ^1.0.5
+  plugin_platform_interface: ^2.1.8
+  url_launcher_platform_interface: ^2.3.2
   very_good_analysis: ^11.0.0
 
 flutter:
