@@ -1,7 +1,6 @@
 package com.jae.insaeng
 
 import android.content.Context
-import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.glance.GlanceId
@@ -10,7 +9,6 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
-import es.antonborri.home_widget.HomeWidgetBackgroundIntent
 import java.net.URLEncoder
 
 val LocalWidgetPageId = staticCompositionLocalOf { "" }
@@ -28,7 +26,7 @@ object WidgetEventUri {
 class WidgetEventAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val uri = parameters[uriKey] ?: return
-        HomeWidgetBackgroundIntent.getBroadcast(context, Uri.parse(uri)).send()
+        WidgetEventWorker.enqueue(context, uri)
     }
 
     companion object {

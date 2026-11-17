@@ -10,7 +10,7 @@ import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
 import 'package:insaeng/data/repositories/my_day_page_mapper.dart';
 import 'package:insaeng/data/services/background_task_service.dart';
-import 'package:insaeng/data/services/home_widget_service.dart';
+import 'package:insaeng/data/services/widget_event_service.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
 import 'package:insaeng/domain/use_cases/schedule_home_widget_refresh_use_case.dart';
 import 'package:insaeng/ui/home_widget/home_widget_event_handler.dart';
@@ -55,6 +55,11 @@ Future<bool> runBackgroundTask(String task, Map<String, dynamic>? inputData) asy
 }
 
 @pragma('vm:entry-point')
+void widgetEventMain() {
+  WidgetsFlutterBinding.ensureInitialized();
+  unawaited(const WidgetEventService().listen(homeWidgetEventDispatcher));
+}
+
 Future<void> homeWidgetEventDispatcher(Uri? uri) async {
   bootstrapBackground(Flavor.values.asNameMap()[uri?.queryParameters[backgroundFlavorKey]] ?? Flavor.prod);
   await getIt<HomeWidgetEventHandler>().handle(uri);
@@ -64,7 +69,6 @@ void _refreshHomeWidget() => unawaited(getIt<RefreshHomeWidgetUseCase>()(MyDayPa
 
 Future<void> _setUpHomeWidgetBackground() async {
   if (defaultTargetPlatform != TargetPlatform.android) return;
-  await getIt<HomeWidgetService>().registerInteractivityCallback(homeWidgetEventDispatcher);
   await getIt<BackgroundTaskService>().initialize(backgroundTaskDispatcher);
   await getIt<ScheduleHomeWidgetRefreshUseCase>()(replace: true);
 }

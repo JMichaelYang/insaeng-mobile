@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/bootstrap.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/data/services/widget_event_service.dart';
 import 'package:insaeng/domain/repositories/background_task_repository.dart';
 import 'package:insaeng/domain/result.dart';
 import 'package:insaeng/domain/use_cases/refresh_home_widget_use_case.dart';
@@ -118,6 +122,49 @@ void main() {
       await homeWidgetEventDispatcher(null);
 
       expect(getIt<Flavor>(), Flavor.prod);
+    });
+  });
+
+  group(widgetEventMain, () {
+    const channel = WidgetEventService.channel;
+    late HomeWidgetEventHandler handler;
+    late Completer<void> ready;
+
+    TestDefaultBinaryMessenger messenger() => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+      handler = _MockHomeWidgetEventHandler();
+      when(() => handler.handle(any())).thenAnswer((_) async {});
+      getIt
+        ..registerSingleton(Flavor.dev)
+        ..registerSingleton(handler);
+      ready = Completer<void>();
+      messenger().setMockMethodCallHandler(channel, (call) async {
+        if (call.method == WidgetEventService.readyMethod) ready.complete();
+        return null;
+      });
+    });
+
+    tearDown(() {
+      messenger().setMockMethodCallHandler(channel, null);
+      channel.setMethodCallHandler(null);
+    });
+
+    test('hands widget events from the platform to the event handler', () async {
+      const uri = 'insaeng://widget/event?flavor=dev&page=myDayWidget&node=refresh&event=onTap';
+
+      widgetEventMain();
+      await ready.future;
+      final reply = Completer<ByteData?>();
+      await messenger().handlePlatformMessage(
+        channel.name,
+        channel.codec.encodeMethodCall(const MethodCall(WidgetEventService.handleMethod, uri)),
+        reply.complete,
+      );
+      await reply.future;
+
+      verify(() => handler.handle(Uri.parse(uri))).called(1);
     });
   });
 }
