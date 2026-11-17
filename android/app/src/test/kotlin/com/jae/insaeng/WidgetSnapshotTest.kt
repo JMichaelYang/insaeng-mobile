@@ -5,13 +5,16 @@ import androidx.compose.ui.unit.sp
 import androidx.glance.layout.Alignment
 import androidx.glance.text.FontWeight
 import com.jae.insaeng.views.itemId
+import com.jae.insaeng.views.loading
 import com.jae.insaeng.views.progress
+import com.jae.insaeng.views.renderedChildren
 import com.jae.insaeng.views.scrollItems
 import com.jae.insaeng.views.toAction
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -129,6 +132,40 @@ class WidgetSnapshotTest {
         assertEquals(WidgetButtonVariant.SECONDARY, WidgetButtonVariant.of(button.string("variant")))
         assertEquals(true, button.boolean("loading"))
         assertEquals(WidgetTap.OpenApp, button.tap)
+    }
+
+    @Test
+    fun decodesIconButtonProps() {
+        fun iconButton(props: String) =
+            WidgetNode.fromJson(
+                Json.parseToJsonElement(
+                    """{"type":"iconButton","id":"openClaude","tap":{"type":"event","nodeId":"openClaude","event":"onTap"},"props":$props}""",
+                ),
+            )
+
+        val button = iconButton("""{"icon":"edit","label":"Open Claude","loading":true}""")
+        assertEquals(WidgetIcon.EDIT, WidgetIcon.of(button.string("icon")))
+        assertEquals(R.drawable.ic_edit, WidgetIcon.EDIT.drawable)
+        assertEquals("Open Claude", button.string("label"))
+        assertTrue(button.loading)
+        assertEquals(WidgetTap.Event(nodeId = "openClaude", event = "onTap"), button.tap)
+
+        val idle = iconButton("""{"icon":"refresh","label":"Refresh"}""")
+        assertNull(WidgetIcon.of(idle.string("icon")))
+        assertNull(WidgetIcon.of(null))
+        assertFalse(idle.loading)
+    }
+
+    @Test
+    fun keepsIconButtonsAsRenderedChildren() {
+        val row =
+            WidgetNode(
+                type = "row",
+                id = "footer",
+                children = listOf(WidgetNode(type = "iconButton", id = "openClaude"), WidgetNode(type = "appBar", id = "bar")),
+            )
+
+        assertEquals(listOf("openClaude"), row.renderedChildren().map { it.id })
     }
 
     @Test

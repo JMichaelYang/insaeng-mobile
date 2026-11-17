@@ -17,5 +17,7 @@ internal fun WidgetTap?.toAction(): Action? =
     }
 
 @Composable
-internal fun GlanceModifier.tappable(node: WidgetNode): GlanceModifier =
-    (node.tap.toAction() ?: node.eventAction())?.let(::clickable) ?: this
+internal fun WidgetNode.tapAction(): Action? = tap.toAction() ?: eventAction()
+
+@Composable
+internal fun GlanceModifier.tappable(node: WidgetNode): GlanceModifier = node.tapAction()?.let(::clickable) ?: this
