@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
 import androidx.glance.ImageProvider
+import androidx.glance.action.action
 import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.components.CircleIconButton
 import androidx.glance.layout.Alignment
@@ -30,26 +31,15 @@ internal fun IconButtonView(node: WidgetNode, modifier: GlanceModifier) {
         }
         return
     }
-    val action = node.tapAction()
-    if (action != null) {
-        CircleIconButton(
-            imageProvider = ImageProvider(icon.drawable),
-            contentDescription = label,
-            onClick = action,
-            modifier = modifier,
-            backgroundColor = null,
-            contentColor = color,
-        )
-        return
-    }
+    val tap = node.tapAction()
     CircleIconButton(
         imageProvider = ImageProvider(icon.drawable),
         contentDescription = label,
-        onClick = {},
+        onClick = tap ?: action {},
         modifier = modifier,
-        enabled = false,
+        enabled = tap != null,
         backgroundColor = null,
-        contentColor = ColorProvider(R.color.widget_icon_disabled),
+        contentColor = if (tap != null) color else ColorProvider(R.color.widget_icon_disabled),
     )
 }
 
