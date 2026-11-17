@@ -83,27 +83,30 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
 
   @override
   Future<Result<GenericPage>> fetch(String id, Map<String, String> params) => switch (id) {
-    MyDayPageMapper.pageId => _myDay(MyDayPageMapper.fromRows, connectPage),
-    MyDayPageMapper.widgetPageId => _myDay(MyDayPageMapper.widgetFromRows, MyDayPageMapper.widgetConnectPage),
+    MyDayPageMapper.pageId => _myDay(id, MyDayPageMapper.fromRows, connectPage),
+    MyDayPageMapper.widgetPageId => _myDay(id, MyDayPageMapper.widgetFromRows, MyDayPageMapper.widgetConnectPage),
     _ => Future.value(const Result.err(GenericPageNotFound())),
   };
 
-  Future<Result<GenericPage>> _myDay(MyDayRowsMapper map, GenericPage connect) async {
+  Future<Result<GenericPage>> _myDay(String id, MyDayRowsMapper map, GenericPage connect) async {
     final String? token;
     final String? dataSourceId;
+    final String? selectedDay;
     try {
       token = await _storage.read(SecureStorageService.notionTokenKey);
       dataSourceId = await _storage.read(SecureStorageService.notionDataSourceIdKey);
+      selectedDay = await _storage.read(SecureStorageService.myDaySelectedDayKey(id));
     } on PlatformException {
       return const Result.err(GenericPageServerError());
     }
     if (token == null || token.isEmpty || dataSourceId == null || dataSourceId.isEmpty) {
       return Result.ok(connect);
     }
-    final now = _now();
+    final today = MyDayPageMapper.dateOf(_now());
+    final day = MyDayPageMapper.clampDay(MyDayPageMapper.parseDate(selectedDay) ?? today, today: today);
     try {
-      final rows = await _agendaRows(token, dataSourceId, now);
-      return Result.ok(map(rows, now: now));
+      final rows = await _agendaRows(token, dataSourceId, day);
+      return Result.ok(map(rows, day: day, today: today));
     } on NotionUnauthorizedException {
       return Result.ok(connect);
     } on NotionNetworkException {
@@ -115,16 +118,16 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
     }
   }
 
-  Future<List<Map<String, Object?>>> _agendaRows(String token, String dataSourceId, DateTime now) async {
+  Future<List<Map<String, Object?>>> _agendaRows(String token, String dataSourceId, DateTime day) async {
     final filter = {
       'and': [
         {
           'property': dateProperty,
-          'date': {'on_or_after': _date(DateTime(now.year, now.month, now.day - 1))},
+          'date': {'on_or_after': MyDayPageMapper.formatDate(DateTime(day.year, day.month, day.day - 1))},
         },
         {
           'property': dateProperty,
-          'date': {'on_or_before': _date(DateTime(now.year, now.month, now.day + 1))},
+          'date': {'on_or_before': MyDayPageMapper.formatDate(DateTime(day.year, day.month, day.day + 1))},
         },
       ],
     };
@@ -147,7 +150,4 @@ final class GenericNotionPageRepositoryImpl implements GenericPageRepository {
     } while (cursor != null);
     return rows;
   }
-
-  static String _date(DateTime day) =>
-      '${day.year.toString().padLeft(4, '0')}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
 }

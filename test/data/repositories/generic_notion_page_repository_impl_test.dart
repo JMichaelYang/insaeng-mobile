@@ -21,6 +21,7 @@ class _MockSecureStorageService extends Mock implements SecureStorageService;
 class _MockNotionService extends Mock implements NotionService;
 
 final _now = DateTime(2026, 3, 1, 9);
+final _today = DateTime(2026, 3);
 
 Map<String, Object?> _row(String id, String start) => {
   'object': 'page',
@@ -70,9 +71,11 @@ void main() {
     group(MyDayPageMapper.pageId, () {
       Future<Result<GenericPage>> fetch() => repository.fetch(MyDayPageMapper.pageId, const {});
 
-      void stub({String? token = 'secret', String? dataSourceId = 'agenda'}) {
+      void stub({String? token = 'secret', String? dataSourceId = 'agenda', String? selectedDay}) {
         when(() => storage.read(SecureStorageService.notionTokenKey)).thenAnswer((_) async => token);
         when(() => storage.read(SecureStorageService.notionDataSourceIdKey)).thenAnswer((_) async => dataSourceId);
+        when(() => storage.read(SecureStorageService.myDaySelectedDayKey(MyDayPageMapper.pageId)))
+            .thenAnswer((_) async => selectedDay);
       }
 
       for (final (description, value) in [('missing', null), ('empty', '')]) {
@@ -94,16 +97,16 @@ void main() {
       void stubQuery(Future<Map<String, Object?>> Function(Invocation invocation) answer) =>
           when(() => notion.queryDataSource(any(), any(), any())).thenAnswer(answer);
 
-      Map<String, Object?> queryBody({String? cursor}) => {
+      Map<String, Object?> queryBody({String? cursor, String after = '2026-02-28', String before = '2026-03-02'}) => {
         'filter': {
           'and': [
             {
               'property': GenericNotionPageRepositoryImpl.dateProperty,
-              'date': {'on_or_after': '2026-02-28'},
+              'date': {'on_or_after': after},
             },
             {
               'property': GenericNotionPageRepositoryImpl.dateProperty,
-              'date': {'on_or_before': '2026-03-02'},
+              'date': {'on_or_before': before},
             },
           ],
         },
@@ -116,7 +119,41 @@ void main() {
         final rows = [_row('yesterday', '2026-02-28'), _row('today', '2026-03-01'), _row('tomorrow', '2026-03-02')];
         stubQuery((_) async => _response(rows));
 
-        expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.fromRows(rows, now: _now)));
+        expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.fromRows(rows, day: _today, today: _today)));
+        verify(() => notion.queryDataSource('secret', 'agenda', queryBody())).called(1);
+      });
+
+      test('queries around the stored day and maps the rows for it', () async {
+        stub(selectedDay: '2026-03-05');
+        final rows = [_row('today', '2026-03-01'), _row('selected', '2026-03-05')];
+        stubQuery((_) async => _response(rows));
+
+        final page = _page(await fetch());
+
+        expect(page, MyDayPageMapper.fromRows(rows, day: DateTime(2026, 3, 5), today: _today));
+        expect([for (final tile in page.nodes.whereType<CheckboxTileNode>()) tile.id], ['task-selected']);
+        verify(() => notion.queryDataSource('secret', 'agenda', queryBody(after: '2026-03-04', before: '2026-03-06')))
+            .called(1);
+      });
+
+      for (final (description, stored, day, after, before) in [
+        ('more than seven days back', '2026-02-01', DateTime(2026, 2, 22), '2026-02-21', '2026-02-23'),
+        ('more than seven days ahead', '2026-03-20', DateTime(2026, 3, 8), '2026-03-07', '2026-03-09'),
+      ]) {
+        test('clamps a stored day $description to the nearest bound', () async {
+          stub(selectedDay: stored);
+          stubQuery((_) async => _response(const []));
+
+          expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.fromRows(const [], day: day, today: _today)));
+          verify(() => notion.queryDataSource('secret', 'agenda', queryBody(after: after, before: before))).called(1);
+        });
+      }
+
+      test('falls back to today when the stored day is malformed', () async {
+        stub(selectedDay: 'tomorrow');
+        stubQuery((_) async => _response(const []));
+
+        expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.fromRows(const [], day: _today, today: _today)));
         verify(() => notion.queryDataSource('secret', 'agenda', queryBody())).called(1);
       });
 
@@ -143,7 +180,10 @@ void main() {
           },
         );
 
-        expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.fromRows([first, second], now: _now)));
+        expect(
+          await fetch(),
+          Result<GenericPage>.ok(MyDayPageMapper.fromRows([first, second], day: _today, today: _today)),
+        );
         verify(() => notion.queryDataSource('secret', 'agenda', queryBody())).called(1);
         verify(() => notion.queryDataSource('secret', 'agenda', queryBody(cursor: 'cursor-2'))).called(1);
       });
@@ -203,9 +243,11 @@ void main() {
     group(MyDayPageMapper.widgetPageId, () {
       Future<Result<GenericPage>> fetch() => repository.fetch(MyDayPageMapper.widgetPageId, const {});
 
-      void stub({String? token = 'secret', String? dataSourceId = 'agenda'}) {
+      void stub({String? token = 'secret', String? dataSourceId = 'agenda', String? selectedDay}) {
         when(() => storage.read(SecureStorageService.notionTokenKey)).thenAnswer((_) async => token);
         when(() => storage.read(SecureStorageService.notionDataSourceIdKey)).thenAnswer((_) async => dataSourceId);
+        when(() => storage.read(SecureStorageService.myDaySelectedDayKey(MyDayPageMapper.widgetPageId)))
+            .thenAnswer((_) async => selectedDay);
       }
 
       void stubQuery(Future<Map<String, Object?>> Function(Invocation invocation) answer) =>
@@ -222,7 +264,10 @@ void main() {
           },
         );
 
-        expect(await fetch(), Result<GenericPage>.ok(MyDayPageMapper.widgetFromRows([first, second], now: _now)));
+        expect(
+          await fetch(),
+          Result<GenericPage>.ok(MyDayPageMapper.widgetFromRows([first, second], day: _today, today: _today)),
+        );
         verify(
           () => notion.queryDataSource('secret', 'agenda', {
             'filter': {
@@ -244,13 +289,36 @@ void main() {
             .called(1);
       });
 
+      test('reads the widget day separately from the app day', () async {
+        stub(selectedDay: '2026-02-27');
+        when(() => storage.read(SecureStorageService.myDaySelectedDayKey(MyDayPageMapper.pageId)))
+            .thenAnswer((_) async => '2026-03-05');
+        stubQuery((_) async => _response(const []));
+
+        expect(
+          await fetch(),
+          Result<GenericPage>.ok(MyDayPageMapper.widgetFromRows(const [], day: DateTime(2026, 2, 27), today: _today)),
+        );
+        verifyNever(() => storage.read(SecureStorageService.myDaySelectedDayKey(MyDayPageMapper.pageId)));
+      });
+
+      test('clamps a stored widget day outside the window', () async {
+        stub(selectedDay: '2027-01-01');
+        stubQuery((_) async => _response(const []));
+
+        expect(
+          await fetch(),
+          Result<GenericPage>.ok(MyDayPageMapper.widgetFromRows(const [], day: DateTime(2026, 3, 8), today: _today)),
+        );
+      });
+
       test('returns the empty widget page when no rows match', () async {
         stub();
         stubQuery((_) async => _response(const []));
 
         final page = _page(await fetch());
 
-        expect(page, MyDayPageMapper.widgetFromRows(const [], now: _now));
+        expect(page, MyDayPageMapper.widgetFromRows(const [], day: _today, today: _today));
         expect(page.nodes.whereType<TextNode>().single.text, const Literal(MyDayPageMapper.emptyText));
       });
 

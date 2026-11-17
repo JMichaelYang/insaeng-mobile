@@ -3,6 +3,43 @@
   "root": {
     "children": [
       {
+        "children": [
+          {
+            "children": [],
+            "id": "dayPickerPrevious",
+            "props": {
+              "icon": "chevronLeft",
+              "label": "Previous day"
+            },
+            "tap": {
+              "event": "onPrevious",
+              "nodeId": "dayPicker",
+              "type": "event"
+            },
+            "type": "iconButton"
+          },
+          {
+            "children": [],
+            "id": "dayPickerNext",
+            "props": {
+              "icon": "chevronRight",
+              "label": "Next day"
+            },
+            "tap": {
+              "event": "onNext",
+              "nodeId": "dayPicker",
+              "type": "event"
+            },
+            "type": "iconButton"
+          }
+        ],
+        "id": "dayPicker",
+        "props": {
+          "label": "Sun, Nov 15"
+        },
+        "type": "dayPicker"
+      },
+      {
         "children": [],
         "id": "progress",
         "props": {

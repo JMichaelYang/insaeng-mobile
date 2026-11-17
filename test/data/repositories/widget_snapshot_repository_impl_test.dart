@@ -33,29 +33,33 @@ const WidgetSnapshot _snapshot = WidgetSnapshot(
   ),
 );
 
-final GenericPage _page = MyDayPageMapper.widgetFromRows([
-  {
-    'object': 'page',
-    'id': 'task-1',
-    'icon': {'type': 'emoji', 'emoji': '🧪'},
-    'properties': {
-      'Name': {
-        'type': 'title',
-        'title': [
-          {'type': 'text', 'plain_text': 'Write tests'},
-        ],
-      },
-      'Date': {
-        'type': 'date',
-        'date': {'start': '2026-11-15T09:00:00.000', 'end': '2026-11-15T10:00:00.000', 'time_zone': null},
-      },
-      'Status': {
-        'type': 'status',
-        'status': {'name': 'Not started'},
+final GenericPage _page = MyDayPageMapper.widgetFromRows(
+  [
+    {
+      'object': 'page',
+      'id': 'task-1',
+      'icon': {'type': 'emoji', 'emoji': '🧪'},
+      'properties': {
+        'Name': {
+          'type': 'title',
+          'title': [
+            {'type': 'text', 'plain_text': 'Write tests'},
+          ],
+        },
+        'Date': {
+          'type': 'date',
+          'date': {'start': '2026-11-15T09:00:00.000', 'end': '2026-11-15T10:00:00.000', 'time_zone': null},
+        },
+        'Status': {
+          'type': 'status',
+          'status': {'name': 'Not started'},
+        },
       },
     },
-  },
-], now: DateTime(2026, 11, 15, 12));
+  ],
+  day: DateTime(2026, 11, 15),
+  today: DateTime(2026, 11, 15),
+);
 
 void main() {
   group(WidgetSnapshotRepositoryImpl, () {

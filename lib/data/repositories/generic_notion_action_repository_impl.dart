@@ -9,15 +9,18 @@ import 'package:insaeng/domain/repositories/generic_action_repository.dart';
 import 'package:insaeng/domain/result.dart';
 
 final class GenericNotionActionRepositoryImpl implements GenericActionRepository {
-  const new(this._storage, this._notion);
+  const new(this._storage, this._notion, {this._now = DateTime.now});
 
   static const doneStatus = 'Done';
   static const todoStatus = 'To do';
 
   static const connectionEndpoint = '/notion/connection';
 
+  static const Set<String> _myDayPageIds = {MyDayPageMapper.pageId, MyDayPageMapper.widgetPageId};
+
   final SecureStorageService _storage;
   final NotionService _notion;
+  final DateTime Function() _now;
 
   @override
   Future<Result<List<GenericAction>>> perform({
@@ -27,6 +30,7 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
   }) => switch ((method, endpoint.split('/'))) {
     (RequestMethod.put, _) when endpoint == connectionEndpoint => _saveConnection(body),
     (RequestMethod.patch, ['', 'my-day', 'tasks', final id]) when id.isNotEmpty => _updateTaskStatus(id, body),
+    (RequestMethod.put, _) when endpoint == MyDayPageMapper.selectedDayEndpoint => _selectDay(body),
     _ => Future.value(const Result.err(GenericActionNotFound())),
   };
 
@@ -37,6 +41,21 @@ final class GenericNotionActionRepositoryImpl implements GenericActionRepository
     try {
       await _storage.write(SecureStorageService.notionTokenKey, token);
       await _storage.write(SecureStorageService.notionDataSourceIdKey, dataSourceId);
+      return const Result.ok([ReloadAction()]);
+    } on PlatformException {
+      return const Result.err(GenericActionServerError());
+    }
+  }
+
+  Future<Result<List<GenericAction>>> _selectDay(Map<String, Object?> body) async {
+    final pageId = body['pageId'];
+    final day = MyDayPageMapper.parseDate(body['date']);
+    if (pageId is! String || !_myDayPageIds.contains(pageId) || day == null) {
+      return const Result.err(GenericActionInvalid());
+    }
+    final selected = MyDayPageMapper.clampDay(day, today: MyDayPageMapper.dateOf(_now()));
+    try {
+      await _storage.write(SecureStorageService.myDaySelectedDayKey(pageId), MyDayPageMapper.formatDate(selected));
       return const Result.ok([ReloadAction()]);
     } on PlatformException {
       return const Result.err(GenericActionServerError());

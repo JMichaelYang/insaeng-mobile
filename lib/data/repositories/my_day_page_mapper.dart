@@ -5,8 +5,13 @@ import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
+import 'package:intl/intl.dart';
 
-typedef MyDayRowsMapper = GenericPage Function(Iterable<Map<String, Object?>> rows, {required DateTime now});
+typedef MyDayRowsMapper = GenericPage Function(
+  Iterable<Map<String, Object?>> rows, {
+  required DateTime day,
+  required DateTime today,
+});
 
 typedef _Task = ({
   String id,
@@ -23,7 +28,7 @@ abstract final class MyDayPageMapper {
   static const pageId = 'myDay';
   static const widgetPageId = 'myDayWidget';
   static const title = 'My Day';
-  static const emptyText = 'Nothing planned today';
+  static const emptyText = 'Nothing planned';
   static const connectInAppText = 'Connect Notion in the app';
   static const skippedText = 'Skipped';
   static const saveErrorText = "Couldn't update the task. Try again.";
@@ -31,6 +36,10 @@ abstract final class MyDayPageMapper {
   static const progressDonePath = 'progress.done';
   static const claudeUrl = 'https://claude.ai/new';
   static const openClaudeLabel = 'Open Claude';
+  static const previousDayLabel = 'Previous day';
+  static const nextDayLabel = 'Next day';
+  static const selectedDayEndpoint = '/my-day/selected-day';
+  static const selectableDays = 7;
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
@@ -60,8 +69,30 @@ abstract final class MyDayPageMapper {
 
   static const _openMyDay = [NavigateAction(pageId: Literal(pageId))];
 
-  static GenericPage fromRows(Iterable<Map<String, Object?>> rows, {required DateTime now}) {
-    final tasks = _todayTasks(rows, now);
+  static final _dateFormat = DateFormat('yyyy-MM-dd');
+  static final _labelFormat = DateFormat('EEE, MMM d');
+
+  static String formatDate(DateTime day) => _dateFormat.format(day);
+
+  static DateTime? parseDate(Object? value) => switch (value) {
+    final String value => switch (_dateFormat.tryParseStrict(value)) {
+      final day? when formatDate(day) == value => day,
+      _ => null,
+    },
+    _ => null,
+  };
+
+  static DateTime dateOf(DateTime time) => DateTime(time.year, time.month, time.day);
+
+  static DateTime clampDay(DateTime day, {required DateTime today}) {
+    final date = dateOf(day);
+    final first = _addDays(today, -selectableDays);
+    final last = _addDays(today, selectableDays);
+    return date.isBefore(first) ? first : (date.isAfter(last) ? last : date);
+  }
+
+  static GenericPage fromRows(Iterable<Map<String, Object?>> rows, {required DateTime day, required DateTime today}) {
+    final tasks = _dayTasks(rows, day);
     return GenericPage(
       id: pageId,
       state: _state(tasks),
@@ -69,6 +100,7 @@ abstract final class MyDayPageMapper {
         id: 'root',
         children: [
           const AppBarNode(id: 'appBar', title: Literal(title)),
+          _dayPicker(pageId, day, today),
           ContainerNode(
             id: 'progressBar',
             padding: const Literal(SpacingToken.md),
@@ -84,8 +116,12 @@ abstract final class MyDayPageMapper {
     );
   }
 
-  static GenericPage widgetFromRows(Iterable<Map<String, Object?>> rows, {required DateTime now}) {
-    final tasks = _todayTasks(rows, now);
+  static GenericPage widgetFromRows(
+    Iterable<Map<String, Object?>> rows, {
+    required DateTime day,
+    required DateTime today,
+  }) {
+    final tasks = _dayTasks(rows, day);
     return GenericPage(
       id: widgetPageId,
       state: _state(tasks),
@@ -93,6 +129,7 @@ abstract final class MyDayPageMapper {
         id: 'root',
         spacing: const Literal(SpacingToken.sm),
         children: [
+          _dayPicker(widgetPageId, day, today),
           _progress(tasks),
           ExpandedNode(
             id: 'body',
@@ -121,14 +158,29 @@ abstract final class MyDayPageMapper {
     ],
   );
 
-  static List<_Task> _todayTasks(Iterable<Map<String, Object?>> rows, DateTime now) {
-    final today = now.toLocal();
-    return rows
-        .map(_task)
-        .nonNulls
-        .where((task) => _isSameDay(task.start, today))
-        .sortedByCompare((task) => task, _compare);
-  }
+  static List<_Task> _dayTasks(Iterable<Map<String, Object?>> rows, DateTime day) =>
+      rows.map(_task).nonNulls.where((task) => _isSameDay(task.start, day)).sortedByCompare((task) => task, _compare);
+
+  static DayPickerNode _dayPicker(String id, DateTime day, DateTime today) => DayPickerNode(
+    id: 'dayPicker',
+    label: Literal(_labelFormat.format(day)),
+    previousLabel: const Literal(previousDayLabel),
+    nextLabel: const Literal(nextDayLabel),
+    onPrevious: _selectDay(id, _addDays(day, -1), today),
+    onNext: _selectDay(id, _addDays(day, 1), today),
+  );
+
+  static List<GenericAction> _selectDay(String id, DateTime day, DateTime today) => clampDay(day, today: today) == day
+      ? [
+          RequestAction(
+            method: const Literal(RequestMethod.put),
+            endpoint: const Literal(selectedDayEndpoint),
+            body: JsonObject({'pageId': JsonLiteral(id), 'date': JsonLiteral(formatDate(day))}),
+          ),
+        ]
+      : const [];
+
+  static DateTime _addDays(DateTime day, int days) => DateTime(day.year, day.month, day.day + days);
 
   static GenericValues _state(List<_Task> tasks) => GenericValues({
     'tasks': {
