@@ -3,9 +3,14 @@ package com.jae.insaeng.views
 import androidx.compose.runtime.Composable
 import androidx.glance.Emittable
 import androidx.glance.EmittableWithChildren
+import androidx.glance.EmittableImage
 import androidx.glance.GlanceModifier
+import androidx.glance.TintColorFilterParams
+import androidx.glance.action.ActionModifier
+import androidx.glance.appwidget.EnabledModifier
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
 import androidx.glance.layout.Box
+import androidx.glance.layout.EmittableBox
 import androidx.glance.layout.EmittableColumn
 import androidx.glance.layout.EmittableRow
 import androidx.glance.layout.WidthModifier
@@ -15,11 +20,18 @@ import androidx.glance.semantics.semantics
 import androidx.glance.semantics.testTag
 import androidx.glance.testing.unit.hasTestTag
 import androidx.glance.unit.Dimension
+import androidx.glance.unit.ResourceColorProvider
+import com.jae.insaeng.R
 import com.jae.insaeng.WidgetNode
 import com.jae.insaeng.WidgetSnapshot
+import com.jae.insaeng.WidgetTap
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -49,6 +61,24 @@ class WidgetLayoutTest {
 
     private val Emittable.width: Dimension?
         get() = modifier.foldIn<Dimension?>(null) { width, element -> (element as? WidthModifier)?.width ?: width }
+
+    private inline fun <reified T : GlanceModifier.Element> Emittable.modifierOf(): T? =
+        modifier.foldIn<T?>(null) { found, element -> found ?: element as? T }
+
+    private fun chevron(tap: WidgetTap? = null, loading: Boolean = false) =
+        WidgetNode(
+            type = "iconButton",
+            id = "dayNext",
+            props =
+                JsonObject(
+                    mapOf(
+                        "icon" to JsonPrimitive("chevronRight"),
+                        "label" to JsonPrimitive("Next day"),
+                        "loading" to JsonPrimitive(loading),
+                    ),
+                ),
+            tap = tap,
+        )
 
     private fun Emittable.descendants(): List<Emittable> =
         if (this is EmittableWithChildren) children.flatMap { listOf(it) + it.descendants() } else emptyList()
@@ -94,5 +124,33 @@ class WidgetLayoutTest {
 
         assertNotEquals(Dimension.Fill, row.width)
         assertFalse(node.fillsWidth)
+    }
+
+    @Test
+    fun drawsTaplessIconButtonsAsDisabledButtons() {
+        val button = render<EmittableBox> { IconButtonView(chevron(), GlanceModifier) }
+
+        assertEquals(false, button.modifierOf<EnabledModifier>()?.enabled)
+        assertNotNull(button.modifierOf<ActionModifier>())
+        val icon = button.children.single() as EmittableImage
+        val tint = icon.colorFilterParams as TintColorFilterParams
+        assertEquals(R.color.widget_icon_disabled, (tint.colorProvider as ResourceColorProvider).resId)
+    }
+
+    @Test
+    fun drawsTappableIconButtonsAsEnabledButtons() {
+        val button = render<EmittableBox> { IconButtonView(chevron(tap = WidgetTap.OpenApp), GlanceModifier) }
+
+        assertEquals(true, button.modifierOf<EnabledModifier>()?.enabled)
+        assertNotNull(button.modifierOf<ActionModifier>())
+    }
+
+    @Test
+    fun drawsLoadingIconButtonsAsSpinnersWithoutAButton() {
+        val box = render<EmittableBox> { IconButtonView(chevron(tap = WidgetTap.OpenApp, loading = true), GlanceModifier) }
+
+        assertNull(box.modifierOf<EnabledModifier>())
+        assertNull(box.modifierOf<ActionModifier>())
+        assertTrue(box.children.single() !is EmittableImage)
     }
 }
