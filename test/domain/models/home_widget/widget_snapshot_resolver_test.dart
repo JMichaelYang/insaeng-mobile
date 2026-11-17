@@ -249,6 +249,36 @@ void main() {
       );
     });
 
+    test('puts the label tap of a day picker on the picker itself and leaves its chevrons their own taps', () {
+      const node = DayPickerNode(
+        id: 'day',
+        label: Literal('Fri, Jan 16'),
+        previousLabel: Literal('Previous day'),
+        nextLabel: Literal('Next day'),
+        labelTapHint: Literal('Go to today'),
+        onPrevious: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment), value: Literal(-1))],
+        onLabelTap: [UpdateStateAction(path: 'offset', value: Literal(0))],
+      );
+
+      final picker = _resolveNode(node);
+
+      expect(picker.tap, const EventTap(nodeId: 'day', event: 'onLabelTap'));
+      expect(picker.props, {'label': 'Fri, Jan 16'});
+      expect(picker.children.map((child) => child.tap), [const EventTap(nodeId: 'day', event: 'onPrevious'), null]);
+    });
+
+    test('gives a day picker without a label tap no tap of its own', () {
+      const node = DayPickerNode(
+        id: 'day',
+        label: Literal('Mon, Jan 12'),
+        previousLabel: Literal('Previous day'),
+        nextLabel: Literal('Next day'),
+        onNext: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))],
+      );
+
+      expect(_resolveNode(node).tap, isNull);
+    });
+
     test('gives a day picker chevron without actions no tap', () {
       const node = DayPickerNode(
         id: 'day',

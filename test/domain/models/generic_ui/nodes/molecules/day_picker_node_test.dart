@@ -80,6 +80,40 @@ void main() {
       expect(node.actions, [...onPrevious, ...onNext]);
     });
 
+    test('decodes a label tap with its hint and exposes it after the chevron actions', () {
+      final node = _decode({
+        'type': 'dayPicker',
+        'id': 'day',
+        'label': 'Mon, Jan 12',
+        'previousLabel': 'Previous day',
+        'nextLabel': 'Next day',
+        'labelTapHint': {r'$bind': 'day.hint', 'fallback': 'Go to today'},
+        'onNext': [
+          {'type': 'updateState', 'path': 'offset', 'op': 'increment'},
+        ],
+        'onLabelTap': [
+          {'type': 'updateState', 'path': 'offset', 'value': 0},
+          {'type': 'reload'},
+        ],
+      });
+
+      const onNext = [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))];
+      const onLabelTap = [UpdateStateAction(path: 'offset', value: Literal(0)), ReloadAction()];
+      expect(
+        node,
+        const DayPickerNode(
+          id: 'day',
+          label: Literal('Mon, Jan 12'),
+          previousLabel: Literal('Previous day'),
+          nextLabel: Literal('Next day'),
+          labelTapHint: Binding('day.hint', fallback: 'Go to today'),
+          onNext: onNext,
+          onLabelTap: onLabelTap,
+        ),
+      );
+      expect(node.actions, [...onNext, ...onLabelTap]);
+    });
+
     test('fails without a label or a chevron label', () {
       const json = {
         'type': 'dayPicker',

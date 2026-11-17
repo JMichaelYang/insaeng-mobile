@@ -93,6 +93,47 @@ void main() {
       verify(() => cubit.dispatch(onNext)).called(1);
     });
 
+    testWidgets('dispatches onLabelTap from the label with its resolved hint', (tester) async {
+      const onLabelTap = [UpdateStateAction(path: 'offset', value: Literal(0))];
+      await pumpItem(
+        tester,
+        const DayPickerNode(
+          id: 'day',
+          label: Literal('Mon, Jan 12'),
+          previousLabel: Literal('Previous day'),
+          nextLabel: Literal('Next day'),
+          labelTapHint: Binding('day.hint'),
+          onLabelTap: onLabelTap,
+        ),
+        values: {
+          'day': {'hint': 'Go to today'},
+        },
+      );
+
+      expect(picker(tester).labelTapHint, 'Go to today');
+
+      await tester.tap(find.text('Mon, Jan 12'));
+      verify(() => cubit.dispatch(onLabelTap)).called(1);
+    });
+
+    testWidgets('leaves the label untappable when onLabelTap is empty', (tester) async {
+      await pumpItem(
+        tester,
+        const DayPickerNode(
+          id: 'day',
+          label: Literal('Mon, Jan 12'),
+          previousLabel: Literal('Previous day'),
+          nextLabel: Literal('Next day'),
+          labelTapHint: Literal('Go to today'),
+        ),
+      );
+
+      expect(picker(tester).onLabelTap, isNull);
+
+      await tester.tap(find.text('Mon, Jan 12'));
+      verifyNever(() => cubit.dispatch(any()));
+    });
+
     testWidgets('disables a chevron whose action list is empty', (tester) async {
       const onNext = [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))];
       await pumpItem(

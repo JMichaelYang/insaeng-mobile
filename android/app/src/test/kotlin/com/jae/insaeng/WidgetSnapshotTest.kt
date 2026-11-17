@@ -216,6 +216,27 @@ class WidgetSnapshotTest {
     }
 
     @Test
+    fun decodesADayPickerLabelTapOnThePickerApartFromItsChevrons() {
+        val picker =
+            WidgetNode.fromJson(
+                Json.parseToJsonElement(
+                    """
+                    {"type":"dayPicker","id":"day","props":{"label":"Fri, Jan 16"},
+                     "tap":{"type":"event","nodeId":"day","event":"onLabelTap"},"children":[
+                      {"type":"iconButton","id":"dayPrevious","props":{"icon":"chevronLeft","label":"Previous day"},
+                       "tap":{"type":"event","nodeId":"day","event":"onPrevious"}},
+                      {"type":"iconButton","id":"dayNext","props":{"icon":"chevronRight","label":"Next day"}}
+                    ]}
+                    """,
+                ),
+            )
+
+        assertEquals(WidgetTap.Event(nodeId = "day", event = "onLabelTap"), picker.tap)
+        assertEquals(WidgetTap.Event(nodeId = "day", event = "onPrevious"), picker.previousChevron?.tap)
+        assertNull(picker.nextChevron?.tap)
+    }
+
+    @Test
     fun dropsDayPickerChevronsThatAreMissingOrNotIconButtons() {
         val empty = WidgetNode(type = "dayPicker", id = "day")
         assertNull(empty.previousChevron)

@@ -19,6 +19,7 @@ import androidx.glance.testing.GlanceNodeMatcher
 import androidx.glance.semantics.semantics
 import androidx.glance.semantics.testTag
 import androidx.glance.testing.unit.hasTestTag
+import androidx.glance.text.EmittableText
 import androidx.glance.unit.Dimension
 import androidx.glance.unit.ResourceColorProvider
 import com.jae.insaeng.R
@@ -77,6 +78,15 @@ class WidgetLayoutTest {
                         "loading" to JsonPrimitive(loading),
                     ),
                 ),
+            tap = tap,
+        )
+
+    private fun dayPicker(tap: WidgetTap? = null) =
+        WidgetNode(
+            type = "dayPicker",
+            id = "dayPicker",
+            props = JsonObject(mapOf("label" to JsonPrimitive("Fri, Jan 16"))),
+            children = listOf(chevron(tap = WidgetTap.OpenApp)),
             tap = tap,
         )
 
@@ -149,5 +159,25 @@ class WidgetLayoutTest {
         assertNull(box.modifierOf<EnabledModifier>())
         assertNull(box.modifierOf<ActionModifier>())
         assertTrue(box.children.single() !is EmittableImage)
+    }
+
+    @Test
+    fun makesTheDayPickerLabelTapItsOwnEvent() {
+        val tap = WidgetTap.Event(nodeId = "dayPicker", event = "onLabelTap")
+        val row = render<EmittableRow> { DayPickerView(dayPicker(tap = tap), GlanceModifier) }
+
+        val label = row.children.filterIsInstance<EmittableText>().single()
+        assertEquals("Fri, Jan 16", label.text)
+        assertNotNull(label.modifierOf<ActionModifier>())
+        assertEquals(Dimension.Expand, label.width)
+    }
+
+    @Test
+    fun leavesTheDayPickerLabelUntappableWithoutATap() {
+        val row = render<EmittableRow> { DayPickerView(dayPicker(), GlanceModifier) }
+
+        val label = row.children.filterIsInstance<EmittableText>().single()
+        assertNull(label.modifierOf<ActionModifier>())
+        assertEquals(Dimension.Expand, label.width)
     }
 }

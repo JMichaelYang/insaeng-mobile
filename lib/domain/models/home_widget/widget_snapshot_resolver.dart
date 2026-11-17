@@ -63,11 +63,20 @@ final class WidgetSnapshotResolver {
       props: {'icon': icon, 'label': label, 'loading': loading},
       tap: _tap(id, 'onTap', onTap),
     ),
-    DayPickerNode(:final id, :final label, :final previousLabel, :final nextLabel, :final onPrevious, :final onNext) =>
+    DayPickerNode(
+      :final id,
+      :final label,
+      :final previousLabel,
+      :final nextLabel,
+      :final onPrevious,
+      :final onNext,
+      :final onLabelTap,
+    ) =>
       WidgetNode(
         type: 'dayPicker',
         id: id,
         props: _props({'label': label}),
+        tap: _tap(id, 'onLabelTap', onLabelTap),
         children: [
           _chevron('${id}Previous', IconToken.chevronLeft, previousLabel, _tap(id, 'onPrevious', onPrevious)),
           _chevron('${id}Next', IconToken.chevronRight, nextLabel, _tap(id, 'onNext', onNext)),

@@ -16,6 +16,8 @@ class DayPickerItem extends StatelessWidget {
       nextLabel: context.watchBindable(node.nextLabel) ?? '',
       onPrevious: node.onPrevious.isEmpty ? null : () => context.dispatch(node.onPrevious),
       onNext: node.onNext.isEmpty ? null : () => context.dispatch(node.onNext),
+      onLabelTap: node.onLabelTap.isEmpty ? null : () => context.dispatch(node.onLabelTap),
+      labelTapHint: context.watchBindable(node.labelTapHint),
     );
   }
 }

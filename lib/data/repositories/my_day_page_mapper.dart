@@ -36,6 +36,7 @@ abstract final class MyDayPageMapper {
   static const progressDonePath = 'progress.done';
   static const previousDayLabel = 'Previous day';
   static const nextDayLabel = 'Next day';
+  static const todayHint = 'Go to today';
   static const selectedDayEndpoint = '/my-day/selected-day';
   static const selectableDays = 7;
   static const refreshLabel = 'Refresh';
@@ -176,6 +177,8 @@ abstract final class MyDayPageMapper {
     nextLabel: const Literal(nextDayLabel),
     onPrevious: _selectDay(id, _addDays(day, -1), today),
     onNext: _selectDay(id, _addDays(day, 1), today),
+    labelTapHint: const Literal(todayHint),
+    onLabelTap: day == today ? const [] : _selectDay(id, today, today),
   );
 
   static List<GenericAction> _selectDay(String id, DateTime day, DateTime today) => clampDay(day, today: today) == day
