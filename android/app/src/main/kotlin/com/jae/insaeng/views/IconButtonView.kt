@@ -19,6 +19,8 @@ private val iconButtonSize = 48.dp
 
 private val iconButtonSpinnerSize = 20.dp
 
+private const val disabledIconAlpha = 0.38f
+
 @Composable
 internal fun IconButtonView(node: WidgetNode, modifier: GlanceModifier) {
     val icon = WidgetIcon.of(node.string("icon")) ?: return
@@ -43,7 +45,8 @@ internal fun IconButtonView(node: WidgetNode, modifier: GlanceModifier) {
             Image(
                 provider = ImageProvider(icon.drawable),
                 contentDescription = label,
-                colorFilter = ColorFilter.tint(color),
+                alpha = disabledIconAlpha,
+                colorFilter = ColorFilter.tint(GlanceTheme.colors.onSurface),
             )
         }
     }

@@ -27,7 +27,7 @@ void main() {
     setUp(() {
       storage = _MockSecureStorageService();
       notion = _MockNotionService();
-      repository = GenericNotionActionRepositoryImpl(storage, notion);
+      repository = GenericNotionActionRepositoryImpl(storage, notion, now: () => DateTime(2026, 11, 15, 23, 30));
       when(() => storage.write(any(), any())).thenAnswer((_) async {});
       when(() => storage.read(any())).thenAnswer((_) async => 'secret');
       when(() => notion.updatePage(any(), any(), any())).thenAnswer((_) async => const {});
@@ -71,6 +71,62 @@ void main() {
         when(() => storage.write(any(), any())).thenThrow(PlatformException(code: 'error'));
 
         expect(await put(_body), const Result<List<GenericAction>>.err(GenericActionServerError()));
+      });
+    });
+
+    group('PUT ${MyDayPageMapper.selectedDayEndpoint}', () {
+      Future<Result<List<GenericAction>>> put(Map<String, Object?> body) =>
+          repository.perform(method: RequestMethod.put, endpoint: MyDayPageMapper.selectedDayEndpoint, body: body);
+
+      for (final pageId in [MyDayPageMapper.pageId, MyDayPageMapper.widgetPageId]) {
+        test('stores the selected day for $pageId and reloads', () async {
+          expect(
+            await put({'pageId': pageId, 'date': '2026-11-16'}),
+            const Result<List<GenericAction>>.ok([ReloadAction()]),
+          );
+          verify(() => storage.write(SecureStorageService.myDaySelectedDayKey(pageId), '2026-11-16')).called(1);
+        });
+      }
+
+      for (final date in ['2026-11-08', '2026-11-22']) {
+        test('stores $date at the edge of the seven-day window', () async {
+          await put({'pageId': MyDayPageMapper.pageId, 'date': date});
+
+          verify(() => storage.write(SecureStorageService.myDaySelectedDayKey(MyDayPageMapper.pageId), date)).called(1);
+        });
+      }
+
+      for (final (date, clamped) in [('2026-11-07', '2026-11-08'), ('2026-11-23', '2026-11-22')]) {
+        test('clamps $date outside the seven-day window to $clamped', () async {
+          expect(
+            await put({'pageId': MyDayPageMapper.widgetPageId, 'date': date}),
+            const Result<List<GenericAction>>.ok([ReloadAction()]),
+          );
+          verify(() => storage.write(SecureStorageService.myDaySelectedDayKey(MyDayPageMapper.widgetPageId), clamped))
+              .called(1);
+        });
+      }
+
+      for (final (description, body) in [
+        ('the page id is unknown', {'pageId': 'home', 'date': '2026-11-16'}),
+        ('the page id is missing', {'date': '2026-11-16'}),
+        ('the date is malformed', {'pageId': MyDayPageMapper.pageId, 'date': '2026-11-16T09:00'}),
+        ('the date is not a string', {'pageId': MyDayPageMapper.pageId, 'date': 20261116}),
+        ('the date is missing', {'pageId': MyDayPageMapper.pageId}),
+      ]) {
+        test('returns invalid when $description', () async {
+          expect(await put(body), const Result<List<GenericAction>>.err(GenericActionInvalid()));
+          verifyNever(() => storage.write(any(), any()));
+        });
+      }
+
+      test('returns server error when storage fails', () async {
+        when(() => storage.write(any(), any())).thenThrow(PlatformException(code: 'error'));
+
+        expect(
+          await put({'pageId': MyDayPageMapper.pageId, 'date': '2026-11-16'}),
+          const Result<List<GenericAction>>.err(GenericActionServerError()),
+        );
       });
     });
 
@@ -157,6 +213,7 @@ void main() {
       (RequestMethod.put, '/my-day/tasks/page-1'),
       (RequestMethod.patch, '/my-day/tasks/'),
       (RequestMethod.patch, '/my-day/tasks/page-1/extra'),
+      (RequestMethod.post, MyDayPageMapper.selectedDayEndpoint),
     ]) {
       test('returns not found for ${method.name.toUpperCase()} $endpoint', () async {
         expect(

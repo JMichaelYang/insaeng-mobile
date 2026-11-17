@@ -13,7 +13,7 @@ import 'package:insaeng/domain/models/home_widget/widget_snapshot_resolver.dart'
 
 const _fixturePath = 'test/fixtures/widget_snapshots/my_day.json';
 
-final _now = DateTime(2026, 11, 15, 12);
+final _today = DateTime(2026, 11, 15);
 
 WidgetNode _resolveNode(GenericNode node, [Map<String, Object?> values = const {}]) =>
     WidgetSnapshotResolver.resolve(GenericPage(id: 'page', root: node), GenericValues(values)).root;
@@ -43,18 +43,22 @@ Map<String, Object?> _row(String id, {required String title, required String sta
 String _utc(DateTime local) => local.toUtc().toIso8601String();
 
 WidgetSnapshot _myDaySnapshot() {
-  final page = MyDayPageMapper.widgetFromRows([
-    _row('gym', title: 'Gym', start: '2026-11-15'),
-    _row(
-      'meeting',
-      title: 'Team meeting',
-      start: _utc(DateTime(2026, 11, 15, 9)),
-      end: _utc(DateTime(2026, 11, 15, 10, 30)),
-      status: 'Done',
-    ),
-    _row('lunch', title: 'Lunch', start: _utc(DateTime(2026, 11, 15, 12, 30)), status: 'Skipped'),
-    _row('tomorrow', title: 'Tomorrow', start: '2026-11-16'),
-  ], now: _now);
+  final page = MyDayPageMapper.widgetFromRows(
+    [
+      _row('gym', title: 'Gym', start: '2026-11-15'),
+      _row(
+        'meeting',
+        title: 'Team meeting',
+        start: _utc(DateTime(2026, 11, 15, 9)),
+        end: _utc(DateTime(2026, 11, 15, 10, 30)),
+        status: 'Done',
+      ),
+      _row('lunch', title: 'Lunch', start: _utc(DateTime(2026, 11, 15, 12, 30)), status: 'Skipped'),
+      _row('tomorrow', title: 'Tomorrow', start: '2026-11-16'),
+    ],
+    day: _today,
+    today: _today,
+  );
   return WidgetSnapshotResolver.resolve(page, page.initialState);
 }
 

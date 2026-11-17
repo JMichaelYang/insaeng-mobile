@@ -92,5 +92,25 @@ void main() {
       await tester.tap(find.byIcon(Icons.chevron_right));
       verify(() => cubit.dispatch(onNext)).called(1);
     });
+
+    testWidgets('disables a chevron whose action list is empty', (tester) async {
+      const onNext = [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))];
+      await pumpItem(
+        tester,
+        const DayPickerNode(
+          id: 'day',
+          label: Literal('Mon, Jan 12'),
+          previousLabel: Literal('Previous day'),
+          nextLabel: Literal('Next day'),
+          onNext: onNext,
+        ),
+      );
+
+      expect(picker(tester).onPrevious, isNull);
+      expect(picker(tester).onNext, isNotNull);
+
+      await tester.tap(find.byIcon(Icons.chevron_left));
+      verifyNever(() => cubit.dispatch(any()));
+    });
   });
 }

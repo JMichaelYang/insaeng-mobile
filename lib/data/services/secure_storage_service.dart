@@ -6,6 +6,8 @@ class SecureStorageService {
   static const notionTokenKey = 'notion_token';
   static const notionDataSourceIdKey = 'notion_data_source_id';
 
+  static String myDaySelectedDayKey(String pageId) => 'my_day_selected_day_$pageId';
+
   final FlutterSecureStorage _storage;
 
   Future<String?> read(String key) => _storage.read(key: key);

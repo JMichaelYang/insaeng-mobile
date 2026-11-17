@@ -7,7 +7,7 @@ import 'package:insaeng/domain/models/generic_ui/generic_page.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 
-final _now = DateTime(2026, 11, 15, 12);
+final _today = DateTime(2026, 11, 15);
 
 Map<String, Object?> _row(
   String id, {
@@ -61,7 +61,30 @@ String _seoul(DateTime local) {
   return '${shifted.substring(0, shifted.length - 1)}+09:00';
 }
 
-GenericPage _map(List<Map<String, Object?>> rows) => MyDayPageMapper.fromRows(rows, now: _now);
+GenericPage _map(List<Map<String, Object?>> rows, {DateTime? day}) =>
+    MyDayPageMapper.fromRows(rows, day: day ?? _today, today: _today);
+
+List<GenericAction> _selectDay(String pageId, String date) => [
+  RequestAction(
+    method: const Literal(RequestMethod.put),
+    endpoint: const Literal(MyDayPageMapper.selectedDayEndpoint),
+    body: JsonObject({'pageId': JsonLiteral(pageId), 'date': JsonLiteral(date)}),
+  ),
+];
+
+DayPickerNode _dayPicker(
+  String pageId, {
+  String label = 'Sun, Nov 15',
+  String? previous = '2026-11-14',
+  String? next = '2026-11-16',
+}) => DayPickerNode(
+  id: 'dayPicker',
+  label: Literal(label),
+  previousLabel: const Literal(MyDayPageMapper.previousDayLabel),
+  nextLabel: const Literal(MyDayPageMapper.nextDayLabel),
+  onPrevious: previous == null ? const [] : _selectDay(pageId, previous),
+  onNext: next == null ? const [] : _selectDay(pageId, next),
+);
 
 List<CheckboxTileNode> _tiles(GenericPage page) => page.nodes.whereType<CheckboxTileNode>().toList();
 
@@ -85,6 +108,7 @@ const _widgetNodeTypes = {
   ScrollNode,
   ProgressBarNode,
   IconButtonNode,
+  DayPickerNode,
 };
 
 const _footer = RowNode(
@@ -119,7 +143,8 @@ ContainerNode _progressBar(int max) => ContainerNode(
 
 const _openMyDay = [NavigateAction(pageId: Literal(MyDayPageMapper.pageId))];
 
-GenericPage _mapWidget(List<Map<String, Object?>> rows) => MyDayPageMapper.widgetFromRows(rows, now: _now);
+GenericPage _mapWidget(List<Map<String, Object?>> rows, {DateTime? day}) =>
+    MyDayPageMapper.widgetFromRows(rows, day: day ?? _today, today: _today);
 
 void _expectWidgetSafe(GenericPage page) {
   final ids = [for (final node in page.nodes) node.id];
@@ -136,7 +161,7 @@ Map<String, Bindable<String>?> _subtitles(GenericPage page) => {
 
 void main() {
   group(MyDayPageMapper, () {
-    test('builds an app bar, a progress bar, and a refreshable scroll with a tile per row', () {
+    test('builds an app bar, a day picker, a progress bar, and a refreshable scroll with a tile per row', () {
       expect(
         _map([
           _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
@@ -153,6 +178,7 @@ void main() {
             id: 'root',
             children: [
               const AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
+              _dayPicker(MyDayPageMapper.pageId),
               _progressBar(1),
               ExpandedNode(
                 id: 'body',
@@ -234,6 +260,55 @@ void main() {
       ]);
 
       expect(_subtitles(page), {'task-today': null});
+    });
+
+    test('keeps only rows dated the selected day', () {
+      final rows = [
+        _row('today', start: '2026-11-15'),
+        _row('tomorrow', start: '2026-11-16'),
+        _row('lateTomorrow', start: _utc(DateTime(2026, 11, 16, 23, 30))),
+        _row('later', start: '2026-11-17'),
+      ];
+
+      expect(_ids(_map(rows, day: DateTime(2026, 11, 16))), ['task-tomorrow', 'task-lateTomorrow']);
+      expect(_ids(_mapWidget(rows, day: DateTime(2026, 11, 16))), ['task-tomorrow', 'task-lateTomorrow']);
+    });
+
+    test('labels the picker with the selected day and selects the days around it', () {
+      expect(
+        _map(const [], day: DateTime(2026, 11, 20)).nodes.whereType<DayPickerNode>().single,
+        _dayPicker(MyDayPageMapper.pageId, label: 'Fri, Nov 20', previous: '2026-11-19', next: '2026-11-21'),
+      );
+      expect(
+        _mapWidget(const [], day: DateTime(2026, 11, 14)).nodes.whereType<DayPickerNode>().single,
+        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sat, Nov 14', previous: '2026-11-13', next: '2026-11-15'),
+      );
+    });
+
+    test('stops the picker at seven days before today', () {
+      final day = DateTime(2026, 11, 8);
+
+      expect(
+        _map(const [], day: day).nodes.whereType<DayPickerNode>().single,
+        _dayPicker(MyDayPageMapper.pageId, label: 'Sun, Nov 8', previous: null, next: '2026-11-09'),
+      );
+      expect(
+        _mapWidget(const [], day: day).nodes.whereType<DayPickerNode>().single,
+        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sun, Nov 8', previous: null, next: '2026-11-09'),
+      );
+    });
+
+    test('stops the picker at seven days after today', () {
+      final day = DateTime(2026, 11, 22);
+
+      expect(
+        _map(const [], day: day).nodes.whereType<DayPickerNode>().single,
+        _dayPicker(MyDayPageMapper.pageId, label: 'Sun, Nov 22', previous: '2026-11-21', next: null),
+      );
+      expect(
+        _mapWidget(const [], day: day).nodes.whereType<DayPickerNode>().single,
+        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sun, Nov 22', previous: '2026-11-21', next: null),
+      );
     });
 
     test('keeps timed rows that start today in the local time zone', () {
@@ -403,7 +478,7 @@ void main() {
       expect([for (final tile in _tiles(page)) tile.title], [const Literal('Call Mom')]);
     });
 
-    test('shows nothing planned today for an empty day', () {
+    test('shows nothing planned for an empty day', () {
       final empty = GenericPage(
         id: MyDayPageMapper.pageId,
         state: GenericValues(const {
@@ -414,6 +489,7 @@ void main() {
           id: 'root',
           children: [
             const AppBarNode(id: 'appBar', title: Literal(MyDayPageMapper.title)),
+            _dayPicker(MyDayPageMapper.pageId),
             _progressBar(0),
             const ExpandedNode(
               id: 'body',
@@ -454,7 +530,7 @@ void main() {
       expect(_ids(_mapWidget(rows)), _ids(_map(rows)));
     });
 
-    test('builds a progress bar and a scroll of the same tiles without refresh', () {
+    test('builds a day picker, a progress bar, and a scroll of the same tiles without refresh', () {
       final rows = [
         _row('b', title: 'Meeting', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
         _row('a', title: 'Gym', start: '2026-11-15', icon: {'type': 'emoji', 'emoji': '🏋️'}),
@@ -472,6 +548,7 @@ void main() {
             id: 'root',
             spacing: const Literal(SpacingToken.sm),
             children: [
+              _dayPicker(MyDayPageMapper.widgetPageId),
               _progress(2),
               ExpandedNode(
                 id: 'body',
@@ -499,7 +576,7 @@ void main() {
       _expectWidgetSafe(page);
     });
 
-    test('shows nothing planned today outside the scroll for an empty day', () {
+    test('shows nothing planned outside the scroll for an empty day', () {
       final empty = GenericPage(
         id: MyDayPageMapper.widgetPageId,
         state: GenericValues(const {
@@ -510,6 +587,7 @@ void main() {
           id: 'root',
           spacing: const Literal(SpacingToken.sm),
           children: [
+            _dayPicker(MyDayPageMapper.widgetPageId),
             _progress(0),
             const ExpandedNode(
               id: 'body',
@@ -546,6 +624,30 @@ void main() {
       expect(_mapWidget(const []).actions.whereType<OpenUrlAction>(), [
         const OpenUrlAction(url: Literal(MyDayPageMapper.claudeUrl)),
       ]);
+    });
+  });
+
+  group('$MyDayPageMapper selected day', () {
+    test('formats and strictly parses dates', () {
+      expect(MyDayPageMapper.formatDate(DateTime(2026, 3, 5, 23, 59)), '2026-03-05');
+      expect(MyDayPageMapper.parseDate('2026-03-05'), DateTime(2026, 3, 5));
+      for (final value in ['2026-02-30', '2026-3-5', '2026-03-05T10:00', 'today', '', 20260305, null]) {
+        expect(MyDayPageMapper.parseDate(value), isNull, reason: '$value');
+      }
+    });
+
+    test('keeps days within seven days of today', () {
+      for (final day in [DateTime(2026, 11, 8), _today, DateTime(2026, 11, 22)]) {
+        expect(MyDayPageMapper.clampDay(day, today: _today), day);
+      }
+      expect(MyDayPageMapper.clampDay(DateTime(2026, 11, 16, 18), today: _today), DateTime(2026, 11, 16));
+    });
+
+    test('clamps days outside the window to its nearest bound', () {
+      expect(MyDayPageMapper.clampDay(DateTime(2026, 11, 7), today: _today), DateTime(2026, 11, 8));
+      expect(MyDayPageMapper.clampDay(DateTime(2025, 6, 10), today: _today), DateTime(2026, 11, 8));
+      expect(MyDayPageMapper.clampDay(DateTime(2026, 11, 23), today: _today), DateTime(2026, 11, 22));
+      expect(MyDayPageMapper.clampDay(DateTime(2026, 12, 31), today: _today), DateTime(2026, 11, 22));
     });
   });
 
