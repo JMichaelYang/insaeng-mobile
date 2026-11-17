@@ -74,7 +74,7 @@ Event properties (`onTap`, `onChanged`, `onSubmit`, `onLoad`, `onError`, `onComp
 | `updateState` | `path` required; `op` (`set`); `value` | the existing value has the wrong type, or an index is out of range |
 | `navigate` | `pageId` required; `params` object of string values; `replace` (`false`) | never |
 | `back` | none | never |
-| `reload` | none. It re-fetches with the same params and keeps local state unless the new payload has `state`. | the fetch fails |
+| `reload` | `onError` and `onComplete` action lists, both empty by default. It re-fetches with the same params and keeps local state unless the new payload has `state`. On success `onComplete` runs and the list continues. On failure `onError` runs, then `onComplete`, and the list stops, as with `request`. | the fetch fails, or `onComplete` fails |
 | `showMessage` | `text` required, shown in a snackbar | never |
 | `request` | see below | the response is not `2xx`, or the network fails |
 

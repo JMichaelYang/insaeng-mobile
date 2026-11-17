@@ -124,6 +124,39 @@ void main() {
       test('decodes', () {
         expect(_decode({'type': 'reload'}), const ReloadAction());
       });
+
+      test('decodes onError and onComplete', () {
+        expect(
+          _decode({
+            'type': 'reload',
+            'onError': [
+              {'type': 'showMessage', 'text': 'Failed'},
+              {'type': 'confetti'},
+            ],
+            'onComplete': [
+              {'type': 'updateState', 'path': 'refreshing', 'value': false},
+            ],
+          }),
+          const ReloadAction(
+            onError: [
+              ShowMessageAction(text: Literal('Failed')),
+              UnknownAction(),
+            ],
+            onComplete: [UpdateStateAction(path: 'refreshing', value: Literal(false))],
+          ),
+        );
+      });
+
+      test('childActions lists onError and then onComplete', () {
+        const action = ReloadAction(onError: [BackAction()], onComplete: [ReloadAction()]);
+
+        expect(action.childActions, const [BackAction(), ReloadAction()]);
+      });
+
+      test('fails when onError or onComplete is not a list', () {
+        expect(() => _decode({'type': 'reload', 'onError': 'back'}), throwsA(isA<MapperException>()));
+        expect(() => _decode({'type': 'reload', 'onComplete': 'back'}), throwsA(isA<MapperException>()));
+      });
     });
 
     group(ShowMessageAction, () {
@@ -307,7 +340,15 @@ void main() {
           'replace': true,
         },
         {'type': 'back'},
-        {'type': 'reload'},
+        {
+          'type': 'reload',
+          'onError': [
+            {'type': 'back'},
+          ],
+          'onComplete': [
+            {'type': 'updateState', 'path': 'refreshing', 'op': 'set', 'value': false},
+          ],
+        },
         {
           'type': 'showMessage',
           'text': {r'$bind': 'message', 'fallback': 'Done'},
