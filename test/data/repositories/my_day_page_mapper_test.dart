@@ -132,12 +132,6 @@ const _footer = RowNode(
       id: 'footerStart',
       child: ContainerNode(id: 'footerStartSlot', child: _refresh),
     ),
-    IconButtonNode(
-      id: 'openClaude',
-      icon: Literal(IconToken.edit),
-      label: Literal('Open Claude'),
-      onTap: [OpenUrlAction(url: Literal('https://claude.ai/new'))],
-    ),
   ],
 );
 
@@ -621,14 +615,16 @@ void main() {
       _expectWidgetSafe(empty);
     });
 
-    test('ends with a footer whose open claude button sits after an expanded start slot', () {
+    test('ends with a footer holding only an expanded start slot', () {
       for (final rows in [
         const <Map<String, Object?>>[],
         [_row('gym', start: '2026-11-15')],
       ]) {
-        final root = _mapWidget(rows).root as ColumnNode;
+        final page = _mapWidget(rows);
+        final root = page.root as ColumnNode;
 
         expect(root.children.last, _footer);
+        expect(page.actions.whereType<OpenUrlAction>(), isEmpty);
       }
     });
 
@@ -650,13 +646,6 @@ void main() {
         expect(page.state?.get(MyDayPageMapper.refreshingPath), isNull);
         expect(_refresh.loading.resolve(page.state ?? GenericValues.empty), isFalse);
       }
-    });
-
-    test('opens claude in a new chat', () {
-      expect(MyDayPageMapper.claudeUrl, 'https://claude.ai/new');
-      expect(_mapWidget(const []).actions.whereType<OpenUrlAction>(), [
-        const OpenUrlAction(url: Literal(MyDayPageMapper.claudeUrl)),
-      ]);
     });
   });
 
