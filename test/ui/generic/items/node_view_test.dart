@@ -10,6 +10,7 @@ import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
 import 'package:insaeng/ui/generic/items/expanded_item.dart';
+import 'package:insaeng/ui/generic/items/icon_button_item.dart';
 import 'package:insaeng/ui/generic/items/node_view.dart';
 import 'package:insaeng/ui/generic/items/progress_bar_item.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
@@ -51,6 +52,7 @@ void main() {
       const AppBarNode(id: 'appBar'): AppBarItem,
       const TextNode(id: 'text', text: Literal('Hi')): TextItem,
       const ButtonNode(id: 'button', label: Literal('Add')): ButtonItem,
+      const IconButtonNode(id: 'iconButton', icon: Literal(IconToken.edit), label: Literal('Edit')): IconButtonItem,
       const TextFieldNode(id: 'textField', bind: 'name'): TextFieldItem,
       const CheckboxTileNode(id: 'checkboxTile', bind: 'done', title: Literal('Done')): CheckboxTileItem,
       const SpacerNode(id: 'spacer'): SpacerItem,

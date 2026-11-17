@@ -26,3 +26,6 @@ enum SpacingToken { none, xs, sm, md, lg, xl }
 
 @MappableEnum(defaultValue: AlignmentToken.start)
 enum AlignmentToken { start, center, end, stretch }
+
+@MappableEnum(defaultValue: IconToken.edit)
+enum IconToken { edit }

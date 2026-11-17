@@ -69,3 +69,9 @@ extension AlignmentTokenHorizontal on AlignmentToken {
     AlignmentToken.stretch => null,
   };
 }
+
+extension IconTokenData on IconToken {
+  IconData get data => switch (this) {
+    IconToken.edit => Icons.edit,
+  };
+}
