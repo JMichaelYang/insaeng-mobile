@@ -17,17 +17,21 @@ internal fun RowView(node: WidgetNode, modifier: GlanceModifier) {
     val spacing = WidgetSpacing.of(node.string("spacing")).size
     val alignment = WidgetAlignment.of(node.string("alignment"))
     val cross = if (alignment == WidgetAlignment.STRETCH) GlanceModifier.fillMaxHeight() else GlanceModifier
-    Row(modifier = modifier, verticalAlignment = alignment.vertical) {
+    Row(modifier = if (node.fillsWidth) modifier.fillMaxWidth() else modifier, verticalAlignment = alignment.vertical) {
         node.renderedChildren().forEachIndexed { index, child ->
             val weighted = child.flex > 0
             val outer = if (weighted) cross.defaultWeight() else cross
-            if (index == 0 || spacing == 0.dp) {
+            val gap = if (index == 0) 0.dp else spacing
+            if (!weighted && gap == 0.dp) {
                 WidgetNodeView(child, outer)
             } else {
-                Box(modifier = outer.padding(start = spacing)) {
+                Box(modifier = outer.padding(start = gap)) {
                     WidgetNodeView(child, if (weighted) cross.fillMaxWidth() else cross)
                 }
             }
         }
     }
 }
+
+internal val WidgetNode.fillsWidth: Boolean
+    get() = type == "row" && renderedChildren().any { it.flex > 0 }

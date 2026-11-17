@@ -1,8 +1,10 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:insaeng/design_system/atoms/app_icon_button.dart';
 import 'package:insaeng/design_system/theme/dimens.dart';
 import 'package:insaeng/domain/models/generic_ui/bindable.dart';
+import 'package:insaeng/domain/models/generic_ui/generic_action.dart';
 import 'package:insaeng/domain/models/generic_ui/generic_values.dart';
 import 'package:insaeng/domain/models/generic_ui/nodes/generic_node.dart';
 import 'package:insaeng/ui/generic/items/row_item.dart';
@@ -105,6 +107,36 @@ void main() {
 
       final screenWidth = tester.getSize(find.byType(Scaffold)).width;
       expect(tester.getTopRight(find.text('End')).dx, screenWidth);
+    });
+
+    testWidgets('lays out an expanded slot and an icon button edge to edge', (tester) async {
+      await pumpItem(
+        tester,
+        const RowNode(
+          id: 'footer',
+          alignment: Literal(AlignmentToken.center),
+          children: [
+            ExpandedNode(
+              id: 'footerStart',
+              child: ContainerNode(id: 'footerStartSlot'),
+            ),
+            IconButtonNode(
+              id: 'openClaude',
+              icon: Literal(IconToken.edit),
+              label: Literal('Open Claude'),
+              onTap: [OpenUrlAction(url: Literal('https://claude.ai/new'))],
+            ),
+          ],
+        ),
+      );
+
+      final screenWidth = tester.getSize(find.byType(Scaffold)).width;
+      final slot = tester.getRect(find.byKey(const ValueKey('footerStart')));
+      final button = tester.getRect(find.byType(AppIconButton));
+      expect(slot.left, 0);
+      expect(slot.right, button.left);
+      expect(button.right, screenWidth);
+      expect(button.width, lessThan(screenWidth / 2));
     });
 
     testWidgets('shares the remaining width by flex', (tester) async {

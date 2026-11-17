@@ -86,6 +86,48 @@
           "flex": 1
         },
         "type": "expanded"
+      },
+      {
+        "children": [
+          {
+            "children": [
+              {
+                "children": [],
+                "id": "footerStartSlot",
+                "props": {
+                  "alignment": "start",
+                  "padding": "none"
+                },
+                "type": "container"
+              }
+            ],
+            "id": "footerStart",
+            "props": {
+              "flex": 1
+            },
+            "type": "expanded"
+          },
+          {
+            "children": [],
+            "id": "openClaude",
+            "props": {
+              "icon": "edit",
+              "label": "Open Claude",
+              "loading": false
+            },
+            "tap": {
+              "type": "openUrl",
+              "url": "https://claude.ai/new"
+            },
+            "type": "iconButton"
+          }
+        ],
+        "id": "footer",
+        "props": {
+          "alignment": "center",
+          "spacing": "none"
+        },
+        "type": "row"
       }
     ],
     "id": "root",

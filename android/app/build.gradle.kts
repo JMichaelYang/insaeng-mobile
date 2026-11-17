@@ -47,6 +47,10 @@ android {
         }
     }
 
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
     sourceSets {
         getByName("test") {
             resources.srcDir("../../test/fixtures")
@@ -76,4 +80,5 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.2.0")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.glance:glance-appwidget-testing:1.2.0")
 }
