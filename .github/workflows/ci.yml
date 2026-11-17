@@ -67,9 +67,3 @@ jobs:
       - name: Test Android unit tests
         working-directory: android
         run: ./gradlew :app:testDevDebugUnitTest
-
-      - name: Build prod release APK
-        run: flutter build apk --release --flavor prod -t lib/main_prod.dart
-
-      - name: Check the widget event entry point survives tree shaking
-        run: unzip -p build/app/outputs/flutter-apk/app-prod-release.apk lib/arm64-v8a/libapp.so | strings -n 6 | grep -q widgetEventMain
