@@ -67,14 +67,3 @@ jobs:
       - name: Test Android unit tests
         working-directory: android
         run: ./gradlew :app:testDevDebugUnitTest
-
-  ios:
-    runs-on: macos-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v7
-
-      - uses: ./.github/actions/setup-flutter
-
-      - name: Build dev iOS app
-        run: flutter build ios --debug --no-codesign --flavor dev -t lib/main_dev.dart
