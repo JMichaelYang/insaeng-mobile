@@ -76,6 +76,30 @@ final GenericPage _sortedPage = GenericPage(
   }),
 );
 
+const IconButtonNode _refresh = IconButtonNode(
+  id: 'refresh',
+  icon: Literal(IconToken.refresh),
+  label: Literal('Refresh'),
+  loading: Binding('refreshing', fallback: false),
+  onTap: [
+    UpdateStateAction(path: 'refreshing', value: Literal(true)),
+    ReloadAction(
+      onComplete: [UpdateStateAction(path: 'refreshing', value: Literal(false))],
+    ),
+  ],
+);
+
+final GenericPage _refreshPage = GenericPage(
+  id: _pageId,
+  root: ColumnNode(id: 'root', children: [_tile('a'), _tile('b'), _refresh]),
+);
+
+final GenericPage _refreshedPage = GenericPage(
+  id: _pageId,
+  root: ColumnNode(id: 'root', children: [_tile('b'), _tile('a'), _refresh]),
+  state: _sortedPage.state,
+);
+
 Uri _uri({required String node, String page = _pageId, String event = 'onChanged'}) => Uri(
   scheme: 'insaeng',
   host: 'widget',
@@ -370,6 +394,73 @@ void main() {
       expect(savedValues(), [
         valuesWith({'done': false, 'saving': false}, {'done': true, 'saving': false}, saved: true),
       ]);
+    });
+
+    group('refresh button', () {
+      setUp(() {
+        when(() => snapshots.load(_pageId)).thenAnswer((_) async => Result.ok((page: _refreshPage, values: _values)));
+      });
+
+      List<(GenericPage, bool?)> saves() {
+        final captured = verify(
+          () => snapshots.save(
+            any(),
+            page: captureAny(named: 'page'),
+            values: captureAny(named: 'values'),
+          ),
+        ).captured;
+        return [
+          for (var i = 0; i < captured.length; i += 2)
+            (captured[i] as GenericPage, _refresh.loading.resolve(captured[i + 1] as GenericValues)),
+        ];
+      }
+
+      test('shows loading, then saves the reloaded page with loading cleared', () async {
+        when(() => pages.fetch(_pageId, const {})).thenAnswer((_) async => Result.ok(_refreshedPage));
+
+        await handler.handle(_uri(node: 'refresh', event: 'onTap'));
+
+        final [first, ...rest] = saves();
+        expect(first, (_refreshPage, true));
+        expect(rest, isNotEmpty);
+        expect(rest, everyElement((_refreshedPage, false)));
+        verify(() => snapshots.update()).called(1 + rest.length);
+      });
+
+      test('clears loading when the reload fails', () async {
+        await handler.handle(_uri(node: 'refresh', event: 'onTap'));
+
+        expect(saves(), [(_refreshPage, true), (_refreshPage, false)]);
+      });
+
+      test('ignores a second tap while the refresh is still loading', () async {
+        final reload = Completer<Result<GenericPage>>();
+        when(() => pages.fetch(_pageId, const {})).thenAnswer((_) => reload.future);
+
+        final first = handler.handle(_uri(node: 'refresh', event: 'onTap'));
+        await pumpEventQueue();
+        await handler.handle(_uri(node: 'refresh', event: 'onTap'));
+
+        verify(() => pages.fetch(_pageId, const {})).called(1);
+
+        reload.complete(Result.ok(_refreshedPage));
+        await first;
+
+        final loading = [for (final (_, loading) in saves()) loading];
+        expect(loading.where((loading) => loading ?? false), hasLength(1));
+        expect(loading.last, isFalse);
+      });
+
+      test('accepts a tap on a refresh stored as loading when nothing is in flight', () async {
+        when(() => snapshots.load(_pageId)).thenAnswer(
+          (_) async => Result.ok((page: _refreshPage, values: GenericValues({..._values.values, 'refreshing': true}))),
+        );
+
+        await handler.handle(_uri(node: 'refresh', event: 'onTap'));
+
+        verify(() => pages.fetch(_pageId, const {})).called(2);
+        expect(saves().last, (_refreshPage, false));
+      });
     });
 
     for (final (event, offset) in [('onPrevious', -1), ('onNext', 1)]) {

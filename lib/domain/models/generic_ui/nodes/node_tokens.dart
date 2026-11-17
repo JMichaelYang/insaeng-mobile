@@ -28,4 +28,4 @@ enum SpacingToken { none, xs, sm, md, lg, xl }
 enum AlignmentToken { start, center, end, stretch }
 
 @MappableEnum(defaultValue: IconToken.edit)
-enum IconToken { edit, chevronLeft, chevronRight }
+enum IconToken { edit, chevronLeft, chevronRight, refresh }
