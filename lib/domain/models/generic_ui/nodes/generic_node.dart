@@ -7,6 +7,7 @@ export 'package:insaeng/domain/models/generic_ui/nodes/node_tokens.dart';
 
 part 'atoms/button_node.dart';
 part 'atoms/divider_node.dart';
+part 'atoms/icon_button_node.dart';
 part 'atoms/progress_bar_node.dart';
 part 'atoms/spacer_node.dart';
 part 'atoms/text_field_node.dart';
