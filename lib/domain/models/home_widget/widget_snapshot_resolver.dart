@@ -63,6 +63,16 @@ final class WidgetSnapshotResolver {
       props: {'icon': icon, 'label': label, 'loading': loading},
       tap: _tap(id, 'onTap', onTap),
     ),
+    DayPickerNode(:final id, :final label, :final previousLabel, :final nextLabel, :final onPrevious, :final onNext) =>
+      WidgetNode(
+        type: 'dayPicker',
+        id: id,
+        props: _props({'label': label}),
+        children: [
+          _chevron('${id}Previous', IconToken.chevronLeft, previousLabel, _tap(id, 'onPrevious', onPrevious)),
+          _chevron('${id}Next', IconToken.chevronRight, nextLabel, _tap(id, 'onNext', onNext)),
+        ],
+      ),
     CheckboxTileNode(
       :final id,
       :final bind,
@@ -95,10 +105,17 @@ final class WidgetSnapshotResolver {
   }) => WidgetNode(
     type: type,
     id: id,
-    props: {for (final MapEntry(:key, value: bindable) in props.entries) key: ?_literal(bindable?.resolve(_values))},
+    props: _props(props),
     children: [for (final child in children) ?_resolve(child)],
     tap: tap,
   );
+
+  Map<String, Object?> _props(Map<String, Bindable<Object>?> props) => {
+    for (final MapEntry(:key, value: bindable) in props.entries) key: ?_literal(bindable?.resolve(_values)),
+  };
+
+  WidgetNode _chevron(String id, IconToken icon, Bindable<String> label, WidgetTap? tap) =>
+      _node('iconButton', id, props: {'icon': Literal(icon), 'label': label}, tap: tap);
 
   static Object? _literal(Object? value) => switch (value) {
     final Enum token => token.name,

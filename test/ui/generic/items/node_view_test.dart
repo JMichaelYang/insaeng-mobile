@@ -8,6 +8,7 @@ import 'package:insaeng/ui/generic/items/button_item.dart';
 import 'package:insaeng/ui/generic/items/checkbox_tile_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
+import 'package:insaeng/ui/generic/items/day_picker_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
 import 'package:insaeng/ui/generic/items/expanded_item.dart';
 import 'package:insaeng/ui/generic/items/icon_button_item.dart';
@@ -55,6 +56,12 @@ void main() {
       const IconButtonNode(id: 'iconButton', icon: Literal(IconToken.edit), label: Literal('Edit')): IconButtonItem,
       const TextFieldNode(id: 'textField', bind: 'name'): TextFieldItem,
       const CheckboxTileNode(id: 'checkboxTile', bind: 'done', title: Literal('Done')): CheckboxTileItem,
+      const DayPickerNode(
+        id: 'dayPicker',
+        label: Literal('Mon, Jan 12'),
+        previousLabel: Literal('Previous day'),
+        nextLabel: Literal('Next day'),
+      ): DayPickerItem,
       const SpacerNode(id: 'spacer'): SpacerItem,
       const DividerNode(id: 'divider'): DividerItem,
       const ProgressBarNode(id: 'progress', value: Literal(1), max: Literal(2)): ProgressBarItem,

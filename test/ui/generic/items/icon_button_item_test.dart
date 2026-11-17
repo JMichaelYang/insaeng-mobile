@@ -38,7 +38,11 @@ void main() {
 
     AppIconButton button(WidgetTester tester) => tester.widget<AppIconButton>(find.byType(AppIconButton));
 
-    const icons = {IconToken.edit: Icons.edit};
+    const icons = {
+      IconToken.edit: Icons.edit,
+      IconToken.chevronLeft: Icons.chevron_left,
+      IconToken.chevronRight: Icons.chevron_right,
+    };
 
     for (final MapEntry(key: token, value: icon) in icons.entries) {
       testWidgets('maps the ${token.name} icon to its Material icon', (tester) async {
