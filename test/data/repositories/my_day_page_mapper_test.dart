@@ -77,6 +77,7 @@ DayPickerNode _dayPicker(
   String label = 'Sun, Nov 15',
   String? previous = '2026-11-14',
   String? next = '2026-11-16',
+  bool today = true,
 }) => DayPickerNode(
   id: 'dayPicker',
   label: Literal(label),
@@ -84,6 +85,8 @@ DayPickerNode _dayPicker(
   nextLabel: const Literal(MyDayPageMapper.nextDayLabel),
   onPrevious: previous == null ? const [] : _selectDay(pageId, previous),
   onNext: next == null ? const [] : _selectDay(pageId, next),
+  labelTapHint: const Literal(MyDayPageMapper.todayHint),
+  onLabelTap: today ? const [] : _selectDay(pageId, '2026-11-15'),
 );
 
 List<CheckboxTileNode> _tiles(GenericPage page) => page.nodes.whereType<CheckboxTileNode>().toList();
@@ -284,12 +287,35 @@ void main() {
     test('labels the picker with the selected day and selects the days around it', () {
       expect(
         _map(const [], day: DateTime(2026, 11, 20)).nodes.whereType<DayPickerNode>().single,
-        _dayPicker(MyDayPageMapper.pageId, label: 'Fri, Nov 20', previous: '2026-11-19', next: '2026-11-21'),
+        _dayPicker(
+          MyDayPageMapper.pageId,
+          label: 'Fri, Nov 20',
+          previous: '2026-11-19',
+          next: '2026-11-21',
+          today: false,
+        ),
       );
       expect(
         _mapWidget(const [], day: DateTime(2026, 11, 14)).nodes.whereType<DayPickerNode>().single,
-        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sat, Nov 14', previous: '2026-11-13', next: '2026-11-15'),
+        _dayPicker(
+          MyDayPageMapper.widgetPageId,
+          label: 'Sat, Nov 14',
+          previous: '2026-11-13',
+          next: '2026-11-15',
+          today: false,
+        ),
       );
+    });
+
+    test('returns the picker to today from its label only when another day is selected', () {
+      for (final (pageId, map) in [(MyDayPageMapper.pageId, _map), (MyDayPageMapper.widgetPageId, _mapWidget)]) {
+        DayPickerNode picker(DateTime day) => map(const [], day: day).nodes.whereType<DayPickerNode>().single;
+
+        expect(picker(_today).onLabelTap, isEmpty, reason: pageId);
+        expect(picker(_today).labelTapHint, const Literal(MyDayPageMapper.todayHint), reason: pageId);
+        expect(picker(DateTime(2026, 11, 12)).onLabelTap, _selectDay(pageId, '2026-11-15'), reason: pageId);
+        expect(picker(DateTime(2026, 11, 22)).onLabelTap, _selectDay(pageId, '2026-11-15'), reason: pageId);
+      }
     });
 
     test('stops the picker at seven days before today', () {
@@ -297,11 +323,11 @@ void main() {
 
       expect(
         _map(const [], day: day).nodes.whereType<DayPickerNode>().single,
-        _dayPicker(MyDayPageMapper.pageId, label: 'Sun, Nov 8', previous: null, next: '2026-11-09'),
+        _dayPicker(MyDayPageMapper.pageId, label: 'Sun, Nov 8', previous: null, next: '2026-11-09', today: false),
       );
       expect(
         _mapWidget(const [], day: day).nodes.whereType<DayPickerNode>().single,
-        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sun, Nov 8', previous: null, next: '2026-11-09'),
+        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sun, Nov 8', previous: null, next: '2026-11-09', today: false),
       );
     });
 
@@ -310,11 +336,17 @@ void main() {
 
       expect(
         _map(const [], day: day).nodes.whereType<DayPickerNode>().single,
-        _dayPicker(MyDayPageMapper.pageId, label: 'Sun, Nov 22', previous: '2026-11-21', next: null),
+        _dayPicker(MyDayPageMapper.pageId, label: 'Sun, Nov 22', previous: '2026-11-21', next: null, today: false),
       );
       expect(
         _mapWidget(const [], day: day).nodes.whereType<DayPickerNode>().single,
-        _dayPicker(MyDayPageMapper.widgetPageId, label: 'Sun, Nov 22', previous: '2026-11-21', next: null),
+        _dayPicker(
+          MyDayPageMapper.widgetPageId,
+          label: 'Sun, Nov 22',
+          previous: '2026-11-21',
+          next: null,
+          today: false,
+        ),
       );
     });
 

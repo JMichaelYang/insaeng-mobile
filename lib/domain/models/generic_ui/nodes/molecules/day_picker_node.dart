@@ -9,6 +9,8 @@ final class DayPickerNode extends GenericNode with DayPickerNodeMappable {
     required this.nextLabel,
     this.onPrevious = const [],
     this.onNext = const [],
+    this.labelTapHint,
+    this.onLabelTap = const [],
   });
 
   @MappableField(hook: BindableHook<String>())
@@ -20,10 +22,15 @@ final class DayPickerNode extends GenericNode with DayPickerNodeMappable {
   @MappableField(hook: BindableHook<String>())
   final Bindable<String> nextLabel;
 
+  @MappableField(hook: BindableHook<String>())
+  final Bindable<String>? labelTapHint;
+
   final List<GenericAction> onPrevious;
 
   final List<GenericAction> onNext;
 
+  final List<GenericAction> onLabelTap;
+
   @override
-  List<GenericAction> get actions => [...onPrevious, ...onNext];
+  List<GenericAction> get actions => [...onPrevious, ...onNext, ...onLabelTap];
 }

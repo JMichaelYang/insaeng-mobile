@@ -1,3 +1,3 @@
 abstract final class GenericUiVersion {
-  static const current = 8;
+  static const current = 9;
 }

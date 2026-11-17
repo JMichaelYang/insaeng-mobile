@@ -23,6 +23,15 @@ void main() {
         onPrevious: () {},
         onNext: null,
       ),
+      'label tappable': AppDayPicker(
+        label: 'Fri, Jan 16',
+        previousLabel: 'Previous day',
+        nextLabel: 'Next day',
+        onPrevious: () {},
+        onNext: () {},
+        onLabelTap: () {},
+        labelTapHint: 'Go to today',
+      ),
       'long label': AppDayPicker(
         label: 'Wednesday, September 30, 2026',
         previousLabel: 'Previous day',

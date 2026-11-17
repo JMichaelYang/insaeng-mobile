@@ -105,6 +105,7 @@ final class _PageSession {
       (IconButtonNode(:final onTap), 'onTap') => onTap,
       (DayPickerNode(:final onPrevious), 'onPrevious') => onPrevious,
       (DayPickerNode(:final onNext), 'onNext') => onNext,
+      (DayPickerNode(:final onLabelTap), 'onLabelTap') => onLabelTap,
       _ => null,
     };
   }

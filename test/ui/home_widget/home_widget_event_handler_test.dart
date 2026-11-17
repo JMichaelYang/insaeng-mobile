@@ -463,7 +463,7 @@ void main() {
       });
     });
 
-    for (final (event, offset) in [('onPrevious', -1), ('onNext', 1)]) {
+    for (final (event, offset) in [('onPrevious', -1), ('onNext', 1), ('onLabelTap', 7)]) {
       test('dispatches the $event actions of a day picker', () async {
         const page = GenericPage(
           id: _pageId,
@@ -474,6 +474,7 @@ void main() {
             nextLabel: Literal('Next day'),
             onPrevious: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment), value: Literal(-1))],
             onNext: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))],
+            onLabelTap: [UpdateStateAction(path: 'offset', value: Literal(7))],
           ),
         );
         when(() => snapshots.load(_pageId))

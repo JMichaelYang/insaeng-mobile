@@ -76,6 +76,55 @@ void main() {
       expect(chevron(tester, Icons.chevron_right).onPressed, isNotNull);
     });
 
+    testWidgets('calls onLabelTap from the label and announces it as a button with its hint', (tester) async {
+      final semantics = tester.ensureSemantics();
+      var taps = 0;
+      await pumpPicker(
+        tester,
+        AppDayPicker(
+          label: 'Mon, Jan 12',
+          previousLabel: 'Previous day',
+          nextLabel: 'Next day',
+          onPrevious: () {},
+          onNext: () {},
+          onLabelTap: () => taps++,
+          labelTapHint: 'Go to today',
+        ),
+      );
+
+      final label = find.text('Mon, Jan 12');
+      expect(
+        tester.getSemantics(label),
+        isSemantics(label: 'Mon, Jan 12', hint: 'Go to today', isButton: true, hasTapAction: true),
+      );
+      expect(tester.widget<Text>(label).style?.color, ColorScheme.of(tester.element(label)).primary);
+
+      await tester.tap(label);
+      expect(taps, 1);
+      semantics.dispose();
+    });
+
+    testWidgets('keeps the label plain without onLabelTap', (tester) async {
+      final semantics = tester.ensureSemantics();
+      await pumpPicker(
+        tester,
+        AppDayPicker(
+          label: 'Mon, Jan 12',
+          previousLabel: 'Previous day',
+          nextLabel: 'Next day',
+          onPrevious: () {},
+          onNext: () {},
+          labelTapHint: 'Go to today',
+        ),
+      );
+
+      final label = find.text('Mon, Jan 12');
+      expect(find.ancestor(of: label, matching: find.byType(InkWell)), findsNothing);
+      expect(tester.getSemantics(label), isSemantics(label: 'Mon, Jan 12', isButton: false, hasTapAction: false));
+      expect(tester.widget<Text>(label).style, TextTheme.of(tester.element(label)).titleMedium);
+      semantics.dispose();
+    });
+
     testWidgets('fills the width and keeps the chevrons in place for any label', (tester) async {
       await pumpPicker(
         tester,
