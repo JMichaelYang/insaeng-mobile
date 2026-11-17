@@ -6,6 +6,8 @@ import androidx.glance.layout.Alignment
 import androidx.glance.text.FontWeight
 import com.jae.insaeng.views.itemId
 import com.jae.insaeng.views.loading
+import com.jae.insaeng.views.nextChevron
+import com.jae.insaeng.views.previousChevron
 import com.jae.insaeng.views.progress
 import com.jae.insaeng.views.renderedChildren
 import com.jae.insaeng.views.scrollItems
@@ -154,6 +156,69 @@ class WidgetSnapshotTest {
         assertNull(WidgetIcon.of(idle.string("icon")))
         assertNull(WidgetIcon.of(null))
         assertFalse(idle.loading)
+    }
+
+    @Test
+    fun decodesDayPickerWithChevronsThatTapItsEvents() {
+        val picker =
+            WidgetNode.fromJson(
+                Json.parseToJsonElement(
+                    """
+                    {"type":"dayPicker","id":"day","props":{"label":"Mon, Jan 12"},"children":[
+                      {"type":"iconButton","id":"dayPrevious","props":{"icon":"chevronLeft","label":"Previous day"},
+                       "tap":{"type":"event","nodeId":"day","event":"onPrevious"}},
+                      {"type":"iconButton","id":"dayNext","props":{"icon":"chevronRight","label":"Next day"},
+                       "tap":{"type":"event","nodeId":"day","event":"onNext"}}
+                    ]}
+                    """,
+                ),
+            )
+
+        assertEquals("Mon, Jan 12", picker.string("label"))
+        assertNull(picker.tap)
+
+        val previous = requireNotNull(picker.previousChevron)
+        assertEquals("dayPrevious", previous.id)
+        assertEquals(WidgetIcon.CHEVRON_LEFT, WidgetIcon.of(previous.string("icon")))
+        assertEquals(R.drawable.ic_chevron_left, WidgetIcon.CHEVRON_LEFT.drawable)
+        assertEquals("Previous day", previous.string("label"))
+        assertEquals(WidgetTap.Event(nodeId = "day", event = "onPrevious"), previous.tap)
+        assertNull(previous.tap.toAction())
+
+        val next = requireNotNull(picker.nextChevron)
+        assertEquals("dayNext", next.id)
+        assertEquals(WidgetIcon.CHEVRON_RIGHT, WidgetIcon.of(next.string("icon")))
+        assertEquals(R.drawable.ic_chevron_right, WidgetIcon.CHEVRON_RIGHT.drawable)
+        assertEquals("Next day", next.string("label"))
+        assertEquals(WidgetTap.Event(nodeId = "day", event = "onNext"), next.tap)
+    }
+
+    @Test
+    fun dropsDayPickerChevronsThatAreMissingOrNotIconButtons() {
+        val empty = WidgetNode(type = "dayPicker", id = "day")
+        assertNull(empty.previousChevron)
+        assertNull(empty.nextChevron)
+
+        val partial =
+            WidgetNode(
+                type = "dayPicker",
+                id = "day",
+                children = listOf(WidgetNode(type = "text", id = "dayPrevious"), WidgetNode(type = "iconButton", id = "dayNext")),
+            )
+        assertNull(partial.previousChevron)
+        assertEquals("dayNext", partial.nextChevron?.id)
+    }
+
+    @Test
+    fun keepsDayPickersAsRenderedChildren() {
+        val column =
+            WidgetNode(
+                type = "column",
+                id = "root",
+                children = listOf(WidgetNode(type = "dayPicker", id = "day"), WidgetNode(type = "appBar", id = "bar")),
+            )
+
+        assertEquals(listOf("day"), column.renderedChildren().map { it.id })
     }
 
     @Test

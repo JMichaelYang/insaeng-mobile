@@ -73,5 +73,7 @@ extension AlignmentTokenHorizontal on AlignmentToken {
 extension IconTokenData on IconToken {
   IconData get data => switch (this) {
     IconToken.edit => Icons.edit,
+    IconToken.chevronLeft => Icons.chevron_left,
+    IconToken.chevronRight => Icons.chevron_right,
   };
 }

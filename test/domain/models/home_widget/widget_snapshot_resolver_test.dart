@@ -209,6 +209,54 @@ void main() {
       );
     });
 
+    test('resolves a day picker to its label and two chevron icon buttons that tap its own events', () {
+      const node = DayPickerNode(
+        id: 'day',
+        label: Binding('day.label'),
+        previousLabel: Literal('Previous day'),
+        nextLabel: Literal('Next day'),
+        onPrevious: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment), value: Literal(-1))],
+        onNext: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))],
+      );
+
+      expect(
+        _resolveNode(node, {
+          'day': {'label': 'Mon, Jan 12'},
+        }),
+        const WidgetNode(
+          type: 'dayPicker',
+          id: 'day',
+          props: {'label': 'Mon, Jan 12'},
+          children: [
+            WidgetNode(
+              type: 'iconButton',
+              id: 'dayPrevious',
+              props: {'icon': 'chevronLeft', 'label': 'Previous day'},
+              tap: EventTap(nodeId: 'day', event: 'onPrevious'),
+            ),
+            WidgetNode(
+              type: 'iconButton',
+              id: 'dayNext',
+              props: {'icon': 'chevronRight', 'label': 'Next day'},
+              tap: EventTap(nodeId: 'day', event: 'onNext'),
+            ),
+          ],
+        ),
+      );
+    });
+
+    test('gives a day picker chevron without actions no tap', () {
+      const node = DayPickerNode(
+        id: 'day',
+        label: Literal('Mon, Jan 12'),
+        previousLabel: Literal('Previous day'),
+        nextLabel: Literal('Next day'),
+        onNext: [NavigateAction(pageId: Literal('myDay'))],
+      );
+
+      expect(_resolveNode(node).children.map((child) => child.tap), [null, const OpenAppTap()]);
+    });
+
     test('resolves a progress bar with a bound value and literal max', () {
       expect(
         _resolveNode(

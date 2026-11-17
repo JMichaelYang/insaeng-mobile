@@ -4,6 +4,7 @@ import 'package:insaeng/ui/generic/items/button_item.dart';
 import 'package:insaeng/ui/generic/items/checkbox_tile_item.dart';
 import 'package:insaeng/ui/generic/items/column_item.dart';
 import 'package:insaeng/ui/generic/items/container_item.dart';
+import 'package:insaeng/ui/generic/items/day_picker_item.dart';
 import 'package:insaeng/ui/generic/items/divider_item.dart';
 import 'package:insaeng/ui/generic/items/expanded_item.dart';
 import 'package:insaeng/ui/generic/items/icon_button_item.dart';
@@ -34,6 +35,7 @@ class NodeView extends StatelessWidget {
     final IconButtonNode node => IconButtonItem(node: node),
     final TextFieldNode node => TextFieldItem(node: node),
     final CheckboxTileNode node => CheckboxTileItem(node: node),
+    final DayPickerNode node => DayPickerItem(node: node),
     final SpacerNode node => SpacerItem(node: node),
     final DividerNode node => DividerItem(node: node),
     final ProgressBarNode node => ProgressBarItem(node: node),

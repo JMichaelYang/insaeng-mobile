@@ -372,6 +372,30 @@ void main() {
       ]);
     });
 
+    for (final (event, offset) in [('onPrevious', -1), ('onNext', 1)]) {
+      test('dispatches the $event actions of a day picker', () async {
+        const page = GenericPage(
+          id: _pageId,
+          root: DayPickerNode(
+            id: 'day',
+            label: Literal('Mon, Jan 12'),
+            previousLabel: Literal('Previous day'),
+            nextLabel: Literal('Next day'),
+            onPrevious: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment), value: Literal(-1))],
+            onNext: [UpdateStateAction(path: 'offset', op: Literal(UpdateOp.increment))],
+          ),
+        );
+        when(() => snapshots.load(_pageId))
+            .thenAnswer((_) async => Result.ok((page: page, values: GenericValues(const {'offset': 0}))));
+
+        await handler.handle(_uri(node: 'day', event: event));
+
+        expect(savedValues(), [
+          GenericValues({'offset': offset}),
+        ]);
+      });
+    }
+
     test('does nothing for an unknown node', () async {
       await handler.handle(_uri(node: 'missing'));
 

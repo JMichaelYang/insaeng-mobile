@@ -76,6 +76,8 @@ enum class WidgetButtonVariant {
 
 enum class WidgetIcon(val token: String, @DrawableRes val drawable: Int) {
     EDIT("edit", R.drawable.ic_edit),
+    CHEVRON_LEFT("chevronLeft", R.drawable.ic_chevron_left),
+    CHEVRON_RIGHT("chevronRight", R.drawable.ic_chevron_right),
     ;
 
     companion object {
