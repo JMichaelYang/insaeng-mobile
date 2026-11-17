@@ -87,17 +87,14 @@ class WidgetLayoutTest {
     fun laysOutTheFooterRowEdgeToEdge() {
         val footer = myDayRoot().children.last()
         assertEquals("footer", footer.id)
-        assertEquals(listOf("footerStart", "openClaude"), footer.renderedChildren().map { it.id })
+        assertEquals(listOf("footerStart"), footer.renderedChildren().map { it.id })
 
         val row = render<EmittableRow> { RowView(footer, GlanceModifier) }
 
         assertEquals(Dimension.Fill, row.width)
-        assertEquals(2, row.children.size)
-        val (slot, button) = row.children
+        val slot = row.children.single()
         assertEquals(Dimension.Expand, slot.width)
         assertTrue(slot.descendants().none { it.width == Dimension.Expand })
-        assertNotEquals(Dimension.Expand, button.width)
-        assertNotEquals(Dimension.Fill, button.width)
     }
 
     @Test

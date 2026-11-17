@@ -34,8 +34,6 @@ abstract final class MyDayPageMapper {
   static const saveErrorText = "Couldn't update the task. Try again.";
   static const fallbackEmoji = '📝';
   static const progressDonePath = 'progress.done';
-  static const claudeUrl = 'https://claude.ai/new';
-  static const openClaudeLabel = 'Open Claude';
   static const previousDayLabel = 'Previous day';
   static const nextDayLabel = 'Next day';
   static const selectedDayEndpoint = '/my-day/selected-day';
@@ -164,12 +162,6 @@ abstract final class MyDayPageMapper {
             ],
           ),
         ),
-      ),
-      IconButtonNode(
-        id: 'openClaude',
-        icon: Literal(IconToken.edit),
-        label: Literal(openClaudeLabel),
-        onTap: [OpenUrlAction(url: Literal(claudeUrl))],
       ),
     ],
   );

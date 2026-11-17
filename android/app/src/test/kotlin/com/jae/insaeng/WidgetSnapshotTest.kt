@@ -88,7 +88,7 @@ class WidgetSnapshotTest {
         val footer = root.children[3]
         assertEquals("footer", footer.id)
         assertEquals("center", footer.string("alignment"))
-        assertEquals(listOf("expanded", "iconButton"), footer.children.map { it.type })
+        assertEquals(listOf("expanded"), footer.children.map { it.type })
         val start = footer.children[0]
         assertEquals("footerStart", start.id)
         assertEquals(listOf("footerStartSlot"), start.children.map { it.id })
@@ -100,11 +100,6 @@ class WidgetSnapshotTest {
         assertEquals("Refresh", refresh.string("label"))
         assertFalse(refresh.loading)
         assertEquals(WidgetTap.Event(nodeId = "refresh", event = "onTap"), refresh.tap)
-        val openClaude = footer.children[1]
-        assertEquals("openClaude", openClaude.id)
-        assertEquals("edit", openClaude.string("icon"))
-        assertEquals("Open Claude", openClaude.string("label"))
-        assertEquals(WidgetTap.OpenUrl(url = "https://claude.ai/new"), openClaude.tap)
     }
 
     @Test

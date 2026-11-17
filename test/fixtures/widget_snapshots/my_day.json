@@ -159,20 +159,6 @@
               "flex": 1
             },
             "type": "expanded"
-          },
-          {
-            "children": [],
-            "id": "openClaude",
-            "props": {
-              "icon": "edit",
-              "label": "Open Claude",
-              "loading": false
-            },
-            "tap": {
-              "type": "openUrl",
-              "url": "https://claude.ai/new"
-            },
-            "type": "iconButton"
           }
         ],
         "id": "footer",
