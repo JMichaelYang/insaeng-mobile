@@ -94,7 +94,7 @@ abstract final class MyDayPageMapper {
           _progress(tasks),
           ExpandedNode(
             id: 'body',
-            child: ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),
+            child: tasks.isEmpty ? _empty : ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),
           ),
         ],
       ),
@@ -120,13 +120,15 @@ abstract final class MyDayPageMapper {
   static ProgressBarNode _progress(List<_Task> tasks) =>
       ProgressBarNode(id: 'progress', value: const Binding(progressDonePath, fallback: 0), max: Literal(tasks.length));
 
+  static const _empty = ContainerNode(
+    id: 'empty',
+    padding: Literal(SpacingToken.md),
+    alignment: Literal(AlignmentToken.center),
+    child: TextNode(id: 'emptyText', text: Literal(emptyText)),
+  );
+
   static GenericNode _taskList(List<_Task> tasks, {bool dividers = true}) => tasks.isEmpty
-      ? const ContainerNode(
-          id: 'empty',
-          padding: Literal(SpacingToken.md),
-          alignment: Literal(AlignmentToken.center),
-          child: TextNode(id: 'emptyText', text: Literal(emptyText)),
-        )
+      ? _empty
       : ColumnNode(
           id: 'tasks',
           children: [

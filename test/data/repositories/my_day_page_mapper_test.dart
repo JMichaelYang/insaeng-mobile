@@ -480,7 +480,7 @@ void main() {
       _expectWidgetSafe(page);
     });
 
-    test('shows nothing planned today for an empty day', () {
+    test('shows nothing planned today outside the scroll for an empty day', () {
       final empty = GenericPage(
         id: MyDayPageMapper.widgetPageId,
         state: GenericValues(const {
@@ -494,14 +494,11 @@ void main() {
             _progress(0),
             const ExpandedNode(
               id: 'body',
-              child: ScrollNode(
-                id: 'scroll',
-                child: ContainerNode(
-                  id: 'empty',
-                  padding: Literal(SpacingToken.md),
-                  alignment: Literal(AlignmentToken.center),
-                  child: TextNode(id: 'emptyText', text: Literal(MyDayPageMapper.emptyText)),
-                ),
+              child: ContainerNode(
+                id: 'empty',
+                padding: Literal(SpacingToken.md),
+                alignment: Literal(AlignmentToken.center),
+                child: TextNode(id: 'emptyText', text: Literal(MyDayPageMapper.emptyText)),
               ),
             ),
           ],
