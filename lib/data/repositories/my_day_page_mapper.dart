@@ -29,6 +29,8 @@ abstract final class MyDayPageMapper {
   static const saveErrorText = "Couldn't update the task. Try again.";
   static const fallbackEmoji = '📝';
   static const progressDonePath = 'progress.done';
+  static const claudeUrl = 'https://claude.ai/new';
+  static const openClaudeLabel = 'Open Claude';
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
@@ -96,10 +98,28 @@ abstract final class MyDayPageMapper {
             id: 'body',
             child: tasks.isEmpty ? _empty : ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),
           ),
+          _footer,
         ],
       ),
     );
   }
+
+  static const _footer = RowNode(
+    id: 'footer',
+    alignment: Literal(AlignmentToken.center),
+    children: [
+      ExpandedNode(
+        id: 'footerStart',
+        child: ContainerNode(id: 'footerStartSlot'),
+      ),
+      IconButtonNode(
+        id: 'openClaude',
+        icon: Literal(IconToken.edit),
+        label: Literal(openClaudeLabel),
+        onTap: [OpenUrlAction(url: Literal(claudeUrl))],
+      ),
+    ],
+  );
 
   static List<_Task> _todayTasks(Iterable<Map<String, Object?>> rows, DateTime now) {
     final today = now.toLocal();

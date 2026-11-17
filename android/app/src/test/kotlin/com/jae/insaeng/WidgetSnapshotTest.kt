@@ -39,7 +39,7 @@ class WidgetSnapshotTest {
         assertEquals("start", root.string("alignment"))
         assertEquals("sm", root.string("spacing"))
         assertNull(root.tap)
-        assertEquals(listOf("progressBar", "expanded"), root.children.map { it.type })
+        assertEquals(listOf("progressBar", "expanded", "row"), root.children.map { it.type })
 
         val progress = root.children[0]
         assertEquals("progress", progress.id)
@@ -78,6 +78,19 @@ class WidgetSnapshotTest {
         assertEquals(true, meeting.boolean("checked"))
         assertEquals(false, meeting.boolean("busy"))
         assertEquals(WidgetTap.Event(nodeId = "task-meeting", event = "onChanged"), meeting.tap)
+
+        val footer = root.children[2]
+        assertEquals("footer", footer.id)
+        assertEquals("center", footer.string("alignment"))
+        assertEquals(listOf("expanded", "iconButton"), footer.children.map { it.type })
+        val start = footer.children[0]
+        assertEquals("footerStart", start.id)
+        assertEquals(listOf("footerStartSlot"), start.children.map { it.id })
+        val openClaude = footer.children[1]
+        assertEquals("openClaude", openClaude.id)
+        assertEquals("edit", openClaude.string("icon"))
+        assertEquals("Open Claude", openClaude.string("label"))
+        assertEquals(WidgetTap.OpenUrl(url = "https://claude.ai/new"), openClaude.tap)
     }
 
     @Test
@@ -245,7 +258,7 @@ class WidgetSnapshotTest {
 
     @Test
     fun flattensScrollColumnIntoStableItems() {
-        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.last().children.single()
+        val scroll = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children[1].children.single()
         val items = scroll.scrollItems()
 
         assertEquals(
@@ -255,7 +268,7 @@ class WidgetSnapshotTest {
         val ids = items.map { it.itemId }
         assertEquals(ids.size, ids.toSet().size)
         assertTrue(ids.all { it >= 0 })
-        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children.last().children.single()
+        val again = requireNotNull(WidgetSnapshot.decode(fixture("my_day.json"))).root.children[1].children.single()
         assertEquals(ids, again.scrollItems().map { it.itemId })
         assertNotEquals(WidgetNode(type = "text", id = "a").itemId, WidgetNode(type = "text", id = "b").itemId)
     }

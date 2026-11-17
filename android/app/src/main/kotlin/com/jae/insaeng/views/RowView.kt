@@ -21,10 +21,11 @@ internal fun RowView(node: WidgetNode, modifier: GlanceModifier) {
         node.renderedChildren().forEachIndexed { index, child ->
             val weighted = child.flex > 0
             val outer = if (weighted) cross.defaultWeight() else cross
-            if (index == 0 || spacing == 0.dp) {
+            val gap = if (index == 0) 0.dp else spacing
+            if (!weighted && gap == 0.dp) {
                 WidgetNodeView(child, outer)
             } else {
-                Box(modifier = outer.padding(start = spacing)) {
+                Box(modifier = outer.padding(start = gap)) {
                     WidgetNodeView(child, if (weighted) cross.fillMaxWidth() else cross)
                 }
             }

@@ -84,7 +84,25 @@ const _widgetNodeTypes = {
   CheckboxTileNode,
   ScrollNode,
   ProgressBarNode,
+  IconButtonNode,
 };
+
+const _footer = RowNode(
+  id: 'footer',
+  alignment: Literal(AlignmentToken.center),
+  children: [
+    ExpandedNode(
+      id: 'footerStart',
+      child: ContainerNode(id: 'footerStartSlot'),
+    ),
+    IconButtonNode(
+      id: 'openClaude',
+      icon: Literal(IconToken.edit),
+      label: Literal('Open Claude'),
+      onTap: [OpenUrlAction(url: Literal('https://claude.ai/new'))],
+    ),
+  ],
+);
 
 ProgressBarNode _progress(int max) => ProgressBarNode(
   id: 'progress',
@@ -462,6 +480,7 @@ void main() {
                   child: ColumnNode(id: 'tasks', children: [appTiles[0], appTiles[1]]),
                 ),
               ),
+              _footer,
             ],
           ),
         ),
@@ -501,6 +520,7 @@ void main() {
                 child: TextNode(id: 'emptyText', text: Literal(MyDayPageMapper.emptyText)),
               ),
             ),
+            _footer,
           ],
         ),
       );
@@ -508,6 +528,24 @@ void main() {
       expect(_mapWidget(const []), empty);
       expect(_mapWidget([_row('tomorrow', start: '2026-11-16')]), empty);
       _expectWidgetSafe(empty);
+    });
+
+    test('ends with a footer whose open claude button sits after an expanded start slot', () {
+      for (final rows in [
+        const <Map<String, Object?>>[],
+        [_row('gym', start: '2026-11-15')],
+      ]) {
+        final root = _mapWidget(rows).root as ColumnNode;
+
+        expect(root.children.last, _footer);
+      }
+    });
+
+    test('opens claude in a new chat', () {
+      expect(MyDayPageMapper.claudeUrl, 'https://claude.ai/new');
+      expect(_mapWidget(const []).actions.whereType<OpenUrlAction>(), [
+        const OpenUrlAction(url: Literal(MyDayPageMapper.claudeUrl)),
+      ]);
     });
   });
 
