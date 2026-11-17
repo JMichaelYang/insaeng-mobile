@@ -17,7 +17,7 @@ internal fun RowView(node: WidgetNode, modifier: GlanceModifier) {
     val spacing = WidgetSpacing.of(node.string("spacing")).size
     val alignment = WidgetAlignment.of(node.string("alignment"))
     val cross = if (alignment == WidgetAlignment.STRETCH) GlanceModifier.fillMaxHeight() else GlanceModifier
-    Row(modifier = modifier, verticalAlignment = alignment.vertical) {
+    Row(modifier = if (node.fillsWidth) modifier.fillMaxWidth() else modifier, verticalAlignment = alignment.vertical) {
         node.renderedChildren().forEachIndexed { index, child ->
             val weighted = child.flex > 0
             val outer = if (weighted) cross.defaultWeight() else cross
@@ -32,3 +32,6 @@ internal fun RowView(node: WidgetNode, modifier: GlanceModifier) {
         }
     }
 }
+
+internal val WidgetNode.fillsWidth: Boolean
+    get() = type == "row" && renderedChildren().any { it.flex > 0 }

@@ -24,7 +24,7 @@ internal fun ColumnView(node: WidgetNode, modifier: GlanceModifier) {
             if (index == 0 || spacing == 0.dp) {
                 WidgetNodeView(child, outer)
             } else {
-                Box(modifier = outer.padding(top = spacing)) {
+                Box(modifier = (if (child.fillsWidth) outer.fillMaxWidth() else outer).padding(top = spacing)) {
                     WidgetNodeView(child, if (weighted) cross.fillMaxHeight() else cross)
                 }
             }
