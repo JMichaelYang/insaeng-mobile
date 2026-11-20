@@ -29,3 +29,6 @@ enum AlignmentToken { start, center, end, stretch }
 
 @MappableEnum(defaultValue: IconToken.edit)
 enum IconToken { edit, chevronLeft, chevronRight, refresh }
+
+@MappableEnum(defaultValue: CheckboxMarkToken.check)
+enum CheckboxMarkToken { check, dash }

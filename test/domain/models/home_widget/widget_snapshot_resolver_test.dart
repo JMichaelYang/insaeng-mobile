@@ -328,7 +328,14 @@ void main() {
         const WidgetNode(
           type: 'checkboxTile',
           id: 'task',
-          props: {'title': 'Gym', 'subtitle': '9:00 AM', 'emoji': '🏋️', 'busy': true, 'checked': true},
+          props: {
+            'title': 'Gym',
+            'subtitle': '9:00 AM',
+            'emoji': '🏋️',
+            'busy': true,
+            'mark': 'check',
+            'checked': true,
+          },
         ),
       );
       expect(
@@ -336,8 +343,45 @@ void main() {
         const WidgetNode(
           type: 'checkboxTile',
           id: 'task',
-          props: {'title': 'Gym', 'subtitle': '9:00 AM', 'emoji': '🏋️', 'busy': false, 'checked': false},
+          props: {
+            'title': 'Gym',
+            'subtitle': '9:00 AM',
+            'emoji': '🏋️',
+            'busy': false,
+            'mark': 'check',
+            'checked': false,
+          },
         ),
+      );
+    });
+
+    test('resolves a checkbox tile mark by name', () {
+      const tile = CheckboxTileNode(
+        id: 'task',
+        bind: 'tasks.a.done',
+        title: Literal('Gym'),
+        mark: Binding('tasks.a.mark', fallback: CheckboxMarkToken.check),
+      );
+
+      expect(
+        _resolveNode(tile, {
+          'tasks': {
+            'a': {'done': true, 'mark': CheckboxMarkToken.dash},
+          },
+        }).props['mark'],
+        'dash',
+      );
+      expect(_resolveNode(tile).props['mark'], 'check');
+      expect(
+        _resolveNode(
+          const CheckboxTileNode(
+            id: 'task',
+            bind: 'done',
+            title: Literal('Gym'),
+            mark: Literal(CheckboxMarkToken.dash),
+          ),
+        ).props['mark'],
+        'dash',
       );
     });
 

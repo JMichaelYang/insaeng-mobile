@@ -9,6 +9,7 @@ final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
     this.subtitle,
     this.emoji,
     this.busy = const Literal(false),
+    this.mark = const Literal(CheckboxMarkToken.check),
     this.onChanged = const [],
   });
 
@@ -25,6 +26,9 @@ final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
 
   @MappableField(hook: BindableHook<bool>())
   final Bindable<bool> busy;
+
+  @MappableField(hook: BindableHook<CheckboxMarkToken>())
+  final Bindable<CheckboxMarkToken> mark;
 
   final List<GenericAction> onChanged;
 

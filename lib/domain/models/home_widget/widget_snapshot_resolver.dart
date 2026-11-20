@@ -89,6 +89,7 @@ final class WidgetSnapshotResolver {
       :final subtitle,
       :final emoji,
       :final busy,
+      :final mark,
       :final onChanged,
     ) =>
       _node(
@@ -99,6 +100,7 @@ final class WidgetSnapshotResolver {
           'subtitle': subtitle,
           'emoji': emoji,
           'busy': busy,
+          'mark': mark,
           'checked': Literal(Binding<bool>(bind).resolve(_values) ?? false),
         },
         tap: _tap(id, 'onChanged', onChanged),

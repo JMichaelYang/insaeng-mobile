@@ -60,6 +60,58 @@ void main() {
       );
     });
 
+    test('decodes every mark', () {
+      for (final mark in CheckboxMarkToken.values) {
+        expect(
+          _decode({'type': 'checkboxTile', 'id': 'done', 'bind': 'todo.done', 'title': 'Done', 'mark': mark.name}),
+          CheckboxTileNode(id: 'done', bind: 'todo.done', title: const Literal('Done'), mark: Literal(mark)),
+          reason: mark.name,
+        );
+      }
+    });
+
+    test('defaults the mark to check when absent', () {
+      final node = _decode({'type': 'checkboxTile', 'id': 'done', 'bind': 'todo.done', 'title': 'Done'});
+
+      expect((node as CheckboxTileNode).mark, const Literal(CheckboxMarkToken.check));
+    });
+
+    test('falls back to check for an unknown mark', () {
+      expect(
+        _decode({'type': 'checkboxTile', 'id': 'done', 'bind': 'todo.done', 'title': 'Done', 'mark': 'cross'}),
+        const CheckboxTileNode(id: 'done', bind: 'todo.done', title: Literal('Done')),
+      );
+    });
+
+    test('decodes a bound mark', () {
+      expect(
+        _decode({
+          'type': 'checkboxTile',
+          'id': 'done',
+          'bind': 'todo.done',
+          'title': 'Done',
+          'mark': {r'$bind': 'todo.mark', 'fallback': 'dash'},
+        }),
+        const CheckboxTileNode(
+          id: 'done',
+          bind: 'todo.done',
+          title: Literal('Done'),
+          mark: Binding('todo.mark', fallback: CheckboxMarkToken.dash),
+        ),
+      );
+    });
+
+    for (final mark in [
+      const Literal(CheckboxMarkToken.dash),
+      const Binding('todo.mark', fallback: CheckboxMarkToken.dash),
+    ]) {
+      test('round trips a ${mark.runtimeType} mark through JSON', () {
+        final node = CheckboxTileNode(id: 'done', bind: 'todo.done', title: const Literal('Done'), mark: mark);
+
+        expect(GenericNodeMapper.fromJson(node.toJson()), node);
+      });
+    }
+
     test('decodes onChanged actions in order', () {
       expect(
         _decode({
