@@ -1,7 +1,7 @@
 import 'package:insaeng/design_system/theme/dimens.dart';
 import 'package:material_ui/material_ui.dart';
 
-enum AppCheckboxMark { check, cross }
+enum AppCheckboxMark { check, dash }
 
 class AppCheckboxTile extends StatelessWidget {
   const new({
@@ -28,6 +28,12 @@ class AppCheckboxTile extends StatelessWidget {
     final onChanged = busy ? null : this.onChanged;
     final subtitle = this.subtitle;
     final emoji = this.emoji;
+    final dashed = checked && mark == AppCheckboxMark.dash;
+    final checkbox = Checkbox(
+      value: dashed ? null : checked,
+      tristate: dashed,
+      onChanged: onChanged == null ? null : (_) => onChanged(!checked),
+    );
     return MergeSemantics(
       child: ListTile(
         enabled: onChanged != null,
@@ -40,11 +46,7 @@ class AppCheckboxTile extends StatelessWidget {
           spacing: Dimens.spaceSm,
           children: [
             if (busy) const _AppCheckboxTileSpinner(),
-            _AppCheckboxTileBox(
-              checked: checked,
-              mark: mark,
-              onPressed: onChanged == null ? null : () => onChanged(!checked),
-            ),
+            if (dashed) _AppCheckboxTileDash(enabled: onChanged != null, child: checkbox) else checkbox,
           ],
         ),
       ),
@@ -52,26 +54,30 @@ class AppCheckboxTile extends StatelessWidget {
   }
 }
 
-class _AppCheckboxTileBox extends StatelessWidget {
-  const new({required this.checked, required this.mark, required this.onPressed});
+class _AppCheckboxTileDash extends StatelessWidget {
+  const new({required this.enabled, required this.child});
 
-  final bool checked;
-  final AppCheckboxMark mark;
-  final VoidCallback? onPressed;
+  final bool enabled;
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.of(context);
-    final (icon, color) = switch ((checked, mark)) {
-      (false, _) => (Icons.check_box_outline_blank, colorScheme.onSurfaceVariant),
-      (true, AppCheckboxMark.check) => (Icons.check_box, colorScheme.primary),
-      (true, AppCheckboxMark.cross) => (Icons.disabled_by_default, colorScheme.error),
-    };
     return Semantics(
-      checked: checked,
-      enabled: onPressed != null,
+      checked: true,
+      enabled: enabled,
       child: ExcludeSemantics(
-        child: IconButton(onPressed: onPressed, color: color, icon: Icon(icon)),
+        child: CheckboxTheme(
+          data: CheckboxTheme.of(context).copyWith(
+            fillColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.disabled) ? null : colorScheme.error,
+            ),
+            checkColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.disabled) ? null : colorScheme.onError,
+            ),
+          ),
+          child: child,
+        ),
       ),
     );
   }

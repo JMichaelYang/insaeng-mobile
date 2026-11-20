@@ -225,7 +225,7 @@ void main() {
         await tester.pump();
 
         expect(tile(tester).busy, isTrue);
-        expect(tester.widget<ListTile>(find.byType(ListTile)).enabled, isFalse);
+        expect(tester.widget<Checkbox>(find.byType(Checkbox)).onChanged, isNull);
 
         await tester.tap(find.text('Stretch'), warnIfMissed: false);
         await tester.pump();

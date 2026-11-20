@@ -14,40 +14,24 @@ void main() {
       );
     }
 
-    final box = find.byType(IconButton);
-    final unchecked = find.byIcon(Icons.check_box_outline_blank);
-    final check = find.byIcon(Icons.check_box);
-    final cross = find.byIcon(Icons.disabled_by_default);
-
-    Color? iconColor(WidgetTester tester, Finder icon) => IconTheme.of(tester.element(icon)).color;
+    final box = find.byType(Checkbox);
+    Checkbox checkbox(WidgetTester tester) => tester.widget<Checkbox>(box);
+    CheckboxThemeData checkboxTheme(WidgetTester tester) => CheckboxTheme.of(tester.element(box));
     ColorScheme colorScheme(WidgetTester tester) => ColorScheme.of(tester.element(box));
-
-    testWidgets('never draws the built-in Checkbox', (tester) async {
-      for (final mark in AppCheckboxMark.values) {
-        for (final checked in [false, true]) {
-          await pumpTile(tester, AppCheckboxTile(title: 'Stretch', checked: checked, mark: mark, onChanged: (_) {}));
-
-          expect(find.byType(Checkbox), findsNothing);
-          expect(box, findsOneWidget);
-        }
-      }
-    });
 
     testWidgets('shows the title and an unchecked box', (tester) async {
       await pumpTile(tester, AppCheckboxTile(title: 'Stretch', checked: false, onChanged: (_) {}));
 
       expect(find.text('Stretch'), findsOneWidget);
-      expect(unchecked, findsOneWidget);
-      expect(iconColor(tester, unchecked), colorScheme(tester).onSurfaceVariant);
+      expect(checkbox(tester).value, isFalse);
       expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
-    testWidgets('shows a primary check when checked', (tester) async {
+    testWidgets('shows a checked box when checked', (tester) async {
       await pumpTile(tester, AppCheckboxTile(title: 'Stretch', checked: true, onChanged: (_) {}));
 
-      expect(check, findsOneWidget);
-      expect(unchecked, findsNothing);
-      expect(iconColor(tester, check), colorScheme(tester).primary);
+      expect(checkbox(tester).value, isTrue);
+      expect(checkbox(tester).tristate, isFalse);
     });
 
     testWidgets('shows the subtitle when given', (tester) async {
@@ -110,6 +94,7 @@ void main() {
               label: 'Stretch',
               hasCheckedState: true,
               isChecked: checked,
+              isCheckStateMixed: false,
               hasEnabledState: true,
               isEnabled: true,
               hasTapAction: true,
@@ -120,26 +105,29 @@ void main() {
       }
     }
 
-    group('with the cross mark', () {
-      testWidgets('shows an error-colored cross when checked', (tester) async {
+    group('with the dash mark', () {
+      testWidgets('shows an error-filled dash when checked', (tester) async {
         await pumpTile(
           tester,
-          AppCheckboxTile(title: 'Stretch', checked: true, mark: AppCheckboxMark.cross, onChanged: (_) {}),
+          AppCheckboxTile(title: 'Stretch', checked: true, mark: AppCheckboxMark.dash, onChanged: (_) {}),
         );
 
-        expect(cross, findsOneWidget);
-        expect(check, findsNothing);
-        expect(iconColor(tester, cross), colorScheme(tester).error);
+        expect(box, findsOneWidget);
+        expect(checkbox(tester).tristate, isTrue);
+        expect(checkbox(tester).value, isNull);
+        expect(checkboxTheme(tester).fillColor?.resolve({WidgetState.selected}), colorScheme(tester).error);
+        expect(checkboxTheme(tester).checkColor?.resolve({WidgetState.selected}), colorScheme(tester).onError);
       });
 
       testWidgets('shows a plain box when unchecked', (tester) async {
         await pumpTile(
           tester,
-          AppCheckboxTile(title: 'Stretch', checked: false, mark: AppCheckboxMark.cross, onChanged: (_) {}),
+          AppCheckboxTile(title: 'Stretch', checked: false, mark: AppCheckboxMark.dash, onChanged: (_) {}),
         );
 
-        expect(cross, findsNothing);
-        expect(unchecked, findsOneWidget);
+        expect(checkbox(tester).value, isFalse);
+        expect(checkbox(tester).tristate, isFalse);
+        expect(checkboxTheme(tester).fillColor?.resolve({WidgetState.selected}), isNot(colorScheme(tester).error));
       });
 
       testWidgets('lines up with the check', (tester) async {
@@ -148,15 +136,26 @@ void main() {
 
         await pumpTile(
           tester,
-          AppCheckboxTile(title: 'Stretch', checked: true, mark: AppCheckboxMark.cross, onChanged: (_) {}),
+          AppCheckboxTile(title: 'Stretch', checked: true, mark: AppCheckboxMark.dash, onChanged: (_) {}),
         );
 
         expect(tester.getRect(box), checkRect);
       });
+
+      testWidgets('falls back to the disabled colors while busy', (tester) async {
+        await pumpTile(
+          tester,
+          AppCheckboxTile(title: 'Stretch', checked: true, busy: true, mark: AppCheckboxMark.dash, onChanged: (_) {}),
+        );
+
+        const disabled = {WidgetState.selected, WidgetState.disabled};
+        expect(checkboxTheme(tester).fillColor?.resolve(disabled), isNull);
+        expect(checkboxTheme(tester).checkColor?.resolve(disabled), isNull);
+      });
     });
 
     for (final mark in AppCheckboxMark.values) {
-      testWidgets('shows a spinner, greys out the ${mark.name} and ignores taps while busy', (tester) async {
+      testWidgets('shows a spinner and ignores taps while busy with the ${mark.name} mark', (tester) async {
         final values = <bool>[];
         await pumpTile(
           tester,
@@ -164,9 +163,7 @@ void main() {
         );
 
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
-        expect(tester.widget<IconButton>(box).onPressed, isNull);
-        final icon = mark == AppCheckboxMark.cross ? cross : check;
-        expect(iconColor(tester, icon), isSameColorAs(colorScheme(tester).onSurface.withValues(alpha: 0.38)));
+        expect(checkbox(tester).onChanged, isNull);
 
         await tester.tap(find.text('Stretch'), warnIfMissed: false);
         await tester.tap(box, warnIfMissed: false);
@@ -177,7 +174,7 @@ void main() {
     testWidgets('is disabled when onChanged is null', (tester) async {
       await pumpTile(tester, const AppCheckboxTile(title: 'Stretch', checked: false, onChanged: null));
 
-      expect(tester.widget<IconButton>(box).onPressed, isNull);
+      expect(checkbox(tester).onChanged, isNull);
       expect(tester.widget<ListTile>(find.byType(ListTile)).enabled, isFalse);
     });
   });

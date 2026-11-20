@@ -30,29 +30,29 @@ void main() {
           onChanged: (_) {},
         ),
       },
-      'cross checked': AppCheckboxTile(
+      'dash checked': AppCheckboxTile(
         title: 'Stretch',
         subtitle: '10 minutes',
         emoji: '🧘',
         checked: true,
-        mark: AppCheckboxMark.cross,
+        mark: AppCheckboxMark.dash,
         onChanged: (_) {},
       ),
-      'cross checked busy': AppCheckboxTile(
+      'dash checked busy': AppCheckboxTile(
         title: 'Stretch',
         subtitle: '10 minutes',
         emoji: '🧘',
         checked: true,
         busy: true,
-        mark: AppCheckboxMark.cross,
+        mark: AppCheckboxMark.dash,
         onChanged: (_) {},
       ),
-      'cross unchecked': AppCheckboxTile(
+      'dash unchecked': AppCheckboxTile(
         title: 'Stretch',
         subtitle: '10 minutes',
         emoji: '🧘',
         checked: false,
-        mark: AppCheckboxMark.cross,
+        mark: AppCheckboxMark.dash,
         onChanged: (_) {},
       ),
     },
