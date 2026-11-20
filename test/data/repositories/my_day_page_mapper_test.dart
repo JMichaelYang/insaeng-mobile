@@ -778,4 +778,46 @@ void main() {
       _expectWidgetSafe(page);
     });
   });
+
+  group('$MyDayPageMapper canceled tasks', () {
+    final rows = [
+      _row('todo', start: '2026-11-15', status: 'To do'),
+      _row('done', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done'),
+      _row('canceled', start: '2026-11-15', status: 'Canceled'),
+      _row('canceledMeeting', start: _utc(DateTime(2026, 11, 15, 14)), status: 'Canceled'),
+    ];
+    final expectedState = GenericValues(const {
+      'tasks': {
+        'todo': {'done': false, 'saving': false},
+        'done': {'done': true, 'saving': false},
+      },
+      'progress': {'done': 1},
+    });
+
+    test('leaves canceled rows out of the app page tiles, state, and progress max', () {
+      final page = _map(rows);
+
+      expect(_ids(page), ['task-todo', 'task-done']);
+      expect(page.initialState, expectedState);
+      expect(page.nodes.whereType<ProgressBarNode>().single, _progress(2));
+    });
+
+    test('leaves canceled rows out of the widget page tiles, state, and progress max', () {
+      final page = _mapWidget(rows);
+
+      expect(_ids(page), ['task-todo', 'task-done']);
+      expect(page.initialState, expectedState);
+      expect(page.nodes.whereType<ProgressBarNode>().single, _progress(2));
+    });
+
+    test('shows nothing planned for a day with only canceled rows', () {
+      final canceled = [
+        _row('canceled', start: '2026-11-15', status: 'Canceled'),
+        _row('canceledMeeting', start: _utc(DateTime(2026, 11, 15, 14)), status: 'Canceled'),
+      ];
+
+      expect(_map(canceled), _map(const []));
+      expect(_mapWidget(canceled), _mapWidget(const []));
+    });
+  });
 }
