@@ -40,7 +40,7 @@ Map<String, Object?> _row(
   },
 };
 
-List<GenericAction> _checkActions(String id) => [
+List<GenericAction> _checkActions(String id, {bool reload = true}) => [
   UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(true)),
   RequestAction(
     method: const Literal(RequestMethod.patch),
@@ -50,7 +50,14 @@ List<GenericAction> _checkActions(String id) => [
       UpdateStateAction(path: 'tasks.$id.done', op: const Literal(UpdateOp.toggle)),
       const ShowMessageAction(text: Literal(MyDayPageMapper.saveErrorText)),
     ],
-    onComplete: [UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false))],
+    onComplete: [
+      if (reload)
+        ReloadAction(
+          onComplete: [UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false))],
+        )
+      else
+        UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false)),
+    ],
   ),
 ];
 
@@ -576,7 +583,10 @@ void main() {
         _row('tomorrow', start: '2026-11-16'),
       ];
       final page = _mapWidget(rows);
-      final appTiles = _tiles(_map(rows));
+      final appTiles = [
+        for (final tile in _tiles(_map(rows)))
+          tile.copyWith(onChanged: _checkActions(tile.id.substring('task-'.length), reload: false)),
+      ];
 
       expect(
         page,
@@ -677,6 +687,34 @@ void main() {
 
         expect(page.state?.get(MyDayPageMapper.refreshingPath), isNull);
         expect(_refresh.loading.resolve(page.state ?? GenericValues.empty), isFalse);
+      }
+    });
+  });
+
+  group('$MyDayPageMapper task reload', () {
+    final rows = [_row('a', start: '2026-11-15'), _row('b', start: _utc(DateTime(2026, 11, 15, 9)), status: 'Done')];
+
+    RequestAction request(CheckboxTileNode tile) => tile.onChanged.whereType<RequestAction>().single;
+
+    test('reloads the app page after each task request and clears saving once it lands', () {
+      for (final tile in _tiles(_map(rows))) {
+        final id = tile.id.substring('task-'.length);
+
+        expect(request(tile).onComplete, [
+          ReloadAction(
+            onComplete: [UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false))],
+          ),
+        ], reason: tile.id);
+      }
+    });
+
+    test('clears saving without reloading after each widget task request', () {
+      for (final tile in _tiles(_mapWidget(rows))) {
+        final id = tile.id.substring('task-'.length);
+
+        expect(request(tile).onComplete, [
+          UpdateStateAction(path: 'tasks.$id.saving', value: const Literal(false)),
+        ], reason: tile.id);
       }
     });
   });

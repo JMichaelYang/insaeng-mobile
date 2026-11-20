@@ -110,7 +110,7 @@ abstract final class MyDayPageMapper {
           ),
           ExpandedNode(
             id: 'body',
-            child: ScrollNode(id: 'scroll', onRefresh: const [ReloadAction()], child: _taskList(tasks)),
+            child: ScrollNode(id: 'scroll', onRefresh: const [ReloadAction()], child: _taskList(tasks, reload: true)),
           ),
         ],
       ),
@@ -134,7 +134,9 @@ abstract final class MyDayPageMapper {
           _progress(tasks),
           ExpandedNode(
             id: 'body',
-            child: tasks.isEmpty ? _empty : ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false)),
+            child: tasks.isEmpty
+                ? _empty
+                : ScrollNode(id: 'scroll', child: _taskList(tasks, dividers: false, reload: false)),
           ),
           _footer,
         ],
@@ -210,21 +212,22 @@ abstract final class MyDayPageMapper {
     child: TextNode(id: 'emptyText', text: Literal(emptyText)),
   );
 
-  static GenericNode _taskList(List<_Task> tasks, {bool dividers = true}) => tasks.isEmpty
+  static GenericNode _taskList(List<_Task> tasks, {required bool reload, bool dividers = true}) => tasks.isEmpty
       ? _empty
       : ColumnNode(
           id: 'tasks',
           children: [
             for (final (index, task) in tasks.indexed) ...[
               if (dividers && index > 0) DividerNode(id: 'divider-${tasks[index - 1].id}'),
-              _tile(task),
+              _tile(task, reload: reload),
             ],
           ],
         );
 
-  static CheckboxTileNode _tile(_Task task) {
+  static CheckboxTileNode _tile(_Task task, {required bool reload}) {
     final donePath = 'tasks.${task.id}.done';
     final savingPath = 'tasks.${task.id}.saving';
+    final clearSaving = UpdateStateAction(path: savingPath, value: const Literal(false));
     return CheckboxTileNode(
       id: 'task-${task.id}',
       bind: donePath,
@@ -245,7 +248,9 @@ abstract final class MyDayPageMapper {
             UpdateStateAction(path: donePath, op: const Literal(UpdateOp.toggle)),
             const ShowMessageAction(text: Literal(saveErrorText)),
           ],
-          onComplete: [UpdateStateAction(path: savingPath, value: const Literal(false))],
+          onComplete: [
+            if (reload) ReloadAction(onComplete: [clearSaving]) else clearSaving,
+          ],
         ),
       ],
     );
