@@ -75,6 +75,7 @@ class WidgetSnapshotTest {
         assertNull(gym.string("subtitle"))
         assertEquals("✅", gym.string("emoji"))
         assertEquals(false, gym.boolean("checked"))
+        assertEquals("check", gym.string("mark"))
         assertEquals(false, gym.boolean("busy"))
 
         val meeting = tasks.children[1]
@@ -82,6 +83,7 @@ class WidgetSnapshotTest {
         assertEquals("9:00 – 10:30 AM", meeting.string("subtitle"))
         assertEquals("✅", meeting.string("emoji"))
         assertEquals(true, meeting.boolean("checked"))
+        assertEquals("check", meeting.string("mark"))
         assertEquals(false, meeting.boolean("busy"))
         assertEquals(WidgetTap.Event(nodeId = "task-meeting", event = "onChanged"), meeting.tap)
 
@@ -138,6 +140,20 @@ class WidgetSnapshotTest {
         assertNull(node.boolean("title"))
         assertNull(node.boolean("flex"))
         assertNull(node.boolean("missing"))
+    }
+
+    @Test
+    fun decodesCheckboxMarks() {
+        val marks =
+            listOf("check", "dash").map {
+                WidgetNode.fromJson(
+                    Json.parseToJsonElement(
+                        """{"type":"checkboxTile","id":"t","props":{"checked":true,"mark":"$it","title":"T"}}""",
+                    ),
+                ).string("mark")
+            }
+
+        assertEquals(listOf("check", "dash"), marks)
     }
 
     @Test

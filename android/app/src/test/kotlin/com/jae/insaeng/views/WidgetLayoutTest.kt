@@ -1,11 +1,17 @@
 package com.jae.insaeng.views
 
 import androidx.compose.runtime.Composable
+import androidx.glance.AndroidResourceImageProvider
 import androidx.glance.Emittable
 import androidx.glance.EmittableWithChildren
 import androidx.glance.EmittableImage
 import androidx.glance.GlanceModifier
+import androidx.glance.GlanceTheme
 import androidx.glance.TintColorFilterParams
+import androidx.glance.color.ColorProviders
+import androidx.glance.semantics.SemanticsModifier
+import androidx.glance.semantics.SemanticsProperties
+import androidx.glance.unit.ColorProvider
 import androidx.glance.action.ActionModifier
 import androidx.glance.appwidget.EnabledModifier
 import androidx.glance.appwidget.testing.unit.runGlanceAppWidgetUnitTest
@@ -92,6 +98,111 @@ class WidgetLayoutTest {
 
     private fun Emittable.descendants(): List<Emittable> =
         if (this is EmittableWithChildren) children.flatMap { listOf(it) + it.descendants() } else emptyList()
+
+    private fun checkboxTile(checked: Boolean, mark: String? = null, busy: Boolean = false) =
+        WidgetNode(
+            type = "checkboxTile",
+            id = "task",
+            props =
+                JsonObject(
+                    listOfNotNull(
+                        "title" to JsonPrimitive("Task"),
+                        "checked" to JsonPrimitive(checked),
+                        "busy" to JsonPrimitive(busy),
+                        mark?.let { "mark" to JsonPrimitive(it) },
+                    ).toMap(),
+                ),
+            tap = WidgetTap.Event(nodeId = "task", event = "onChanged"),
+        )
+
+    private class RenderedCheckbox(
+        val drawable: Int,
+        val tint: ColorProvider,
+        val description: List<String>?,
+        val clickable: Boolean,
+        val colors: ColorProviders,
+    )
+
+    private fun renderCheckbox(node: WidgetNode): RenderedCheckbox {
+        lateinit var colors: ColorProviders
+        val row =
+            render<EmittableRow> {
+                colors = GlanceTheme.colors
+                CheckboxTileView(node, GlanceModifier)
+            }
+        val image = (row.children.last() as EmittableBox).children.single() as EmittableImage
+        return RenderedCheckbox(
+            drawable = (image.provider as AndroidResourceImageProvider).resId,
+            tint = (image.colorFilterParams as TintColorFilterParams).colorProvider,
+            description = image.modifierOf<SemanticsModifier>()?.configuration?.getOrNull(SemanticsProperties.ContentDescription),
+            clickable = image.modifierOf<ActionModifier>() != null,
+            colors = colors,
+        )
+    }
+
+    @Test
+    fun drawsUncheckedTilesAsAnOutlineBox() {
+        val checkbox = renderCheckbox(checkboxTile(checked = false, mark = "check"))
+
+        assertEquals(R.drawable.ic_checkbox_unchecked, checkbox.drawable)
+        assertEquals(checkbox.colors.onSurfaceVariant, checkbox.tint)
+        assertEquals(listOf("Not checked"), checkbox.description)
+        assertTrue(checkbox.clickable)
+    }
+
+    @Test
+    fun drawsCheckedTilesAsAPrimaryCheckBox() {
+        val checkbox = renderCheckbox(checkboxTile(checked = true, mark = "check"))
+
+        assertEquals(R.drawable.ic_checkbox_checked, checkbox.drawable)
+        assertEquals(checkbox.colors.primary, checkbox.tint)
+        assertEquals(listOf("Checked"), checkbox.description)
+        assertTrue(checkbox.clickable)
+    }
+
+    @Test
+    fun drawsCheckedTilesWithoutAMarkAsAPrimaryCheckBox() {
+        val checkbox = renderCheckbox(checkboxTile(checked = true))
+
+        assertEquals(R.drawable.ic_checkbox_checked, checkbox.drawable)
+        assertEquals(checkbox.colors.primary, checkbox.tint)
+    }
+
+    @Test
+    fun drawsDashedTilesAsAnErrorDash() {
+        val checkbox = renderCheckbox(checkboxTile(checked = true, mark = "dash"))
+
+        assertEquals(R.drawable.ic_checkbox_dash, checkbox.drawable)
+        assertEquals(checkbox.colors.error, checkbox.tint)
+        assertEquals(listOf("Checked"), checkbox.description)
+        assertTrue(checkbox.clickable)
+    }
+
+    @Test
+    fun drawsUncheckedDashTilesAsAnOutlineBox() {
+        val checkbox = renderCheckbox(checkboxTile(checked = false, mark = "dash"))
+
+        assertEquals(R.drawable.ic_checkbox_unchecked, checkbox.drawable)
+        assertEquals(checkbox.colors.onSurfaceVariant, checkbox.tint)
+        assertEquals(listOf("Not checked"), checkbox.description)
+    }
+
+    @Test
+    fun greysOutAndDisablesBusyCheckboxes() {
+        val checkbox = renderCheckbox(checkboxTile(checked = true, mark = "dash", busy = true))
+
+        assertEquals(R.drawable.ic_checkbox_dash, checkbox.drawable)
+        assertEquals(R.color.widget_icon_disabled, (checkbox.tint as ResourceColorProvider).resId)
+        assertFalse(checkbox.clickable)
+    }
+
+    @Test
+    fun leavesTaplessCheckboxesUnclickable() {
+        val checkbox = renderCheckbox(checkboxTile(checked = false).copy(tap = null))
+
+        assertFalse(checkbox.clickable)
+        assertEquals(checkbox.colors.onSurfaceVariant, checkbox.tint)
+    }
 
     @Test
     fun laysOutTheFooterRowEdgeToEdge() {
