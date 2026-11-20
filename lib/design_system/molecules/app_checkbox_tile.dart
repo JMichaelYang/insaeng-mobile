@@ -1,6 +1,8 @@
 import 'package:insaeng/design_system/theme/dimens.dart';
 import 'package:material_ui/material_ui.dart';
 
+enum AppCheckboxMark { check, dash }
+
 class AppCheckboxTile extends StatelessWidget {
   const new({
     required this.title,
@@ -9,6 +11,7 @@ class AppCheckboxTile extends StatelessWidget {
     this.subtitle,
     this.emoji,
     this.busy = false,
+    this.mark = AppCheckboxMark.check,
     super.key,
   });
 
@@ -17,6 +20,7 @@ class AppCheckboxTile extends StatelessWidget {
   final String? emoji;
   final bool checked;
   final bool busy;
+  final AppCheckboxMark mark;
   final ValueChanged<bool>? onChanged;
 
   @override
@@ -24,6 +28,12 @@ class AppCheckboxTile extends StatelessWidget {
     final onChanged = busy ? null : this.onChanged;
     final subtitle = this.subtitle;
     final emoji = this.emoji;
+    final dashed = checked && mark == AppCheckboxMark.dash;
+    final checkbox = Checkbox(
+      value: dashed ? null : checked,
+      tristate: dashed,
+      onChanged: onChanged == null ? null : (_) => onChanged(!checked),
+    );
     return MergeSemantics(
       child: ListTile(
         enabled: onChanged != null,
@@ -36,8 +46,37 @@ class AppCheckboxTile extends StatelessWidget {
           spacing: Dimens.spaceSm,
           children: [
             if (busy) const _AppCheckboxTileSpinner(),
-            Checkbox(value: checked, onChanged: onChanged == null ? null : (value) => onChanged(value ?? false)),
+            if (dashed) _AppCheckboxTileDash(enabled: onChanged != null, child: checkbox) else checkbox,
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AppCheckboxTileDash extends StatelessWidget {
+  const new({required this.enabled, required this.child});
+
+  final bool enabled;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
+    return Semantics(
+      checked: true,
+      enabled: enabled,
+      child: ExcludeSemantics(
+        child: CheckboxTheme(
+          data: CheckboxTheme.of(context).copyWith(
+            fillColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.disabled) ? null : colorScheme.error,
+            ),
+            checkColor: WidgetStateProperty.resolveWith(
+              (states) => states.contains(WidgetState.disabled) ? null : colorScheme.onError,
+            ),
+          ),
+          child: child,
         ),
       ),
     );
