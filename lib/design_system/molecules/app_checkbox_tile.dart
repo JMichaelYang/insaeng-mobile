@@ -1,6 +1,8 @@
 import 'package:insaeng/design_system/theme/dimens.dart';
 import 'package:material_ui/material_ui.dart';
 
+enum AppCheckboxMark { check, cross }
+
 class AppCheckboxTile extends StatelessWidget {
   const new({
     required this.title,
@@ -9,6 +11,7 @@ class AppCheckboxTile extends StatelessWidget {
     this.subtitle,
     this.emoji,
     this.busy = false,
+    this.mark = AppCheckboxMark.check,
     super.key,
   });
 
@@ -17,6 +20,7 @@ class AppCheckboxTile extends StatelessWidget {
   final String? emoji;
   final bool checked;
   final bool busy;
+  final AppCheckboxMark mark;
   final ValueChanged<bool>? onChanged;
 
   @override
@@ -36,9 +40,31 @@ class AppCheckboxTile extends StatelessWidget {
           spacing: Dimens.spaceSm,
           children: [
             if (busy) const _AppCheckboxTileSpinner(),
-            Checkbox(value: checked, onChanged: onChanged == null ? null : (value) => onChanged(value ?? false)),
+            if (checked && mark == AppCheckboxMark.cross)
+              _AppCheckboxTileCross(onPressed: onChanged == null ? null : () => onChanged(false))
+            else
+              Checkbox(value: checked, onChanged: onChanged == null ? null : (value) => onChanged(value ?? false)),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _AppCheckboxTileCross extends StatelessWidget {
+  const new({required this.onPressed});
+
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      checked: true,
+      enabled: onPressed != null,
+      child: IconButton(
+        onPressed: onPressed,
+        color: ColorScheme.of(context).error,
+        icon: const Icon(Icons.disabled_by_default),
       ),
     );
   }
