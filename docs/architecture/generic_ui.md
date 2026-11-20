@@ -42,6 +42,8 @@ Visual properties take token names, never raw colors, sizes, or fonts. An unknow
 - **Spacing:** `none`, `xs`, `sm`, `md`, `lg`, `xl`.
 - **Alignment:** `start`, `center`, `end`, `stretch`.
 
+An enum that only one node uses, such as a button variant or a checkbox mark, is not a design token and lives in that node's file.
+
 ## Nodes
 
 - Every node has a required `type` and a required `id`. Its other properties depend on the type.

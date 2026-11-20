@@ -120,6 +120,46 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
       });
 
+      testWidgets('defaults to the check mark', (tester) async {
+        await pump(tester, _node);
+
+        expect(tile(tester).mark, AppCheckboxMark.check);
+      });
+
+      const marks = {CheckboxMark.check: AppCheckboxMark.check, CheckboxMark.dash: AppCheckboxMark.dash};
+
+      for (final MapEntry(key: mark, value: appMark) in marks.entries) {
+        testWidgets('maps the literal ${mark.name} mark to $appMark', (tester) async {
+          await pump(
+            tester,
+            CheckboxTileNode(id: 'done', bind: 'todo.done', title: const Literal('Stretch'), mark: Literal(mark)),
+          );
+
+          expect(tile(tester).mark, appMark);
+        });
+      }
+
+      testWidgets('resolves a bound dash mark from the values', (tester) async {
+        await pump(
+          tester,
+          const CheckboxTileNode(id: 'done', bind: 'todo.done', title: Literal('Stretch'), mark: Binding('todo.mark')),
+          values: {
+            'todo': {'done': true, 'mark': CheckboxMark.dash},
+          },
+        );
+
+        expect(tile(tester).mark, AppCheckboxMark.dash);
+      });
+
+      testWidgets('falls back to the check mark when the bound mark is missing', (tester) async {
+        await pump(
+          tester,
+          const CheckboxTileNode(id: 'done', bind: 'todo.done', title: Literal('Stretch'), mark: Binding('todo.mark')),
+        );
+
+        expect(tile(tester).mark, AppCheckboxMark.check);
+      });
+
       for (final checked in [false, true]) {
         testWidgets('writes ${!checked} to the bound path and then runs onChanged when tapped', (tester) async {
           await pump(

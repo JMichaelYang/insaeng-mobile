@@ -1,5 +1,8 @@
 part of '../generic_node.dart';
 
+@MappableEnum(defaultValue: CheckboxMark.check)
+enum CheckboxMark { check, dash }
+
 @MappableClass(discriminatorValue: 'checkboxTile')
 final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
   const new({
@@ -9,6 +12,7 @@ final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
     this.subtitle,
     this.emoji,
     this.busy = const Literal(false),
+    this.mark = const Literal(CheckboxMark.check),
     this.onChanged = const [],
   });
 
@@ -25,6 +29,9 @@ final class CheckboxTileNode extends GenericNode with CheckboxTileNodeMappable {
 
   @MappableField(hook: BindableHook<bool>())
   final Bindable<bool> busy;
+
+  @MappableField(hook: BindableHook<CheckboxMark>())
+  final Bindable<CheckboxMark> mark;
 
   final List<GenericAction> onChanged;
 

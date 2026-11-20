@@ -61,6 +61,7 @@
                       "busy": false,
                       "checked": false,
                       "emoji": "✅",
+                      "mark": "check",
                       "title": "Gym"
                     },
                     "tap": {
@@ -77,6 +78,7 @@
                       "busy": false,
                       "checked": true,
                       "emoji": "✅",
+                      "mark": "check",
                       "subtitle": "9:00 – 10:30 AM",
                       "title": "Team meeting"
                     },
@@ -94,6 +96,7 @@
                       "busy": false,
                       "checked": true,
                       "emoji": "✅",
+                      "mark": "check",
                       "subtitle": "12:30 PM · Skipped",
                       "title": "Lunch"
                     },
