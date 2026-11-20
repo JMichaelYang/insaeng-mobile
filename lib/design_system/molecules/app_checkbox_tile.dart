@@ -40,10 +40,11 @@ class AppCheckboxTile extends StatelessWidget {
           spacing: Dimens.spaceSm,
           children: [
             if (busy) const _AppCheckboxTileSpinner(),
-            if (checked && mark == AppCheckboxMark.cross)
-              _AppCheckboxTileCross(onPressed: onChanged == null ? null : () => onChanged(false))
-            else
-              Checkbox(value: checked, onChanged: onChanged == null ? null : (value) => onChanged(value ?? false)),
+            _AppCheckboxTileBox(
+              checked: checked,
+              mark: mark,
+              onPressed: onChanged == null ? null : () => onChanged(!checked),
+            ),
           ],
         ),
       ),
@@ -51,20 +52,26 @@ class AppCheckboxTile extends StatelessWidget {
   }
 }
 
-class _AppCheckboxTileCross extends StatelessWidget {
-  const new({required this.onPressed});
+class _AppCheckboxTileBox extends StatelessWidget {
+  const new({required this.checked, required this.mark, required this.onPressed});
 
+  final bool checked;
+  final AppCheckboxMark mark;
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = ColorScheme.of(context);
+    final (icon, color) = switch ((checked, mark)) {
+      (false, _) => (Icons.check_box_outline_blank, colorScheme.onSurfaceVariant),
+      (true, AppCheckboxMark.check) => (Icons.check_box, colorScheme.primary),
+      (true, AppCheckboxMark.cross) => (Icons.disabled_by_default, colorScheme.error),
+    };
     return Semantics(
-      checked: true,
+      checked: checked,
       enabled: onPressed != null,
-      child: IconButton(
-        onPressed: onPressed,
-        color: ColorScheme.of(context).error,
-        icon: const Icon(Icons.disabled_by_default),
+      child: ExcludeSemantics(
+        child: IconButton(onPressed: onPressed, color: color, icon: Icon(icon)),
       ),
     );
   }
