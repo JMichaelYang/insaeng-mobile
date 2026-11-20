@@ -44,6 +44,7 @@ abstract final class MyDayPageMapper {
 
   static const _doneStatus = 'Done';
   static const _skippedStatus = 'Skipped';
+  static const _canceledStatus = 'Canceled';
 
   static const GenericPage widgetConnectPage = GenericPage(
     id: widgetPageId,
@@ -167,8 +168,11 @@ abstract final class MyDayPageMapper {
     ],
   );
 
-  static List<_Task> _dayTasks(Iterable<Map<String, Object?>> rows, DateTime day) =>
-      rows.map(_task).nonNulls.where((task) => _isSameDay(task.start, day)).sortedByCompare((task) => task, _compare);
+  static List<_Task> _dayTasks(Iterable<Map<String, Object?>> rows, DateTime day) => rows
+      .map(_task)
+      .nonNulls
+      .where((task) => _isSameDay(task.start, day) && task.status != _canceledStatus)
+      .sortedByCompare((task) => task, _compare);
 
   static DayPickerNode _dayPicker(String id, DateTime day, DateTime today) => DayPickerNode(
     id: 'dayPicker',
