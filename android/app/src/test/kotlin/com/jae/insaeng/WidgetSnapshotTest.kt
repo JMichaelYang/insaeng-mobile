@@ -87,6 +87,12 @@ class WidgetSnapshotTest {
         assertEquals(false, meeting.boolean("busy"))
         assertEquals(WidgetTap.Event(nodeId = "task-meeting", event = "onChanged"), meeting.tap)
 
+        val lunch = tasks.children[2]
+        assertEquals("Lunch", lunch.string("title"))
+        assertEquals("12:30 PM · Skipped", lunch.string("subtitle"))
+        assertEquals(true, lunch.boolean("checked"))
+        assertEquals("dash", lunch.string("mark"))
+
         val footer = root.children[3]
         assertEquals("footer", footer.id)
         assertEquals("center", footer.string("alignment"))

@@ -176,6 +176,8 @@ Map<String, Bindable<String>?> _subtitles(GenericPage page) => {
   for (final tile in _tiles(page)) tile.id: tile.subtitle,
 };
 
+Map<String, Bindable<CheckboxMark>> _marks(GenericPage page) => {for (final tile in _tiles(page)) tile.id: tile.mark};
+
 void main() {
   group(MyDayPageMapper, () {
     test('builds an app bar, a day picker, a progress bar, and a refreshable scroll with a tile per row', () {
@@ -499,6 +501,24 @@ void main() {
         'task-noStatus': null,
         'task-skippedMeeting': const Literal('9:00 AM · ${MyDayPageMapper.skippedText}'),
       });
+    });
+
+    test('marks skipped rows with a dash and every other row with a check on both pages', () {
+      final rows = [
+        _row('done', start: '2026-11-15', status: 'Done'),
+        _row('skipped', start: '2026-11-15', status: 'Skipped'),
+        _row('todo', start: '2026-11-15', status: 'To do'),
+        _row('noStatus', start: '2026-11-15'),
+      ];
+      const marks = {
+        'task-todo': Literal(CheckboxMark.check),
+        'task-noStatus': Literal(CheckboxMark.check),
+        'task-done': Literal(CheckboxMark.check),
+        'task-skipped': Literal(CheckboxMark.dash),
+      };
+
+      expect(_marks(_map(rows)), marks);
+      expect(_marks(_mapWidget(rows)), marks);
     });
 
     test('joins the title text and skips rows without a date', () {

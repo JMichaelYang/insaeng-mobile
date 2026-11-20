@@ -242,6 +242,7 @@ abstract final class MyDayPageMapper {
         null => null,
       },
       busy: Binding(savingPath, fallback: false),
+      mark: Literal(task.status == _skippedStatus ? CheckboxMark.dash : CheckboxMark.check),
       onChanged: [
         UpdateStateAction(path: savingPath, value: const Literal(true)),
         RequestAction(

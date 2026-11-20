@@ -96,7 +96,7 @@
                       "busy": false,
                       "checked": true,
                       "emoji": "✅",
-                      "mark": "check",
+                      "mark": "dash",
                       "subtitle": "12:30 PM · Skipped",
                       "title": "Lunch"
                     },
