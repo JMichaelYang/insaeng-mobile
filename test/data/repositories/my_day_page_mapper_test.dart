@@ -428,7 +428,7 @@ void main() {
       expect(_ids(page), ['task-allDayFirst', 'task-allDaySecond', 'task-morning', 'task-noon', 'task-afternoon']);
     });
 
-    test('puts completed rows last, most recently completed first', () {
+    test('puts done rows after open ones and skipped rows last, each most recently edited first', () {
       final page = _map([
         _row('doneEarly', start: '2026-11-15', status: 'Done', edited: _utc(DateTime(2026, 11, 15, 8))),
         _row('afternoon', start: _utc(DateTime(2026, 11, 15, 14)), status: 'To do'),
@@ -458,17 +458,33 @@ void main() {
           status: 'Done',
           edited: _utc(DateTime(2026, 11, 15, 9)),
         ),
+        _row('skippedUnknown', start: '2026-11-15', status: 'Skipped'),
+        _row(
+          'skippedTieLater',
+          start: _utc(DateTime(2026, 11, 15, 13)),
+          status: 'Skipped',
+          edited: _utc(DateTime(2026, 11, 15, 7)),
+        ),
+        _row(
+          'skippedTieEarlier',
+          start: _utc(DateTime(2026, 11, 15, 12)),
+          status: 'Skipped',
+          edited: _utc(DateTime(2026, 11, 15, 7)),
+        ),
       ]);
 
       expect(_ids(page), [
         'task-allDay',
         'task-afternoon',
-        'task-skippedLate',
         'task-doneMid',
         'task-doneTieEarlier',
         'task-doneTieLater',
         'task-doneEarly',
         'task-doneUnknown',
+        'task-skippedLate',
+        'task-skippedTieEarlier',
+        'task-skippedTieLater',
+        'task-skippedUnknown',
       ]);
     });
 
@@ -580,8 +596,14 @@ void main() {
   });
 
   group('$MyDayPageMapper.widgetFromRows', () {
-    test('orders tiles like the app, with completed rows last and most recent first', () {
+    test('orders tiles like the app, with done rows after open ones and skipped rows last', () {
       final rows = [
+        _row(
+          'skippedLatest',
+          start: _utc(DateTime(2026, 11, 15, 8)),
+          status: 'Skipped',
+          edited: _utc(DateTime(2026, 11, 15, 12)),
+        ),
         _row('doneEarly', start: '2026-11-15', status: 'Done', edited: _utc(DateTime(2026, 11, 15, 8))),
         _row('open', start: _utc(DateTime(2026, 11, 15, 14))),
         _row(
@@ -592,7 +614,7 @@ void main() {
         ),
       ];
 
-      expect(_ids(_mapWidget(rows)), ['task-open', 'task-doneLate', 'task-doneEarly']);
+      expect(_ids(_mapWidget(rows)), ['task-open', 'task-doneLate', 'task-doneEarly', 'task-skippedLatest']);
       expect(_ids(_mapWidget(rows)), _ids(_map(rows)));
     });
 

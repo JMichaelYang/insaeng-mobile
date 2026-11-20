@@ -334,14 +334,19 @@ abstract final class MyDayPageMapper {
 
   static String _period(DateTime time) => time.hour < 12 ? 'AM' : 'PM';
 
-  static int _compare(_Task a, _Task b) => switch ((_isChecked(a), _isChecked(b))) {
-    (false, true) => -1,
-    (true, false) => 1,
-    (true, true) => switch (_compareCompletion(a, b)) {
+  static int _compare(_Task a, _Task b) => switch (_group(a).compareTo(_group(b))) {
+    0 when _isChecked(a) => switch (_compareCompletion(a, b)) {
       0 => _compareSchedule(a, b),
       final order => order,
     },
-    (false, false) => _compareSchedule(a, b),
+    0 => _compareSchedule(a, b),
+    final order => order,
+  };
+
+  static int _group(_Task task) => switch (task.status) {
+    _doneStatus => 1,
+    _skippedStatus => 2,
+    _ => 0,
   };
 
   static int _compareCompletion(_Task a, _Task b) => switch ((a.editedAt, b.editedAt)) {
