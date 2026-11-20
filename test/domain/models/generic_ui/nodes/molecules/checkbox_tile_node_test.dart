@@ -61,7 +61,7 @@ void main() {
     });
 
     test('decodes every mark', () {
-      for (final mark in CheckboxMarkToken.values) {
+      for (final mark in CheckboxMark.values) {
         expect(
           _decode({'type': 'checkboxTile', 'id': 'done', 'bind': 'todo.done', 'title': 'Done', 'mark': mark.name}),
           CheckboxTileNode(id: 'done', bind: 'todo.done', title: const Literal('Done'), mark: Literal(mark)),
@@ -73,7 +73,7 @@ void main() {
     test('defaults the mark to check when absent', () {
       final node = _decode({'type': 'checkboxTile', 'id': 'done', 'bind': 'todo.done', 'title': 'Done'});
 
-      expect((node as CheckboxTileNode).mark, const Literal(CheckboxMarkToken.check));
+      expect((node as CheckboxTileNode).mark, const Literal(CheckboxMark.check));
     });
 
     test('falls back to check for an unknown mark', () {
@@ -96,15 +96,12 @@ void main() {
           id: 'done',
           bind: 'todo.done',
           title: Literal('Done'),
-          mark: Binding('todo.mark', fallback: CheckboxMarkToken.dash),
+          mark: Binding('todo.mark', fallback: CheckboxMark.dash),
         ),
       );
     });
 
-    for (final mark in [
-      const Literal(CheckboxMarkToken.dash),
-      const Binding('todo.mark', fallback: CheckboxMarkToken.dash),
-    ]) {
+    for (final mark in [const Literal(CheckboxMark.dash), const Binding('todo.mark', fallback: CheckboxMark.dash)]) {
       test('round trips a ${mark.runtimeType} mark through JSON', () {
         final node = CheckboxTileNode(id: 'done', bind: 'todo.done', title: const Literal('Done'), mark: mark);
 

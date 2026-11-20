@@ -360,13 +360,13 @@ void main() {
         id: 'task',
         bind: 'tasks.a.done',
         title: Literal('Gym'),
-        mark: Binding('tasks.a.mark', fallback: CheckboxMarkToken.check),
+        mark: Binding('tasks.a.mark', fallback: CheckboxMark.check),
       );
 
       expect(
         _resolveNode(tile, {
           'tasks': {
-            'a': {'done': true, 'mark': CheckboxMarkToken.dash},
+            'a': {'done': true, 'mark': CheckboxMark.dash},
           },
         }).props['mark'],
         'dash',
@@ -374,12 +374,7 @@ void main() {
       expect(_resolveNode(tile).props['mark'], 'check');
       expect(
         _resolveNode(
-          const CheckboxTileNode(
-            id: 'task',
-            bind: 'done',
-            title: Literal('Gym'),
-            mark: Literal(CheckboxMarkToken.dash),
-          ),
+          const CheckboxTileNode(id: 'task', bind: 'done', title: Literal('Gym'), mark: Literal(CheckboxMark.dash)),
         ).props['mark'],
         'dash',
       );

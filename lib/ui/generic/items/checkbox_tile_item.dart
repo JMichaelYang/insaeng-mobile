@@ -12,7 +12,7 @@ class CheckboxTileItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mark = context.watchBindable(node.mark) ?? CheckboxMarkToken.check;
+    final mark = context.watchBindable(node.mark) ?? CheckboxMark.check;
     return AppCheckboxTile(
       title: context.watchBindable(node.title) ?? '',
       subtitle: context.watchBindable(node.subtitle),
@@ -20,8 +20,8 @@ class CheckboxTileItem extends StatelessWidget {
       checked: context.watchBindable(Binding<bool>(node.bind)) ?? false,
       busy: context.watchBindable(node.busy) ?? false,
       mark: switch (mark) {
-        CheckboxMarkToken.check => AppCheckboxMark.check,
-        CheckboxMarkToken.dash => AppCheckboxMark.dash,
+        CheckboxMark.check => AppCheckboxMark.check,
+        CheckboxMark.dash => AppCheckboxMark.dash,
       },
       onChanged: (checked) =>
           context.dispatch([UpdateStateAction(path: node.bind, value: Literal(checked)), ...node.onChanged]),

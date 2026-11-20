@@ -126,7 +126,7 @@ void main() {
         expect(tile(tester).mark, AppCheckboxMark.check);
       });
 
-      const marks = {CheckboxMarkToken.check: AppCheckboxMark.check, CheckboxMarkToken.dash: AppCheckboxMark.dash};
+      const marks = {CheckboxMark.check: AppCheckboxMark.check, CheckboxMark.dash: AppCheckboxMark.dash};
 
       for (final MapEntry(key: mark, value: appMark) in marks.entries) {
         testWidgets('maps the literal ${mark.name} mark to $appMark', (tester) async {
@@ -144,7 +144,7 @@ void main() {
           tester,
           const CheckboxTileNode(id: 'done', bind: 'todo.done', title: Literal('Stretch'), mark: Binding('todo.mark')),
           values: {
-            'todo': {'done': true, 'mark': CheckboxMarkToken.dash},
+            'todo': {'done': true, 'mark': CheckboxMark.dash},
           },
         );
 
