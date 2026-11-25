@@ -25,7 +25,7 @@ final GetIt getIt = GetIt.instance;
 
 const backgroundFlavorKey = 'flavor';
 
-void configureDependencies(Flavor flavor) {
+void configureDependencies(Flavor flavor, {bool background = false}) {
   getIt
     ..registerSingleton<Flavor>(flavor)
     ..registerLazySingleton<Client>(Client.new)
@@ -33,7 +33,7 @@ void configureDependencies(Flavor flavor) {
     ..registerLazySingleton(Workmanager.new)
     ..registerLazySingleton(() => BackgroundTaskService(getIt()))
     ..registerLazySingleton(() => const HomeWidgetService())
-    ..registerLazySingleton(() => NotionService(getIt()))
+    ..registerLazySingleton(() => NotionService(getIt(), persistentConnection: !background))
     ..registerLazySingleton(() => SecureStorageService(getIt()))
     ..registerLazySingleton<BackgroundTaskRepository>(
       () => BackgroundTaskRepositoryImpl(getIt(), inputData: {backgroundFlavorKey: flavor.name}),

@@ -36,7 +36,7 @@ Future<void> bootstrap(Flavor flavor) async {
 }
 
 void bootstrapBackground(Flavor flavor) {
-  if (!getIt.isRegistered<Flavor>()) configureDependencies(flavor);
+  if (!getIt.isRegistered<Flavor>()) configureDependencies(flavor, background: true);
 }
 
 @pragma('vm:entry-point')

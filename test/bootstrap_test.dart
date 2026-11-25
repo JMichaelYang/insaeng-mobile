@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:insaeng/bootstrap.dart';
 import 'package:insaeng/config/dependencies.dart';
 import 'package:insaeng/config/flavor.dart';
+import 'package:insaeng/data/services/notion_service.dart';
 import 'package:insaeng/data/services/widget_event_service.dart';
 import 'package:insaeng/domain/repositories/background_task_repository.dart';
 import 'package:insaeng/domain/result.dart';
@@ -31,6 +32,12 @@ void main() {
         expect(getIt<RefreshHomeWidgetUseCase>(), isA<RefreshHomeWidgetUseCase>());
       });
     }
+
+    test('configures the Notion service without persistent connections', () {
+      bootstrapBackground(Flavor.prod);
+
+      expect(getIt<NotionService>().persistentConnection, isFalse);
+    });
 
     test('keeps dependencies that are already configured', () {
       bootstrapBackground(Flavor.dev);

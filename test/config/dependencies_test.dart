@@ -41,6 +41,18 @@ void main() {
         expect(getIt<NotionService>(), isA<NotionService>());
       });
 
+      test('registers the Notion service with persistent connections by default for ${flavor.name}', () {
+        configureDependencies(flavor);
+
+        expect(getIt<NotionService>().persistentConnection, isTrue);
+      });
+
+      test('registers the Notion service without persistent connections in the background for ${flavor.name}', () {
+        configureDependencies(flavor, background: true);
+
+        expect(getIt<NotionService>().persistentConnection, isFalse);
+      });
+
       test('registers the secure storage service for ${flavor.name}', () {
         configureDependencies(flavor);
 
