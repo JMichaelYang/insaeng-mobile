@@ -4,4 +4,6 @@
     <string name="my_day_widget_label">My Day</string>
     <string name="my_day_widget_description">See and check off today\'s tasks.</string>
     <string name="my_day_widget_loading">Open the app to load today\'s tasks.</string>
+    <string name="widget_event_channel_name">Widget updates</string>
+    <string name="widget_event_notification">Updating My Day…</string>
 </resources>
