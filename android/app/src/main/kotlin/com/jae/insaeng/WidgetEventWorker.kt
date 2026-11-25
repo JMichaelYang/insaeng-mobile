@@ -6,6 +6,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequest
 import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.OutOfQuotaPolicy
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
@@ -27,6 +28,7 @@ class WidgetEventWorker(context: Context, params: WorkerParameters) : CoroutineW
             OneTimeWorkRequestBuilder<WidgetEventWorker>()
                 .setInputData(workDataOf(URI_KEY to uri))
                 .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build())
+                .setExpedited(OutOfQuotaPolicy.RUN_AS_NON_EXPEDITED_WORK_REQUEST)
                 .build()
 
         fun enqueue(context: Context, uri: String) {
