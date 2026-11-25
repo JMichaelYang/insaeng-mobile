@@ -5,7 +5,19 @@ import 'package:http/http.dart';
 import 'package:http/testing.dart';
 import 'package:insaeng/data/services/notion_service.dart';
 
-NotionService _service(Future<Response> Function(Request request) handler) => NotionService(MockClient(handler));
+NotionService _service(Future<Response> Function(Request request) handler, {bool persistentConnection = true}) =>
+    NotionService(MockClient(handler), persistentConnection: persistentConnection);
+
+final class _HangingClient extends BaseClient {
+  @override
+  Future<StreamedResponse> send(BaseRequest request) async {
+    if (request case Abortable(:final abortTrigger?)) {
+      await abortTrigger;
+      throw RequestAbortedException(request.url);
+    }
+    throw StateError('Request is not abortable');
+  }
+}
 
 Future<Map<String, Object?>> _query(NotionService service) =>
     service.queryDataSource('secret', 'ds-1', const {'page_size': 10});
@@ -85,6 +97,22 @@ void main() {
     });
 
     for (final MapEntry(key: name, value: call) in _endpoints.entries) {
+      group('$name connections', () {
+        for (final persistent in [true, false]) {
+          test('sends persistentConnection $persistent when configured with $persistent', () async {
+            late Request sent;
+            final service = _service((request) async {
+              sent = request;
+              return Response('{}', 200);
+            }, persistentConnection: persistent);
+
+            await call(service);
+
+            expect(sent.persistentConnection, persistent);
+          });
+        }
+      });
+
       group('$name errors', () {
         test('throws unauthorized on 401', () {
           final service = _service((_) async => Response('{"code": "unauthorized"}', 401));
@@ -130,6 +158,12 @@ void main() {
           final service = _service((_) async => throw failure);
 
           expect(call(service), throwsA(isA<NotionNetworkException>().having((e) => e.cause, 'cause', failure)));
+        });
+
+        test('throws a network exception when the response does not arrive before the timeout', () {
+          final service = NotionService(_HangingClient(), timeout: const Duration(milliseconds: 10));
+
+          expect(call(service), throwsA(isA<NotionNetworkException>()));
         });
 
         test('throws a format exception when the response is not a JSON object', () {

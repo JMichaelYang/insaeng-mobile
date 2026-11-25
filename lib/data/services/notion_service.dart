@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart';
@@ -42,34 +43,40 @@ final class NotionNetworkException extends NotionException {
 }
 
 class NotionService {
-  const new(this._client);
+  const new(this._client, {this.timeout = defaultTimeout, this.persistentConnection = true});
 
   static final Uri baseUri = Uri.parse('https://api.notion.com/v1/');
   static const version = '2026-03-11';
+  static const defaultTimeout = Duration(seconds: 15);
 
   final Client _client;
+  final Duration timeout;
+  final bool persistentConnection;
 
   Future<Map<String, Object?>> queryDataSource(String token, String dataSourceId, Map<String, Object?> body) =>
-      _send(_client.post, token, 'data_sources/${Uri.encodeComponent(dataSourceId)}/query', body);
+      _send('POST', token, 'data_sources/${Uri.encodeComponent(dataSourceId)}/query', body);
 
   Future<Map<String, Object?>> updatePage(String token, String pageId, Map<String, Object?> properties) =>
-      _send(_client.patch, token, 'pages/${Uri.encodeComponent(pageId)}', {'properties': properties});
+      _send('PATCH', token, 'pages/${Uri.encodeComponent(pageId)}', {'properties': properties});
 
-  Future<Map<String, Object?>> _send(
-    Future<Response> Function(Uri url, {Map<String, String>? headers, Object? body}) method,
-    String token,
-    String path,
-    Map<String, Object?> body,
-  ) async {
+  Future<Map<String, Object?>> _send(String method, String token, String path, Map<String, Object?> body) async {
+    final abort = Completer<void>();
+    final timer = Timer(timeout, abort.complete);
+    final request = AbortableRequest(method, baseUri.resolve(path), abortTrigger: abort.future)
+      ..persistentConnection = persistentConnection
+      ..headers.addAll({
+        'Authorization': 'Bearer $token',
+        'Notion-Version': version,
+        'Content-Type': 'application/json',
+      })
+      ..body = jsonEncode(body);
     final Response response;
     try {
-      response = await method(
-        baseUri.resolve(path),
-        headers: {'Authorization': 'Bearer $token', 'Notion-Version': version, 'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
+      response = await Response.fromStream(await _client.send(request));
     } on ClientException catch (e) {
       throw NotionNetworkException(e);
+    } finally {
+      timer.cancel();
     }
     return switch (response.statusCode) {
       >= 200 && < 300 => _decode(response),
