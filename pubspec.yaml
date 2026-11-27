@@ -28,7 +28,7 @@ dependencies:
   workmanager: ^0.10.10
 
 dev_dependencies:
-  alchemist: ^0.14.1
+  alchemist: ^0.15.0
   bloc_test: ^10.0.0
   build_runner: ^2.17.1
   dart_mappable_builder: ^4.10.0
